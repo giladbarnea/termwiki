@@ -1,0 +1,6 @@
+Arguments
+	# check if no cmd args
+	if (( $# == 0 )) ; then
+	
+	${*:2} c|or|c ${@:2}      # 2nd and following pos params
+	${*:2:3}                # three pos params, starting from 2nd

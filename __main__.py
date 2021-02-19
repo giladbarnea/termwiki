@@ -1,5 +1,5 @@
 # from mytool.util.debug import ExcHandler
-from . import myman
+
 # import os
 # import sys
 # from IPython.core import ultratb
@@ -7,7 +7,17 @@ from . import myman
 # sys.excepthook = ultratb.VerboseTB(include_vars=False)
 
 if __name__ == '__main__':
-    myman.main()
+    from . import myman
+    import sys
+
+    for arg in sys.argv:
+        if arg.startswith('--new='):
+            newtopic = arg[6:]
+            myman.create_new_manual(newtopic)
+            break
+    else:
+        myman.main()
+
     # try:
     # except Exception as e:
     #

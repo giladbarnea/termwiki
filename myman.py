@@ -1,52 +1,73 @@
 #!/usr/bin/env python3.8
+"""
+get_main_topics() is called to popuplate MAIN_TOPICS.
+"""
 import inspect
+import logging
 import re
 import sys
 from functools import wraps
-from typing import Dict, List, Union, Callable, Any, Tuple
+from typing import Callable, Union
+from typing import Dict, List, Any, Tuple
 
 import click
-from igit import prompt
 from igit import search
-from igit.util.clickex import unrequired_opt
-
 from more_termcolor import cprint
 
-from mytool.tipes import ManFn
+import prompt
+from common.click_extension import unrequired_opt
+
+
+# stuff from manuals.py to ignore when dir'ing manuals module
+from common.types import ManFn
 
 EXCLUDE = [
     # imports
     'inspect',
     're',
+
+    # functools
     'wraps',
+
+    # typing
     'Literal',
     'Dict',
     'Type',
-    'Lexer',
+    'Union',
+
+    # formatting
     'h1',
     'h2',
     'h3',
     'h4',
+    'h5',
     'b',
     'c',
     'i',
     'black',
+    'bg',
     'ManFn',
+
+    # pygments
+    'Lexer',
     'pyglight',
     'TerminalTrueColorFormatter',
+    'get_lexer_by_name',
+    'BashLexer',
+    'CssLexer',
+    'DockerLexer',
+    'IniLexer',
+    'JavascriptLexer',
+    'JsonLexer',
     'MySqlLexer',
     'PythonLexer',
-    'CssLexer',
+    'SassLexer',
     'TypeScriptLexer',
-    'BashLexer',
-    'IniLexer',
-    'get_lexer_by_name',
-    'JsonLexer',
-    'JavascriptLexer',
-    
-    # vars
-    'newline',
+
+    # module-level vars
+    'linebreak',
     'backslash',
+    # 'color',
     'Style',
     'Language',
     'langs',
@@ -54,15 +75,15 @@ EXCLUDE = [
     'HIGHLIGHT_END_RE',
     'formatters',
     'lexers',
-    
+
     # functions
     '_get_lexer_ctor',
     '_get_lexer',
     '_get_color_formatter',
-    'highlight',
+    '_highlight',
     'alias',
     'syntax',
-    
+
     # module magics
     '__annotations__',
     '__builtins__',
@@ -73,13 +94,15 @@ EXCLUDE = [
     '__name__',
     '__package__',
     '__spec__'
-    ]
+]
 brightprint = lambda s, *colors: cprint(s, 'bright white', *colors)
 sub_topic_re = re.compile(r'_[A-Z]*\s?=\s?(rf|fr|f)"""')
 perform_checks = any(arg == '--check' for arg in sys.argv)
 module = dict(igit=dict())
 
 
+# noinspection PyUnresolvedReferences
+# This is only called by itself right now, no actual usage
 def fromigit(dotnames, igitmod=None, module_subdict: dict = None):
     """
     Examples
@@ -95,27 +118,27 @@ def fromigit(dotnames, igitmod=None, module_subdict: dict = None):
     #  it's tricky because 'prompt' can be used directly e.g. prompt.choose, or indirectly e.g. prompt.Flow.CONTINUE
     #  need to decide, if I allow fromigit('prompt').choose then fromigit('prompt') must be a module and not a dict.
     #  in which case, how to avoid importing too much when fromigit('prompt.Flow')?
-    
+
     ## possible scenarios:
     # dotnames = 'prompt', igitmod = None, module_subdict = None →
     #   dotnames = 'prompt', igitmod = igit, module_subdict = module['igit'] →
-    
+
     # dotnames = 'prompt.Flow', igitmod = None, module_subdict = None →
     #   dotnames = 'prompt.Flow', igitmod = igit, module_subdict = module['igit'] →
-    
+
     # dotnames = 'util.clickex.unrequired_opt', igitmod = None, module_subdict = None →
-    
+
     if module_subdict is None:
         # assuming igitmod is None also
         import igit
         return fromigit(dotnames, igitmod=igit, module_subdict=module['igit'])
-    
+
     name, _, nestednames = dotnames.partition('.')
     cachedval = module_subdict.get(name)
     if cachedval is None:
         nestedmod = getattr(igitmod, name)  # actual import, so nestedmod may be prompt
         module_subdict[name] = dict()  # initialize e.g. module['igit']['prompt'] = prompt
-        
+
         if nestednames:
             # e.g. nestednames='clickex.unrequired_opt'; nestedmod=util; module_subdict[name]=dict()
             val = fromigit(nestednames, igitmod=nestedmod, module_subdict=module_subdict[name])
@@ -124,7 +147,7 @@ def fromigit(dotnames, igitmod=None, module_subdict: dict = None):
             val = nestedmod
             module_subdict[name] = val
             return val
-    
+
     else:
         ## cachedval is a dict
         if nestednames:
@@ -145,39 +168,52 @@ def fromigit(dotnames, igitmod=None, module_subdict: dict = None):
     return val
 
 
-def logger() -> 'Loggr':
-    _logger = module.get('logger')
-    if _logger is not None:
-        return _logger
-    
-    # 'logger' not in module; construct one
-    from igit_debug.loggr import Loggr
-    module['logger'] = Loggr(__name__)
-    return module['logger']
+# def logger() -> ForwardRef('Loggr'):
+#     _logger = module.get('logger')
+#     if _logger is not None:
+#         return _logger
+#     # 'logger' not in module; construct one
+#     IGIT_LOG_LEVEL = os.environ.get('IGIT_LOG_LEVEL', '')
+#     if IGIT_LOG_LEVEL.lower() == 'none':
+#         class Loggr:
+#             def __init__(self, *args, **kwargs):
+#                 pass
+#
+#             def __getattribute__(self, item):
+#                 return self
+#
+#             def __call__(self, *args, **kwargs):
+#                 return self
+#
+#     else:
+#         print('myman.py importing igit_debug Loggr')
+#         from igit_debug.loggr import Loggr
+#     module['logger'] = Loggr(__name__)
+#     return module['logger']
 
 
+# used by print_topic()
 def printrv(fn):
     @wraps(fn)
     def wrap(*args, **kwargs):
         rv = fn(*args, **kwargs)
         print(rv)
         return rv
-    
+
     return wrap
 
 
-def draw_out_decorated_fn(fn: ManFn):
+def draw_out_decorated_fn(fn: ManFn) -> Callable:
     closure: tuple = fn.__closure__
     if not closure:
         # non-decorated functions' closure is None
         return fn
-    
     return closure[-1].cell_contents
 
 
 def get_main_topics() -> Dict[str, ManFn]:
-    # (dict of functions)
-    from mytool.myman import manuals
+    """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `manuals` module"""
+    import manuals
     main_topics = dict()
     for main_topic in dir(manuals):
         if main_topic in EXCLUDE:
@@ -187,6 +223,7 @@ def get_main_topics() -> Dict[str, ManFn]:
             continue
         # noinspection PyUnresolvedReferences
         if not fn.__module__.endswith('.manuals'):
+            # This happens when something is missing in EXCLUDE, oversight from my part
             continue
         if main_topic.endswith('_'):  # inspect_()
             name = main_topic[:-1]
@@ -200,7 +237,7 @@ def get_main_topics() -> Dict[str, ManFn]:
             pass
         else:
             main_topics[alias] = fn
-    
+
     return main_topics
 
 
@@ -224,21 +261,22 @@ def check_unprinted_subtopics(undecorated_main_topic_fn):
 
 
 def get_sub_topics() -> Dict[str, Union[List[ManFn], ManFn]]:
-    """Returns e.g. `{ 'diff' : git }`"""
+    """Sets bash.sub_topics = [ "cut" , "for" ] for each MAIN_TOPICS.
+    Removes (d)underscore and lowers _CUT and __FOR.
+    Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
     # var_reg = r'_[A-Z0-9_]*'
     # matches `_SUBTOPIC = fr"""..."""` and `_ST = _SUBTOPIC`
     # sub_topic_reg = re.compile(fr'\s*{var_reg}\s?=\s?(r?fr?""".*|{var_reg})\n')
     # subject_sig_re = re.compile(r'subject\s?=\s?None')
-    
+
     sub_topics = dict()
     # populate sub topics as main_topics
     # global perform_checks
     for main_topic_fn in list(MAIN_TOPICS.values()):
-        
+
         # sub_topic_var_names = [n for n in draw_out_decorated_fn(main_topic_fn).__code__.co_varnames if n.isupper()]
         # draw_out_decorated_fn is necessary because MAIN_TOPICS has to store the fns in the wrapped form (to call them later)
         setattr(main_topic_fn, 'sub_topics', [])
-        # main_topic_fn.sub_topics = []
         undecorated_main_topic_fn = draw_out_decorated_fn(main_topic_fn)
         sub_topic_var_names = get_sub_topic_var_names(undecorated_main_topic_fn)
         if not sub_topic_var_names:
@@ -248,20 +286,25 @@ def get_sub_topics() -> Dict[str, Union[List[ManFn], ManFn]]:
         # lines[1]: decorated functions' first line is the @decorator
         # if not 'subject' in inspect.getfullargspec(main_topic_fn).args:
         #     continue
-        
+
         # lines = [l.strip() for l in lines if re.fullmatch(sub_topic_reg, l)]
         # if not lines:  # has subject=None in sig but no actual sub topic vars
         #     continue
-        
+
         if perform_checks:
             check_unprinted_subtopics(undecorated_main_topic_fn)
-        
+
         for sub_topic_var_name in sub_topic_var_names:
+            # DONT account for dunder __ARGUMENTS, it's being handled by print_sub_topic().
+            # If handled here, eventually bash('_ARGUMENTS') is called which errors.
+            # if (stripped := sub_topic_var_name.strip()).startswith('__'):
+            #     sub_topic_var_name = stripped.lower()[2:]
+            # else:  # starts with single '_'
+            #     sub_topic_var_name = stripped.lower()[1:]
             sub_topic_var_name = sub_topic_var_name.strip().lower()[1:]
-            
             main_topic_fn.sub_topics.append(sub_topic_var_name)
             if sub_topic_var_name in sub_topics:
-                # duplicate subtopic, different functions
+                # this means duplicate subtopic, for different main topics
                 # in that case, the value is set to be a list of subtopics
                 if isinstance(sub_topics[sub_topic_var_name], list):
                     sub_topics[sub_topic_var_name].append(main_topic_fn)
@@ -269,9 +312,9 @@ def get_sub_topics() -> Dict[str, Union[List[ManFn], ManFn]]:
                     # create a new list
                     sub_topics[sub_topic_var_name] = [sub_topics[sub_topic_var_name], main_topic_fn]
             else:
-                # value is set to be simply the function if no duplicates
+                # no duplicate sub topics; value is set to be simply the function
                 sub_topics[sub_topic_var_name] = main_topic_fn
-    
+
     return sub_topics
 
 
@@ -282,11 +325,13 @@ def fuzzy_find_topic(topic, collection, *extra_opts, raise_if_exhausted=False, *
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
     # not even a subtopic, could be gibberish
     # try assuming it's a substring
-    
     for maybes, is_last in search.iter_maybes(topic, collection, criterion='substring'):
         if not maybes:
             continue
-        kwargs = dict(E='Edit manuals.py with pycharm')
+
+        kwargs = dict(Ep='Edit manuals.py with pycharm', Ec='Edit manuals.py with vscode',
+                      Em='Edit manuals.py with micro')
+
         if is_last and raise_if_exhausted:
             kwargs.update(dict(flowopts='quit'))
         else:
@@ -296,10 +341,15 @@ def fuzzy_find_topic(topic, collection, *extra_opts, raise_if_exhausted=False, *
                                     **extra_kw_opts)
         if choice == prompt.Flow.CONTINUE:
             continue
-        if key == 'E':
+        if isinstance(key, str) and key.startswith('E'):
             import os
             manualsfile = os.path.join(os.path.dirname(__file__), 'manuals.py')
-            os.system(f'pycharm "{manualsfile}"')
+            if key == 'Ep':
+                os.system(f'pycharm "{manualsfile}"')
+            if key == 'Ec':
+                os.system(f'code "{manualsfile}"')
+            if key == 'Em':
+                os.system(f'micro "{manualsfile}"')
             sys.exit()
         return key, choice.value
     if raise_if_exhausted:
@@ -337,22 +387,21 @@ def print_sub_topic(main_topic: str, sub_topic: str):
                                           |         \
                                         [return]   KeyError!
     """
-    logger().title(f"print_sub_topic({repr(main_topic)}, {repr(sub_topic)})")
+    logging.debug(f"print_sub_topic({repr(main_topic)}, {repr(sub_topic)})")
     if main_topic not in MAIN_TOPICS:
         brightprint(f"Unknown main topic: '{main_topic}'. Searching among MAIN_TOPICS...")
         main_topic = fuzzy_find_topic(main_topic, MAIN_TOPICS, raise_if_exhausted=True)
-    
-    main_topic_fn = MAIN_TOPICS[main_topic]
+
+    main_topic_fn: ManFn = MAIN_TOPICS[main_topic]
     if sub_topic in main_topic_fn.sub_topics:
         return main_topic_fn(f'_{sub_topic.upper()}')
     if f'_{sub_topic}' in main_topic_fn.sub_topics:
-        # bash syntax → main_topic_fn.sub_topics has '_syntax' → pass '__SYNTAX'
+        # mm bash syntax → main_topic_fn.sub_topics has '_syntax' → pass '__SYNTAX'
         return main_topic_fn(f'__{sub_topic.upper()}')
-    
+
     try:
         # sometimes functions have alias logic under 'if subject:' clause, for example bash
         # has 'subject.startswith('<')'. so maybe sub_topic works
-        
         return main_topic_fn(sub_topic)
     except KeyError:
         brightprint((f"sub topic '{sub_topic}' isn't a sub topic of '{main_topic}'. "
@@ -364,14 +413,14 @@ def print_sub_topic(main_topic: str, sub_topic: str):
                                                  P=f"print '{main_topic}' w/o subtopic")
         if key == 'P':
             return main_topic_fn()
-        
+
         if chosen_sub_topic is not None:
             return main_topic_fn(f'_{chosen_sub_topic.upper()}')
-        
+
         if sub_topic in SUB_TOPICS:
             brightprint(f"'{sub_topic}' isn't a sub topic of '{main_topic}', but it belongs to these topics:")
             return print_topic(sub_topic)
-        
+
         brightprint(f"'{sub_topic}' doesn't belong to any topic. Searching among all SUB_TOPICS...")
         key, sub_topic = fuzzy_find_topic(sub_topic,
                                           SUB_TOPICS,
@@ -379,7 +428,7 @@ def print_sub_topic(main_topic: str, sub_topic: str):
                                           P=f"print '{main_topic}' w/o subtopic")
         if key == 'P':
             return main_topic_fn()
-        
+
         return main_topic_fn(f'_{sub_topic.upper()}')
 
 
@@ -387,11 +436,11 @@ def print_sub_topic(main_topic: str, sub_topic: str):
 def print_topic(main_topic: str, sub_topic=None):
     """If passed correct topic(s), prints.
     If not correct, finds the correct with fuzzy search and calls itself."""
-    logger().title(f"print_topic({repr(main_topic)}, {repr(sub_topic)})")
+    logging.debug(f"print_topic({repr(main_topic)}, {repr(sub_topic)})")
     if sub_topic:
         # * passed both main, sub
         return print_sub_topic(main_topic, sub_topic)
-    
+
     # ** passed only one arg, could be main or sub
     try:
         # * assume precise main topic, i.e. "git"
@@ -414,36 +463,40 @@ def print_topic(main_topic: str, sub_topic=None):
             except TypeError as duplicate_sub_topic:
                 # * error: "'list' object is not callable". some topics share same subtopic. choose main topic
                 fn: List[Callable[[str], Any]]
-                
+
                 # TODO (bugs): 
                 #  (1) If an ALIAS of a subtopic is the same as a SUBTOPIC of another main topic,
-                #  this is called (shouldn't). Aliases aren't subtopics. (uncomment asyncio # _SUBPROCESS = _SUBPROCESSES)
+                #    this is called (shouldn't). Aliases aren't subtopics. (uncomment asyncio # _SUBPROCESS = _SUBPROCESSES)
                 #  (2) main topics with both @alias and @syntax decors, that have the issue above ("(1)"), raise
-                #  a ValueError in igit prompt, because the same main topic function is passed here for each subtopic and subtopic alias.
+                #    a ValueError in igit prompt, because the same main topic function is passed here for each subtopic and subtopic alias.
                 #  ValueError: ('NumOptions | __init__(opts) duplicate opts: ', ('<function asyncio at 0x7f5dab684ca0>', '<function asyncio at 0x7f5dab684ca0>', '<function python at 0x7f5dab669a60>'))
                 idx, choice = prompt.choose(f"'{topic}' exists in several topics, which one did you mean?",
-                                            # *map(str, map(draw_out_decorated_fn, fn)))
-                                            *map(str, fn))
+                                            *[f.__qualname__ for f in fn],
+                                            flowopts='quit'
+                                            )
                 return fn[idx](f'_{topic.upper()}')
 
 
-# todo: custom help string that describes --check (perform_checks)  https://click.palletsprojects.com/en/7.x/documentation/#help-parameter-customization
-@click.command()
+def create_new_manual(newtopic: str):  # called in __main__.py
+    logging.debug(f'create_new_manual({newtopic = })')
+    if newtopic.lower() in map(str.lower, MAIN_TOPICS):
+        logging.warning(f"{newtopic = } already exists")
+        return False
+    logging.warning('should not be implemented, dont be lazy')
+    # from mytool.myman import manuals
+    # print(f"creating {newtopic} in {manuals.__file__}...")
+    # with open(manuals.__file__, mode='r+') as manfile:
+
+
+@click.command(context_settings=dict(help_option_names=['-h', '--help']), help="--check is also possible")
 @click.argument('main_topic')
 @click.argument('sub_topic', required=False)
 @unrequired_opt('-l', '--list', 'list_subtopics', is_flag=True, help='list sub topics')
-@unrequired_opt('-e', '--edit', 'edit', is_flag=True, help='edit MAIN_TOPIC')
-def main(main_topic, sub_topic, list_subtopics, edit):
-    loggr = logger()
-    loggr.title(main_topic, sub_topic, list_subtopics, edit, varnames=True)
+def main(main_topic, sub_topic, list_subtopics):
+    logging.debug(f'myman.main({main_topic = }, {sub_topic = }, {list_subtopics = })')
     if list_subtopics:
         brightprint(main_topic + '\n', 'bold', 'ul')
         [brightprint('  ' + st) for st in sorted(MAIN_TOPICS[main_topic].sub_topics)]
         return
-    if edit:
-        import os
-        manualsfile = os.path.join(os.path.dirname(__file__), 'manuals.py')
-        os.system(f'pycharm "{manualsfile}"')
-        return
-    
+
     print_topic(main_topic, sub_topic)
