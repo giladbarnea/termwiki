@@ -4484,6 +4484,9 @@ def lazygit(subject=None):
 @alias('md')
 def markdown(subject=None):
     _LINKS = f"""{h2('links')}
+    {c('url:')}
+    [Foo](www.example.com)
+
     {c('file:')}
     ![](./relations2.gif)
 
@@ -5795,28 +5798,33 @@ def python(subject=None):
     _CMD = _COMMANDLINE = f"""{h2('python3 -c <command>')}
   {c("https://docs.python.org/3/using/cmdline.html")}
 
-  -E  {c("Ignore PYTHON* env vars like PYTHONPATH and PYTHONHOME")}
-  -d  {c("Turn on parser debugging | PYTHONDEBUG")}
-  -v  {c("Print when a module is initialized | PYTHONVERBOSE")}
-  -vv {c("Also on each file that's searched | PYTHONVERBOSE=2")}
-  -i  {c("enter interactive mode after execution. PYTHONSTARTUP is not read | PYTHONINSPECT")}
-  -s  {c("don't add user site-packages to sys.path")}
-  -I  {c("isolated mode: implies -E and -s. no: script dir, user site-packages, PYTHON* env vars")}
-  -O  {c("remove assert statements and any code conditional on the value of __debug__ | PYTHONOPTIMIZE")}
-  -OO {c("Do -O and also discard docstrings | PYTHONOPTIMIZE=2")}
-  -q  {c("no copyright and version messages")}
+  {h3('-d')}  {c("Turn on parser debugging | PYTHONDEBUG")}
+  {h3('-E')}  {c("Ignore PYTHON* env vars like PYTHONPATH and PYTHONHOME")}
+  {h3('-i')}  {c("enter interactive mode after execution. PYTHONSTARTUP is not read | PYTHONINSPECT")}
+  {h3('-I')}  {c("isolated mode: implies -E and -s. no: script dir, user site-packages, PYTHON* env vars")}
+  {h3('-O')}  {c("remove assert statements and any code conditional on the value of __debug__ | PYTHONOPTIMIZE")}
+  {h3('-OO')} {c("Do -O and also discard docstrings | PYTHONOPTIMIZE=2")}
+  {h3('-q')}  {c("no copyright and version messages")}
+  {h3('-s')}  {c("don't add user site-packages to sys.path")}
+  {h3('-u')}  {c("Force stdout and stderr streams to be unbuffered. No effect on stdin stream. | PYTHONBUFFERED")}
+  {h3('-v')}  {c("Print when a module is initialized | PYTHONVERBOSE")}
+  {h3('-vv')} {c("Also on each file that's searched | PYTHONVERBOSE=2")}
 
-  -W {i('action:message:category:module:line')}
+  {h3('-W action:message:category:module:line')}
     {c('Can be specified multiple times | PYTHONWARNINGS')}
+    {c('https://docs.python.org/3/using/cmdline.html#cmdoption-w')}
     {h4('action')}: ignore|default|all|module|once|error
-      {c(f'{i("module")} print only first time each module')}
-      {c(f'{i("once")} only first time per warning')}
+      {c(f'module print only first time each module')}
+      {c(f'once only first time per warning')}
     {h4('message')}: matches start of the warning. case-insensitive
     {h4('category')}: full warning (super) class name
     {h4('module')}: module name. case-sensitive.
     {h4('line')}: number. 0 matches all == unspecified
 
-  -X importtime  {c("python3 -X importtime -c 'import asyncio' | PYTHONPROFILEIMPORTTIME")}
+  {h3('-X importtime')}  {c("python3 -X importtime -c 'import asyncio' | PYTHONPROFILEIMPORTTIME")}
+
+  {h4('See also')}
+    mm python env
     """
 
     _DATE = _DATETIME = _TIME = _TZ = f"""{h2('date / datetime / time / timezone')}
@@ -5919,7 +5927,7 @@ def python(subject=None):
   @arg_dec(arg)           {c('equiv:')}
   def foo(): ...          def foo(): ...
                           foo = arg_dec(arg)(foo)
-  {c(f'This is why @arg_dec has to return something that {i("expects")} a function (liked naked_dec)')}
+  {c(f'This is why @arg_dec has to return something that expects a function (liked naked_dec)')}
 
   @f1(arg)                {c('equiv:')}
   @f2                     class Foo: ...
@@ -6011,9 +6019,19 @@ def python(subject=None):
     Used to compute path of site-packages and installation paths for python setup.py install --user.
 
   PYTHONWARNINGS {c("action[,action,...]")}
+    {c('https://docs.python.org/3/library/warnings.html#warning-filter')}
     ignore|default|all|module|once|error
 
   PYTHONPROFILEIMPORTTIME {c('like -X importtime')}
+  
+  PYTHONBUFFERED
+    If a non-empty string, equivalent to specifying -u option.
+    
+  PYTHONINSPECT
+    If a non-empty string, equivalent to specifying -i option.
+
+  {h4('See also')}
+    mm python cmd
     """
 
     _LOGGING = f"""{h2(f'logging')}
@@ -6044,7 +6062,7 @@ def python(subject=None):
     _OPEN = rf"""{h2(f'with open(path, mode="rt" {c("default")}, errors=None)')}
   {h2('mode')}
     w                   {c("truncate file first. doesn't raise")}
-    x                   {c(f"create new file (implies 'w', raises {i('FileExistsError')} if exists)")}
+    x                   {c(f"create new file (implies 'w', raises FileExistsError if exists)")}
     a                   {c("append to end of file if exists. doesn't raise")}
     b                   {c("binary")}
     t                   {c("text")}
@@ -6095,7 +6113,7 @@ def python(subject=None):
       {c('Find doubled words')}
       >>> p = re.compile('\b(\w+)\s+\1\b')         {c('The')} \1 means "result of first group" {c('')}
       >>> p.search('Paris in the the spring').group()
-      {i(c('the the'))}
+      {c('the the')}
 
     {h3('Non-capturing groups')}
       {c('capturing:')}
@@ -6217,7 +6235,7 @@ def python(subject=None):
             a.stdin.write(b"input data")
         statuses = [a.wait(), b.wait()] # both a.stdin/stdout are closed already
     """
-    _VERSIONS = f"""{h2('versions')}
+    _VERSIONS = _CHANGELOG = f"""{h2('versions')}
     {h3('3.9')}
       {c('https://docs.python.org/3/whatsnew/3.9.html')}
       asyncio.to_thread()
@@ -7489,18 +7507,18 @@ def vim(subject=None):
     any → normal       Esc
 
   {h2('Operators')}
-    c   Change
-    d   Delete
-    g~  Swap case
-    gu  To lowercase
-    gU  To uppercase
-    y   Yank (copy)
-    p   Paste
-    u   Undo
-    <   Shift left
-    >   Shift right
+    c     {c('Change')}
+    d     {c('Delete')}
+    g~    {c('Swap case')}
+    gu    {c('To lowercase')}
+    gU    {c('To uppercase')}
+    y     {c('Yank (copy)')}
+    p     {c('Paste')}
+    u     {c('Undo')}
+    <     {c('Shift left')}
+    >     {c('Shift right')}
 
-  {h2('Motions')}
+  {h2('Movement')}
     Keep you in normal mode.
     {h4('Character   Synonym(s)          Motion         Units')}
     h . . . . . backspace, ctrl-h . left . . . . . characters
@@ -7508,23 +7526,56 @@ def vim(subject=None):
     j . . . . . enter, ctrl-[jmn] . down . . . . . lines
     k . . . . . ctrl-p . . . . . . .up . . . . . . lines
     $ . . . . . . . . . . . . . . . forward . . . .lines {c('(move to end of line)')}
-    $ . . . . . . . . . . . . . . . backward . . . lines {c('(move to beginning of line)')}
-    b . . . . . . . . . . . . . . . backward . . . words
-    w . . . . . . . . . . . . . . . forward . . . .words
+    ^ . . . . . . . . . . . . . . . forward . . . .lines {c('(first non-blank char of line)')}
+    0 . . . . . . . . . . . . . . . backward . . . lines {c('(first char of line)')}
+    b[count]. . . . . . . . . . . . backward . . . words
+    B[count]. . . . . . . . . . . . backward . . . words
+    w[count]  . . . . . . . . . . . forward . . . .words
+    W[count]  . . . . . . . . . . . forward . . . .WORDS
+    e . . . . . . . . . . . . . . . forward . . . .Forward to the end of word [count] inclusive
+    E . . . . . . . . . . . . . . . forward . . . .Forward to the end of WORD [count] inclusive
+    t{{char}}   . . . . . . . . . .  forward . . . .Till before [count]'th occurrence of {{char}} to the right
+    T{{char}}   . . . . . . . . . .  backward  . . .Till before [count]'th occurrence of {{char}} to the left
+    f{{char}}   . . . . . . . . . .  forward . . . .To [count]'th occurrence of {{char}} to the right
+    F{{char}}   . . . . . . . . . .  backward  . . .To [count]'th occurrence of {{char}} to the left
     {{ . . . . . . . . . . . . . . . backward . . . paragraphs
-    }} . . . . . . . . . . . . . . . forward . . . .paragraphs
+    }} . . . . . . . . . . . . . . . forward  . . . paragraphs
+    ;  . . . . . . . . . . . . . . . . . . . . . . Repeat latest f, t, F or T [count] times
+    ,  . . . . . . . . . . . . . . . . . . . . . . Repeat latest f, t, F or T [count] times in opposite direction
     ctrl-d . . . . . . . . . . . . .down . . . . . 1/2 screen
     ctrl-u . . . . . . . . . . . . .up . . . . . . 1/2 screen
     ctrl-b . . . . . . . . . . . . .backward . . . 1/2 screen
     ctrl-f . . . . . . . . . . . . .forward . . . .1/2 screen
 
+  {h2('Insertion')}
+    i    {c('Insert text before the cursor')}
+    I    {c('Insert text before the first character in the line')}
+    a    {c('Append text after the cursor')}
+    A    {c('Append text at the end of the line')}
+    o    {c('Insert new command line below the current one')}
+    O    {c('Insert new command line above the current one')}
+  
+  {h2('Delete and Insert')}
+    ctrl-h    {c('While in Insert mode: delete character before the cursor')}
+    ctrl-w    {c('While in Insert mode: delete word before the cursor')}
+    d{{motion}}    {c('Delete text that {{motion}} moves over')}
+    dd    {c('Delete line')}
+    D    {c('Delete characters under the cursor until the end of the line')}
+    c{{motion}}    {c('Delete {{motion}} text and start insert')}
+    cc    {c('Delete line and start insert')}
+    C    {c('Delete to the end of the line and start insert')}
+    r{{char}}    {c('Replace the character under the cursor with {{char}}')}
+    R    {c('Enter replace mode: Each character replaces existing one')}
+    x    {c('Delete count characters under and after the cursor')}
+    X    {c('Delete count characters before the cursor')}
+  
   {h2('Examples')}
-    yiw         {c('yank current word (excluding surrounding whitespace)')}
-    yaw         {c('yank current word (including leading or trailing whitespace)')}
-    ytx         {c('yank from the current cursor position up to and before the character (Til x)')}
-    yfx         {c('yank from the current cursor position up to and including the character (Find x)')}
-    yTx         {c('yank backward up to character')}
-    yFx         {c('backward through character')}
+    yiw    {c('yank current word (excluding surrounding whitespace)')}
+    yaw    {c('yank current word (including leading or trailing whitespace)')}
+    ytx    {c('yank from the current cursor position up to and before the character (Til x)')}
+    yfx    {c('yank from the current cursor position up to and including the character (Find x)')}
+    yTx    {c('yank backward up to character')}
+    yFx    {c('backward through character')}
   
   {h2('Registers')}
     :h registers    {c('help')}
