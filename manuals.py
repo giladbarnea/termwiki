@@ -5795,28 +5795,33 @@ def python(subject=None):
     _CMD = _COMMANDLINE = f"""{h2('python3 -c <command>')}
   {c("https://docs.python.org/3/using/cmdline.html")}
 
-  -E  {c("Ignore PYTHON* env vars like PYTHONPATH and PYTHONHOME")}
-  -d  {c("Turn on parser debugging | PYTHONDEBUG")}
-  -v  {c("Print when a module is initialized | PYTHONVERBOSE")}
-  -vv {c("Also on each file that's searched | PYTHONVERBOSE=2")}
-  -i  {c("enter interactive mode after execution. PYTHONSTARTUP is not read | PYTHONINSPECT")}
-  -s  {c("don't add user site-packages to sys.path")}
-  -I  {c("isolated mode: implies -E and -s. no: script dir, user site-packages, PYTHON* env vars")}
-  -O  {c("remove assert statements and any code conditional on the value of __debug__ | PYTHONOPTIMIZE")}
-  -OO {c("Do -O and also discard docstrings | PYTHONOPTIMIZE=2")}
-  -q  {c("no copyright and version messages")}
+  {h3('-d')}  {c("Turn on parser debugging | PYTHONDEBUG")}
+  {h3('-E')}  {c("Ignore PYTHON* env vars like PYTHONPATH and PYTHONHOME")}
+  {h3('-i')}  {c("enter interactive mode after execution. PYTHONSTARTUP is not read | PYTHONINSPECT")}
+  {h3('-I')}  {c("isolated mode: implies -E and -s. no: script dir, user site-packages, PYTHON* env vars")}
+  {h3('-O')}  {c("remove assert statements and any code conditional on the value of __debug__ | PYTHONOPTIMIZE")}
+  {h3('-OO')} {c("Do -O and also discard docstrings | PYTHONOPTIMIZE=2")}
+  {h3('-q')}  {c("no copyright and version messages")}
+  {h3('-s')}  {c("don't add user site-packages to sys.path")}
+  {h3('-u')}  {c("Force stdout and stderr streams to be unbuffered. No effect on stdin stream. | PYTHONBUFFERED")}
+  {h3('-v')}  {c("Print when a module is initialized | PYTHONVERBOSE")}
+  {h3('-vv')} {c("Also on each file that's searched | PYTHONVERBOSE=2")}
 
-  -W {i('action:message:category:module:line')}
+  {h3('-W action:message:category:module:line')}
     {c('Can be specified multiple times | PYTHONWARNINGS')}
+    {c('https://docs.python.org/3/using/cmdline.html#cmdoption-w')}
     {h4('action')}: ignore|default|all|module|once|error
-      {c(f'{i("module")} print only first time each module')}
-      {c(f'{i("once")} only first time per warning')}
+      {c(f'module print only first time each module')}
+      {c(f'once only first time per warning')}
     {h4('message')}: matches start of the warning. case-insensitive
     {h4('category')}: full warning (super) class name
     {h4('module')}: module name. case-sensitive.
     {h4('line')}: number. 0 matches all == unspecified
 
-  -X importtime  {c("python3 -X importtime -c 'import asyncio' | PYTHONPROFILEIMPORTTIME")}
+  {h3('-X importtime')}  {c("python3 -X importtime -c 'import asyncio' | PYTHONPROFILEIMPORTTIME")}
+
+  {h4('See also')}
+    mm python env
     """
 
     _DATE = _DATETIME = _TIME = _TZ = f"""{h2('date / datetime / time / timezone')}
@@ -5919,7 +5924,7 @@ def python(subject=None):
   @arg_dec(arg)           {c('equiv:')}
   def foo(): ...          def foo(): ...
                           foo = arg_dec(arg)(foo)
-  {c(f'This is why @arg_dec has to return something that {i("expects")} a function (liked naked_dec)')}
+  {c(f'This is why @arg_dec has to return something that expects a function (liked naked_dec)')}
 
   @f1(arg)                {c('equiv:')}
   @f2                     class Foo: ...
@@ -6011,9 +6016,19 @@ def python(subject=None):
     Used to compute path of site-packages and installation paths for python setup.py install --user.
 
   PYTHONWARNINGS {c("action[,action,...]")}
+    {c('https://docs.python.org/3/library/warnings.html#warning-filter')}
     ignore|default|all|module|once|error
 
   PYTHONPROFILEIMPORTTIME {c('like -X importtime')}
+  
+  PYTHONBUFFERED
+    If a non-empty string, equivalent to specifying -u option.
+    
+  PYTHONINSPECT
+    If a non-empty string, equivalent to specifying -i option.
+
+  {h4('See also')}
+    mm python cmd
     """
 
     _LOGGING = f"""{h2(f'logging')}
@@ -6044,7 +6059,7 @@ def python(subject=None):
     _OPEN = rf"""{h2(f'with open(path, mode="rt" {c("default")}, errors=None)')}
   {h2('mode')}
     w                   {c("truncate file first. doesn't raise")}
-    x                   {c(f"create new file (implies 'w', raises {i('FileExistsError')} if exists)")}
+    x                   {c(f"create new file (implies 'w', raises FileExistsError if exists)")}
     a                   {c("append to end of file if exists. doesn't raise")}
     b                   {c("binary")}
     t                   {c("text")}
@@ -6095,7 +6110,7 @@ def python(subject=None):
       {c('Find doubled words')}
       >>> p = re.compile('\b(\w+)\s+\1\b')         {c('The')} \1 means "result of first group" {c('')}
       >>> p.search('Paris in the the spring').group()
-      {i(c('the the'))}
+      {c('the the')}
 
     {h3('Non-capturing groups')}
       {c('capturing:')}
@@ -6217,7 +6232,7 @@ def python(subject=None):
             a.stdin.write(b"input data")
         statuses = [a.wait(), b.wait()] # both a.stdin/stdout are closed already
     """
-    _VERSIONS = f"""{h2('versions')}
+    _VERSIONS = _CHANGELOG = f"""{h2('versions')}
     {h3('3.9')}
       {c('https://docs.python.org/3/whatsnew/3.9.html')}
       asyncio.to_thread()
