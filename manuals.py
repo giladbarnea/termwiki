@@ -5771,6 +5771,30 @@ def pytest(subject=None):
 
 @syntax
 def python(subject=None):
+    _ARGPARSE = f"""[h2]argparse[/]
+  [c]https://docs.python.org/3.8/library/argparse.html[/]
+  [h3]ArgumentParser(...)[/]
+    prog        [c]default: sys.argv[0][/]
+    usage       [c]default: generated from args[/]
+    description
+    epilog
+    ...
+    [h4]add_argument(*name_or_flags, ...)[/]
+      *name_or_flags      [c]str[/]               'bar' or ('-f', '--foo')
+      action              [c]str | Action[/]      'store' (default), 'store_const',
+                                            'store_true', 'store_false',
+                                            'append', 'append_const', 'count'
+      prog                [c]str[/]
+      nargs               [c]int | '?' | '*' | '+' | argparse.REMAINDER[/]
+      default
+      type
+      choices             [c]list\[str][/]
+      required            [c]bool[/]
+      help                [c]str[/]               '%(prog)s %(default)s'
+      metavar             [c]str; how DISPLAYED in help[/]
+      dest                [c]str; eventual VARIABLE name[/]
+      ...
+    """
     _BITWISE = f"""{h2('Bitwise')}
   &  |  0  1  F  T 10
   ---|---------------

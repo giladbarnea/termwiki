@@ -14,17 +14,18 @@
   - [ ] move from main.py functions like `get_skipped_subtopics` to it
   
 
-
 # Big
 
 - [ ] `rich` markup (e.g. `[i]...[/]`)
+  - [ ] see `rich/examples/log.py`
 - [ ] migrate to `prompt-toolkit`?
 - [ ] Topic class
   - [ ] properties
     - [ ] alias
     - [ ] sub_topics
   
-
+# Bugs
+- [ ] `mm bash --list` prints `_args` and `_arguments` as separate. should display `_args, _arguments`
 # Thoughts
 
 - [ ] separate man files: support `.md`, maybe `.rst`?
