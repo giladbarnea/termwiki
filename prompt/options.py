@@ -3,15 +3,15 @@ from typing import Union, NoReturn, Callable, Any, Iterable
 
 from more_termcolor import colors
 
-from igit.prompt.item import MutableItem, Items, Flow
-from igit.prompt.item import NumItems, LexicItems, KeywordItems
-from igit.prompt.util import has_duplicates
-from igit.util.misc import darkprint
+from .item import MutableItem, Items, Flow
+from .item import NumItems, LexicItems, KeywordItems
+from .util import has_duplicates
+# from .util.misc import darkprint
 from .item import FlowItem
-from ..err import DevError
+from err import DevError
 
 
-@prettyrepr
+# @prettyrepr
 class Options(ABC):
     items: Items
     _itemscls = None
@@ -32,13 +32,13 @@ class Options(ABC):
         # return bool(self.items) or bool(self.flowopts)
         return bool(self.items)
     
-    def __repr__(self):
-        return f'{self.prepr()}(items = {repr(self.items)})'
+    # def __repr__(self): # uncomment if has prepr() fn (originally from @prettyrepr)
+    #     return f'{self.prepr()}(items = {repr(self.items)})'
     
     def set_flow_opts(self, flowopts: Union[str, Iterable, bool]) -> NoReturn:
         """Sets `self.flowopts` with FlowItem objects.
         Handles passing different types of flowopts (single string, tuple of strings, or boolean), and returns a FlowItem tuple."""
-        darkprint(f'{self.__class__.__qualname__}.set_flow_opts(flowopts={repr(flowopts)})')
+        # darkprint(f'{self.__class__.__qualname__}.set_flow_opts(flowopts={repr(flowopts)})')
         if flowopts is True:
             flowitems = tuple(map(FlowItem, Flow.__members__.values()))
         elif isinstance(flowopts, str):  # 'quit'
@@ -59,7 +59,7 @@ class Options(ABC):
     
     def set_kw_options(self, **kw_opts: Union[str, tuple, bool]) -> None:
         """foo='bar', baz='continue'"""
-        darkprint(f'{self.__class__.__qualname__}.set_kw_options(kw_opts={repr(kw_opts)})')
+        # darkprint(f'{self.__class__.__qualname__}.set_kw_options(kw_opts={repr(kw_opts)})')
         if not kw_opts:
             return
         if has_duplicates(kw_opts.values()):

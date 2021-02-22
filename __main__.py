@@ -7,16 +7,16 @@
 # sys.excepthook = ultratb.VerboseTB(include_vars=False)
 
 if __name__ == '__main__':
-    from . import myman
+    from . import main
     import sys
 
     for arg in sys.argv:
         if arg.startswith('--new='):
             newtopic = arg[6:]
-            myman.create_new_manual(newtopic)
+            main.create_new_manual(newtopic)
             break
     else:
-        myman.main()
+        main.get_topic()
 
     # try:
     # except Exception as e:

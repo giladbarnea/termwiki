@@ -23,7 +23,7 @@ from pygments.lexers import (get_lexer_by_name,
                              SassLexer,
                              TypeScriptLexer
                              )
-
+import logging
 linebreak = r'\n'
 backslash = '\\'
 # color = '\x1b['
@@ -142,7 +142,8 @@ def syntax(_fn_or_style: Union[ManFn, Style] = None, **default_styles):
             except TypeError as te:
                 if te.args and re.search(r'takes \d+ positional arguments but \d+ was given', te.args[0]):
                     ret = fn()
-                    print('syntax() | ignored TypeError not enough pos arguments given')
+                    
+                    logging.warning('syntax() | ignored TypeError not enough pos arguments given')
                 else:
                     raise
 
@@ -7474,6 +7475,13 @@ def vagrant(subject=None):
     {h3('ssh')} [options] [name|id] [-- extra ssh args]
       -c, --command <COMMAND>    {c('Execute an SSH command directly')}
       -p, --plain       {c('Leaves authentication up to user')}
+      
+      {h4('examples')}
+        %bash
+        vagrant ssh -c "pgrep chrome"
+        # is equivalent to:
+        vagrant@127.0.0.1 -p 2222 -o LogLevel=FATAL -o Compression=yes -o DSAAuthentication=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i C:/Users/CR-GBARN-HEROLO/dev/allotsecure/vagrant/.vagrant/machines/default/virtualbox/private_key -t bash -l -c 'pgrep chrome'
+        /%bash
     {h3('ssh-config')}
     {h3('status')}
     {h3('suspend')}

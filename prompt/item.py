@@ -8,12 +8,14 @@ from typing import TypeVar, Dict, Generator, Tuple, Any, Type, NoReturn
 from more_termcolor import colors
 
 # from igit.abcs import prettyrepr
-from rich.console import Console
-from igit.util.misc import darkprint
-from igit.regex import YES_OR_NO
-
+# from rich.console import Console
+# from igit.util.misc import darkprint
+from regexp import YES_OR_NO
+import logging
 T = TypeVar('T')
-
+# from rich.console import Console
+#
+# console = Console()
 # logger = Loggr(__name__)
 
 
@@ -21,19 +23,19 @@ T = TypeVar('T')
 def mutate_identifier(identifier: str):
     upper = identifier.upper()
     identifier = upper
-    darkprint(f'mutate_identifier({repr(identifier)}) yielding upper: {repr(upper)}')
+    logging.debug(f'mutate_identifier({repr(identifier)}) yielding upper: {repr(upper)}')
     yield upper
     words = self.val.split(' ')
     if len(words) == 1:
         raise NotImplementedError(f"no word separators, and both lowercase and uppercase identifier is taken ('{upper.lower()}')")
     words_identifiers = ''.join(map(lambda s: s[0], words))
     identifier = words_identifiers
-    darkprint(f'mutate_identifier() yielding words_identifiers: {repr(words_identifiers)}')
+    logging.debug(f'mutate_identifier() yielding words_identifiers: {repr(words_identifiers)}')
     yield words_identifiers
     for i in range(len(words_identifiers)):
         new_identifiers = words_identifiers[:i] + words_identifiers[i].upper() + words_identifiers[i + 1:]
         identifier = new_identifiers
-        darkprint(f'mutate_identifier() yielding new_identifiers (#{i}): {repr(new_identifiers)}')
+        logging.debug(f'mutate_identifier() yielding new_identifiers (#{i}): {repr(new_identifiers)}')
         yield new_identifiers
     raise StopIteration(f'mutate_identifier() exhausted all options: {repr(self)}')
 
@@ -57,7 +59,7 @@ class Flow(Enum):
         return Flow(value)
 
 
-@prettyrepr
+# @prettyrepr
 class Item:
     identifier: str
     value: Any
@@ -83,9 +85,9 @@ class Item:
             return valuestr[:77] + '...'
         return valuestr
     
-    def __repr__(self):
-        identifier = f'[{self._identifier}]'
-        return f"""{self.prepr()}({repr(str(self))}) | {identifier}"""
+    # def __repr__(self):  # uncomment if has prepr() fn (originally from @prettyrepr)
+    #     identifier = f'[{self._identifier}]'
+    #     return f"""{self.prepr()}({repr(str(self))}) | {identifier}"""
     
     @property
     def identifier(self) -> str:
@@ -124,7 +126,7 @@ class MutableItem(Item):
     @property
     def is_yes_or_no(self):
         ret = bool(YES_OR_NO.fullmatch(self.identifier))
-        darkprint(f'{repr(self)}.is_yes_or_no() → {ret}')
+        # darkprint(f'{repr(self)}.is_yes_or_no() → {ret}')
         return ret
         # return self._is_yes_or_no
     
@@ -145,19 +147,19 @@ class LexicItem(MutableItem):
     def mutate_identifier(self):
         upper = self.identifier.upper()
         self.identifier = upper
-        darkprint(f'{repr(self)} | mutate_identifier() yielding upper: {repr(upper)}')
+        # darkprint(f'{repr(self)} | mutate_identifier() yielding upper: {repr(upper)}')
         yield upper
         words = self.value.split(' ')
         if len(words) == 1:
             raise NotImplementedError(f"no word separators, and both lowercase and uppercase identifier is taken ('{upper.lower()}')")
         words_identifiers = ''.join(map(lambda s: s[0], words))
         self.identifier = words_identifiers
-        darkprint(f'mutate_identifier() yielding words_identifiers: {repr(words_identifiers)}')
+        # darkprint(f'mutate_identifier() yielding words_identifiers: {repr(words_identifiers)}')
         yield words_identifiers
         for i in range(len(words_identifiers)):
             new_identifiers = words_identifiers[:i] + words_identifiers[i].upper() + words_identifiers[i + 1:]
             self.identifier = new_identifiers
-            darkprint(f'mutate_identifier() yielding new_identifiers (#{i}): {repr(new_identifiers)}')
+            # darkprint(f'mutate_identifier() yielding new_identifiers (#{i}): {repr(new_identifiers)}')
             yield new_identifiers
         raise StopIteration(f'mutate_identifier() exhausted all options: {repr(self)}')
 
@@ -174,10 +176,10 @@ class FlowItem(Item):
     def __hash__(self) -> int:
         return hash((self.value, self.identifier))
     
-    def __repr__(self):
-        # TODO: why is it not working with repr(super())?
-        identifier = f'[{self._identifier}]'
-        return f"""{self.prepr()}({repr(str(self))}) | {identifier}"""
+    # def __repr__(self):  # uncomment if has prepr() fn (originally from @prettyrepr)
+    #     # TODO: why is it not working with repr(super())?
+    #     identifier = f'[{self._identifier}]'
+    #     return f"""{self.prepr()}({repr(str(self))}) | {identifier}"""
     
     # def __init__(self, value):
     #     flow = Flow(value)
@@ -242,8 +244,7 @@ class FlowItem(Item):
                 frame = frame.f_back
                 up_frames.append(frame.f_code.co_name)
             print(colors.bold(f'u {len(up_frames)}'), colors.dark(repr(up_frames)))
-            from ipdb import set_trace
-            set_trace(frame, context=30)
+            breakpoint()
             
             return None
         raise NotImplementedError(f"don't support this enum type yet: {self}")

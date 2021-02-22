@@ -1,17 +1,18 @@
 from typing import Union, Tuple, overload
 
+import logging
 # from igit_debug.investigate import logonreturn, logreturn
 from more_termcolor import colors
 
 # from igit.abcs import prettyrepr
 from .item import MutableItem, FlowItem, LexicItem
 from .options import Options, NumOptions, LexicOptions
-from igit.util import misc
-from igit.util.misc import darkprint, brightyellowprint
+from . import util
+# from igit.util.misc import darkprint, brightyellowprint
 
 
 def _input(s):
-    return misc.clean(input(colors.brightwhite(s)))
+    return util.clean(input(colors.brightwhite(s)))
 
 
 # (str, str) or (str, FlowItem)
@@ -43,7 +44,7 @@ class BasePrompt:
         dialog_string = self.dialog_string(question, free_input=free_input)
         # question = self.dialog_string(question, options, free_input=free_input)
         key, answer = self.get_answer(dialog_string, free_input=free_input)
-        darkprint(f'{repr(self)} | key: {repr(key)}, answer: {repr(answer)}')
+        # darkprint(f'{repr(self)} | key: {repr(key)}, answer: {repr(answer)}')
         # *  FlowItem Answer
         if isinstance(answer, FlowItem):
             # flow_answer: FlowItem = FlowItem(answer)
@@ -60,14 +61,14 @@ class BasePrompt:
             # *  DIDN'T answer any flow
             
             if isinstance(answer, MutableItem) and answer.is_yes_or_no:
-                darkprint(f'{repr(self)} no flow chosen, answer is yes / no. key: {repr(key)}, answer: {repr(answer)}, options: {self.options}')
+                # darkprint(f'{repr(self)} no flow chosen, answer is yes / no. key: {repr(key)}, answer: {repr(answer)}, options: {self.options}')
                 self.answer: bool = key.lower() in ('y', 'yes')
             else:
-                darkprint(f'{repr(self)} no flow chosen, answer is not yes / no. key: {repr(key)}, answer: {repr(answer)}, options: {self.options}')
+                # darkprint(f'{repr(self)} no flow chosen, answer is not yes / no. key: {repr(key)}, answer: {repr(answer)}, options: {self.options}')
                 self.answer: Tuple[str, MutableItem] = key, answer
     
-    def __repr__(self) -> str:
-        return f'{self.prepr()}(answer={repr(self.answer)}, options={repr(self.options)})'
+    # def __repr__(self) -> str:  # uncomment if has prepr() fn (originally from @prettyrepr)
+    #     return f'{self.prepr()}(answer={repr(self.answer)}, options={repr(self.options)})'
     
     def dialog_string(self, question: str, *, free_input: bool) -> str:
         strings = []
@@ -105,7 +106,7 @@ class BasePrompt:
             else:
                 # TODO: this doesnt account for free_input = True, but no ans_key ('')
                 while ans_key not in items:
-                    brightyellowprint(f"Unknown option: '{ans_key}'")
+                    logging.warning(f"Unknown option: '{ans_key}'")
                     ans_key = _input(dialog_string)
         ans_value = items[ans_key]
         # this is commented out because BasePrompt init needs to check if answer.is_yes_or_no
@@ -161,11 +162,11 @@ class Choice(BasePrompt):
         ans_key, ans_value = super().get_answer(question, free_input=free_input)
         if ans_key is None:
             # free input
-            indexer = misc.to_int_or_slice(ans_value)
+            indexer = util.to_int_or_slice(ans_value)
             if indexer is not None:
                 ans_value = indexer
         else:
-            indexer = misc.to_int_or_slice(ans_key)
+            indexer = util.to_int_or_slice(ans_key)
             if indexer is not None:
                 ans_key = indexer
         return ans_key, ans_value

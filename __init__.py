@@ -1,1 +1,1 @@
-from .myman import *
+from . import regexp
