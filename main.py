@@ -456,15 +456,16 @@ def print_manual(main_topic: str, sub_topic=None):
     logging.debug(f"print_manual({repr(main_topic)}, {repr(sub_topic)})")
     if sub_topic:
         # * passed both main, sub
-        sub_topic_str = get_sub_topic(main_topic, sub_topic) \
-            .replace('[h1]', '[bold underline reverse bright_white]') \
-            .replace('[h2]', '[bold underline bright_white]') \
-            .replace('[h3]', '[bold bright_white]') \
-            .replace('[h4]', '[bright_white]') \
-            .replace('[h5]', '[white]') \
-            .replace('[c]', '[dim]')
-        return console.print(sub_topic_str)
-    
+        sub_topic_str = get_sub_topic(main_topic, sub_topic)
+        # sub_topic_str = get_sub_topic(main_topic, sub_topic) \
+        #     .replace('[h1]', '[bold underline reverse bright_white]') \
+        #     .replace('[h2]', '[bold underline bright_white]') \
+        #     .replace('[h3]', '[bold bright_white]') \
+        #     .replace('[h4]', '[bright_white]') \
+        #     .replace('[h5]', '[white]') \
+        #     .replace('[c]', '[dim]')
+        # return console.print(sub_topic_str)
+        return print(sub_topic_str)
     # ** passed only one arg, could be main or sub
     try:
         # * assume precise main topic, i.e. "git"
