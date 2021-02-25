@@ -15,10 +15,10 @@ import click
 
 # import search
 # import prompt
-from common.click_extension import unrequired_opt
+from manuals.common.click_extension import unrequired_opt
 
 # stuff from manuals.py to ignore when dir'ing manuals module
-from common.types import ManFn
+from manuals.common.types import ManFn
 
 
 # brightprint = lambda s, *colors: cprint(s, 'bright white', *colors)
