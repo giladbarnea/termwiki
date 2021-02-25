@@ -5,7 +5,7 @@ from functools import wraps
 from typing import Literal, Dict, Type, Union
 
 from common.types import ManFn
-from formatting import h1, h2, h3, h4, h5, b, c, i, black, bg
+from .formatting import h1, h2, h3, h4, h5, b, c, i, black, bg
 from pygments.lexer import Lexer
 from pygments import highlight as pyglight
 # noinspection PyUnresolvedReferences

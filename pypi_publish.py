@@ -61,12 +61,15 @@ def main():
     if not any(pkg.startswith('twine') for pkg in run(shlex.split('pip freeze'))):
         _print('twine is not installed')
         sys.exit(1)
-    cmds = ['./env/bin/python setup.py sdist bdist_wheel',
-            './env/bin/python -m twine upload dist/*']
-    for cmd in cmds:
-        if confirm(f"run '{cmd}'?"):
-            if run(shlex.split(cmd)) is None:
-                sys.exit(1)
+    
+    if confirm(f"run './env/bin/python setup.py sdist bdist_wheel'?"):
+        if run(shlex.split('./env/bin/python setup.py sdist bdist_wheel')) is None:
+            sys.exit(1)
+    if confirm(f"run './env/bin/python -m twine upload dist/*'?"):
+        import os # asks for password
+        os.system('./env/bin/python -m twine upload dist/*')
+        
+    
 
 
 def run(cmd) -> Optional[List[str]]:
