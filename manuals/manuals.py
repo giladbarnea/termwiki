@@ -4410,6 +4410,17 @@ def javascript(subject=None):
   {_CALL}
   """
 
+@syntax
+def jiracli(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('jira-cli')}
+    {h2('view')}
+      jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com'
+        """
+
 
 @syntax(bash='friendly')
 def jupyter(subject=None):
@@ -4417,25 +4428,47 @@ def jupyter(subject=None):
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
-        return f"""{h1('jupyter')}
-  {h2('JupyterLab')}
+        return f"""{h1('jupyter')} [options] [subcommand]
+  {h2('subcommands')}
+    bundlerextension 
+    console 
+    kernel 
+    kernelspec 
+    migrate 
+    nbconvert
+    nbextension 
+    notebook 
+    qtconsole 
+    run 
+    serverextension 
+    troubleshoot
+    trust
+  
+  {h2('options')}
+    --paths
+  
+  {h2('jupyterlab')} [cmd] [options]
+    %bash
+    pip install jupyterlab [xeus-python for debugging]
     
-    jupyter lab [cmd] [options]
+    {h3('cmd')}
+      build
+      clean
+      path  
+      paths
+      workspace
+      workspaces
     
     {h3('Install virtualenv')}
       %bash 2
       . env/bin/activate
       (env) python -m ipykernel install --user --name <CUSTOM_ENV_NAME>
     
-    {h3('Native')}
-      %bash 2
-      jupyter lab --no-browser
-      google-chrome --app="http://localhost:8888/?token=1275aa6bfa03172197ac328c8696b4ac682f8a240cdbd5d9"
-    
     {h3('config')}
       jupyter lab --generate-config
               
     {h3('labextension')}
+      https://jupyterlab.readthedocs.io/en/stable/user/extensions.html
       npm search <NAME>
       jupyter labextension list, check
       jupyter labextension install|uninstall|update|enable|disable <NAME>
@@ -4446,14 +4479,6 @@ def jupyter(subject=None):
       jupyter nbextension list
       jupyter nbextension install|uninstall|enable|disable [--py] <NAME>  {c('from a python package')}
 
-    {h3('cmd')}
-      build
-      clean
-      path  
-      paths
-      workspace
-      workspaces
-    
     {h3('options')}
       --allow-root
       --autoreload    {c('on change in py src files or exts')}
@@ -6349,6 +6374,7 @@ def restructured_text(subject=None):
     else:
         return f"""{h1('reStructuredText')}
   {c('https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html')}
+  {bg('tip:')} export jupyter notebook to .rst to learn syntax
   
   *emphasis*, **strong emphasis**, `interpreted text`, ``inline
   literals``, standalone hyperlinks (http://www.python.org),
