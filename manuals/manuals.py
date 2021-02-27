@@ -4411,14 +4411,23 @@ def javascript(subject=None):
   """
 
 @syntax
-def jiracli(subject=None):
+def jira(subject=None):
+    _CLI=f"""{h2('jira-cli')}  
+    {h3('view')}
+      jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com'
+      jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com AND parent=ASM-5293 ORDER BY status'
+      jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com AND resolution = Unresolved AND issueLinkType not in ("Child of","is blocked by") ORDER BY status ASC'
+    """
+    
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
-        return f"""{h1('jira-cli')}
-    {h2('view')}
-      jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com'
+        return rf"""{h1('jira')}
+  {h2('JQL')}
+    assignee = currentUser() AND resolution = Unresolved AND issueLinkType != "Child of"
+    
+  {_CLI}
         """
 
 
