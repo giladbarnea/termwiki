@@ -18,7 +18,7 @@
 
 - [ ] `rich` markup (e.g. `[i]...[/]`)
   - [ ] see `rich/examples/log.py`
-- [ ] migrate to `prompt-toolkit`?
+- [ ] migrate to `prompt-toolkit`? or `rich.Prompt`?
 - [ ] Topic class
   - [ ] properties
     - [ ] alias
@@ -26,6 +26,6 @@
   
 # Bugs
 - [ ] `mm bash --list` prints `_args` and `_arguments` as separate. should display `_args, _arguments`
-# Thoughts
 
+# Thoughts
 - [ ] separate man files: support `.md`, maybe `.rst`?
