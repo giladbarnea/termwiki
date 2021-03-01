@@ -995,7 +995,7 @@ def bash(subject=None):
 
     echo "echo lol" | $SHELL  # lol
     
-    eho "$NAUTILUS_SCRIPT_SELECTED_FILE_PATHS" 2>bad.log
+    echo "$NAUTILUS_SCRIPT_SELECTED_FILE_PATHS" 2>bad.log
     /%bash
 
     {h3('?')}
@@ -1081,6 +1081,9 @@ def bash(subject=None):
 
         # Load stdin into a variable
         stdin=$(cat<&0)
+
+        # Send stdin from a pipe
+        echo script.sh | sh /dev/stdin dest=/some/other/location
         
         /%bash
       
