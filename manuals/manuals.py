@@ -2,7 +2,7 @@ import inspect
 import re
 
 from functools import wraps
-from typing import Literal, Dict, Type, Union
+from typing import Literal, Dict, Type, Union, Any
 
 from manuals.common.types import ManFn
 from manuals.formatting import h1, h2, h3, h4, h5, b, c, i, black, bg
@@ -37,7 +37,7 @@ formatters: Dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args
 lexers: Dict[Language, Lexer] = dict.fromkeys(langs, None)
 
 
-#### HELPER FUNCTIONS
+# *** Helper Functions
 
 def _get_lexer_ctor(lang: Language) -> Type[Lexer]:
     if lang == 'bash':
@@ -108,7 +108,7 @@ def _highlight(text: str, lang: Language, style: Style = None) -> str:
     highlighted = pyglight(text, lexer, formatter)
     return highlighted
 
-
+# *** Decorators
 def alias(_alias: str):
     def wrap(fn):
         fn.alias = _alias
@@ -229,8 +229,23 @@ def syntax(_fn_or_style: Union[ManFn, Style] = None, **default_styles):
     # e.g. `@syntax(python='friendly')` → **default_styles has value
     return wrap
 
+def rich(_manualfn_or_whatever: Union[ManFn, Any] = None, *dec_args, **dec_kwargs):
+    def wrap(fn:ManFn, *args, **kwargs):
+        return fn(*args, **kwargs)
+    
+    if _manualfn_or_whatever is not None:
+        if callable(_manualfn_or_whatever):
+            # e.g. naked `@rich`
+            return wrap(_manualfn_or_whatever)
+        # e.g. `@rich(python='friendly')`
+        raise NotImplementedError("manuals.py rich decorator was called with parens (). only bare @rich supported")
+        default_style = _manualfn_or_whatever
+        return wrap
+    raise NotImplementedError("manuals.py rich decorator was called with parens (). only bare @rich supported")
+    # e.g. `@rich(python='friendly')` → **dec_kwargs has value
+    return wrap
 
-#### MANUALS
+# *** Manuals
 
 @syntax(python='friendly')
 def altair(subject=None):
@@ -5628,6 +5643,36 @@ def pip(subject=None):
   {_SEARCH}
     """
 
+@syntax
+@rich
+def poetry(subject=None):
+  
+  _ENV = f"""{h2('env')}
+  %bash
+  poetry env info [-p]
+  poetry env list [--full-path]
+  poetry env remove <python>
+  poetry env use <python>
+  
+  # Examples
+  poetry env use python3.8                [c]Creates a venv[/c]
+  . "$(poe env info -p)"/bin/activate     [c]activates venv[/c]
+  /%bash
+  """
+  
+  _PUBLISH = f"""{h2('publish')}
+  %bash
+  poe publish -u giladbarnea --build --dry-run
+  /%bash
+  """
+  if subject:
+      frame = inspect.currentframe()
+      return frame.f_locals[subject]
+  else:
+      return f"""{h1('poetry')}
+  {_ENV}
+  {_PUBLISH}
+      """
 
 @syntax
 @alias('psql')
@@ -6443,9 +6488,8 @@ def restructured_text(subject=None):
         """
 
 
-@alias('pyinspect')
 @syntax(python='friendly')
-def rich(subject=None):
+def rich_(subject=None):
     _INSPECT = f"""{h3('inspect(')}    {c('like pyinspect.what() without source code')}
         %python
         obj, *,
