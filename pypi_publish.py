@@ -32,10 +32,10 @@ def is_dry_run():
 
 
 def main():
-    if subprocess.check_output(shlex.split('git status -s')):
+    if subprocess.check_output(shlex.split("git status -s")):
         _print('some uncommitted changes:')
         subprocess.run(shlex.split('git status'))
-        if not confirm('publish regardless?'):
+        if not confirm('publish?'):
             sys.exit()
     with open('./setup.py') as f:
         data = f.read()
