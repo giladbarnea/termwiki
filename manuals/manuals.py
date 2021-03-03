@@ -617,12 +617,12 @@ def bash(subject=None):
           ;;
           --switch=[a-zA-Z0-9]*)
           # '--switch=foo'
-          val=$(echo -e "${{1:8}}")     # start from index 8 and on, of var '1'
+          val="${{1#*=}}"
           echo kwarg $1 with val $val
           shift
           ;;
           -s|--switch)
-          # 's foo' or '--switch foo'
+          # '-s foo' or '--switch foo'
           echo switch $1 with value: $2
           shift 2 # shift twice to bypass switch and its value
           ;;
@@ -655,6 +655,10 @@ def bash(subject=None):
       {h4('last arg')}
         %bash 1
         $@[$#]
+    
+    {h3('getopt')}
+      %bash 1
+      getopt [-u, --unquoted] --long difftool: -- "$@"    # supports --difftool=foo and --difftool foo
     
     {h3('${*} vs $@')}
       {h4('Basically:')}
@@ -906,16 +910,19 @@ def bash(subject=None):
     {h4('Manipulation')}
       %bash
       # Delete from end
-      ${{string%substring}}                # Deletes *shortest* match of $substring from *end* of $string.
-        echo "${{SHELL%/*}}"               # /usr/bin
+      ${{string%substring}}                       # Deletes *shortest* match of $substring from *end* of $string.
+        echo "${{SHELL%/*}}"                      # /usr/bin
         
-      ${{string%%substring}}               # Deletes *longest* match of $substring from *end* of $string.
+      ${{string%%substring}}                      # Deletes *longest* match of $substring from *end* of $string.
       
       # Delete from start
-      ${{string#substring}}                # Deletes *shortest* match of $substring from *start* of $string.
+      ${{string#substring}}                       # Deletes *shortest* match of $substring from *start* of $string.
 
-      ${{string##substring}}               # Deletes *longest* match of $substring from *start* of $string.
-        echo "${{SHELL##*/}}"              # zsh
+      ${{string##substring}}                      # Deletes *longest* match of $substring from *start* of $string.
+        echo "${{SHELL##*/}}"                     # zsh
+        # gets value of --difftool=val and --difftool val:
+        argstr="$*"; difftool="${{argstr##*difftool[= ]}}"
+        
       
       # Replacement
       ${{string/substring/replacement}}    # Replace *first* match of $substring with $replacement.
