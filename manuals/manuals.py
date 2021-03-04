@@ -3150,6 +3150,11 @@ def git(subject=None):
     #  git ls-files -v | grep "^[[:lower:]]"
     #  git svn dcommit
     #  git read-tree -u -m <commit>
+    _BLAME = f"""{h2('blame')}
+    git blame <path> --since=3.days
+    git blame -L 15,+5
+    git blame -t <path>         {c('unix timestamps')}
+    """
     _BRANCH = f"""{h2('branch')}
     {h3('Rename branch')}
       git branch -m {i('newname')}
@@ -3250,17 +3255,17 @@ def git(subject=None):
       -a, --textual               {c('Treat all files as text')}
 
     {h3('Examples')}
-      git diff HEAD origin        {c('Compare local to origin')}
-      git diff HEAD^ HEAD         {c('Compare the version before the last commit and the last commit')}
-      git diff b8c59b3 -- src/renderer.ts
+      1.0.3: local committed changes
+      1.0.4: fetched origin is
+      1.0.5: local uncommitted (newest) changes
+      git diff == git diff HEAD     | 1.0.3 vs 1.0.5 (local committed vs local uncommitted)
+      git diff origin/master        | 1.0.4 vs 1.0.5 (fetched vs local uncommitted)
+      git diff origin/master HEAD   | 1.0.4 vs 1.0.3 (fetched vs local committed)
+      git diff origin/master upstream/master | fetched vs forked
     
     {h3('Dots')}
       git diff topic..main      {c("same as 'git diff topic main'")}
       git diff topic...main     {c(f"Changes that occurred on {i('main')} since when {i('topic')} was started off it")}
-    
-    {h3('Lines of code')}
-      git diff --stat 4b825dc642cb6eb9a060e54bf8d69288fbee4904
-      git ls-files | xargs wc -l
     
     {h3('Summary')}
       --compact-summary           {c("path/to/file (new) |  17 ++")}
