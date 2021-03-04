@@ -5651,7 +5651,7 @@ def pip(subject=None):
     """
 
 @syntax
-@rich
+# @rich
 def poetry(subject=None):
   
   _ENV = f"""{h2('env')}
