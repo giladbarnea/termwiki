@@ -24,8 +24,9 @@ from manuals.common.types import ManFn
 # brightprint = lambda s, *colors: cprint(s, 'bright white', *colors)
 SUB_TOPIC_RE = re.compile(r'_[A-Z]*\s?=\s?(rf|fr|f)"""')
 from rich.console import Console
+from rich.theme import Theme
 
-console = Console()
+console = Console(theme=Theme({'info':'bright_white'}))
 EXCLUDE = [
     # imports
     'inspect',
@@ -406,7 +407,7 @@ def get_sub_topic(main_topic: str, sub_topic: str):
     """
     logging.debug(f"get_sub_topic({repr(main_topic)}, {repr(sub_topic)})")
     if main_topic not in MAIN_TOPICS:
-        console.log(f"[bright_white]Unknown main topic: '{main_topic}'. Searching among MAIN_TOPICS...[/]")
+        console.log(f"[info]Unknown main topic: '{main_topic}'. Searching among MAIN_TOPICS...[/]")
         # brightprint(f"Unknown main topic: '{main_topic}'. Searching among MAIN_TOPICS...")
         main_topic = fuzzy_find_topic(main_topic, MAIN_TOPICS, raise_if_exhausted=True)
     
@@ -422,7 +423,7 @@ def get_sub_topic(main_topic: str, sub_topic: str):
         # has 'subject.startswith('<')'. so maybe sub_topic works
         return main_topic_fn(sub_topic)
     except KeyError:
-        console.log((f"[bright_white]sub topic '{sub_topic}' isn't a sub topic of '{main_topic}'. "
+        console.log((f"[info]sub topic '{sub_topic}' isn't a sub topic of '{main_topic}'. "
                      f"Searching among '{main_topic}'s sub topics...[/]"))
         key, chosen_sub_topic = fuzzy_find_topic(sub_topic,
                                                  main_topic_fn.sub_topics,
@@ -436,10 +437,10 @@ def get_sub_topic(main_topic: str, sub_topic: str):
             return main_topic_fn(f'_{chosen_sub_topic.upper()}')
         
         if sub_topic in SUB_TOPICS:
-            console.log(f"[bright_white]'{sub_topic}' isn't a sub topic of '{main_topic}', but it belongs to these topics:[/]")
+            console.log(f"[info]'{sub_topic}' isn't a sub topic of '{main_topic}', but it belongs to these topics:[/]")
             return print_manual(sub_topic)
         
-        console.log(f"[bright_white]'{sub_topic}' doesn't belong to any topic. Searching among all SUB_TOPICS...[/]")
+        console.log(f"[info]'{sub_topic}' doesn't belong to any topic. Searching among all SUB_TOPICS...[/]")
         key, sub_topic = fuzzy_find_topic(sub_topic,
                                           SUB_TOPICS,
                                           raise_if_exhausted=True,
@@ -461,7 +462,7 @@ def print_manual(main_topic: str, sub_topic=None):
         #     .replace('[h1]', '[bold underline reverse bright_white]') \
         #     .replace('[h2]', '[bold underline bright_white]') \
         #     .replace('[h3]', '[bold bright_white]') \
-        #     .replace('[h4]', '[bright_white]') \
+        #     .replace('[h4]', '[info]') \
         #     .replace('[h5]', '[white]') \
         #     .replace('[c]', '[dim]')
         # return console.print(sub_topic_str)
