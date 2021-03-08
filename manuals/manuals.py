@@ -7769,9 +7769,9 @@ def wolfram(subject=None):
 
 def xclip(subject=None):
     return f"""{h1('xclip')}
-  -i            {c('from stdin or files (default)')}
-  -o            {c('print selection to stdout')}
-  -r, -rmlastnl {c('remove line break from end if exists')}
+  -i, -in       {c('from stdin or files (default)')}
+  -o, -out      {c('print selection to stdout, e.g "xclip -o -selection clipboard"')}
+  -d, -display  {c('e.g "localhost:0". defaults to $DISPLAY')}
   -selection (primary|secondary|clipboard)  {c('XA_PRIMARY (default) | XA_SECONDARY | XA_CLIPBOARD')}
     """
 
@@ -8106,7 +8106,8 @@ def zenity(subject=None):
       find  ... | zenity --list --title "Search Results" --text "Finding..." --column "Files"
     
     {h3('--notification')}
-      --listen=
+      --text=STRING
+      --listen         {c("Toggle listen to stdin for 'message: STR', 'tooltip: STR', 'icon: PATH_OR_LEVEL', and 'visible: BOOL' separated by a colon")}
     
     {h3('--progress')}
       --percentage=INT
