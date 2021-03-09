@@ -5659,6 +5659,32 @@ def pip(subject=None):
 # @rich
 def poetry(subject=None):
   
+  _NEW = f"""{h2('new project')}
+  %bash
+  # install:
+  pip38 install --user poetry
+
+  # new project (BEFORE mkdir and git init)
+  cd ~/dev
+  poetry new myproject    
+  # creates:
+  # ~/dev/myproject/
+  #                /myproject/
+  #                /tests/
+  #                /README.rst
+  #                /pyproject.toml
+  cd myproject && git init && gh repo create
+  %/bash
+  """
+  
+  _BUILD = f"""{h2('build')} [-f wheel|sdist]
+  %bash
+  poetry build
+  # creates a ./dist/ dir with PROJECT-0.1.0.tar.gz or -py3-none-any.whl
+  # that can be pip38 install --user ./PROJECT-...whl
+  /%bash
+  """
+  
   _ENV = f"""{h2('env')}
   %bash
   poetry env info [-p]
@@ -5672,6 +5698,14 @@ def poetry(subject=None):
   /%bash
   """
   
+  _INSTALL = f"""{h2('install')} [--no-dev] [--no-root] [--dry-run] [--remove-untracked] [-E <...>]
+  Reads poetry.lock file from current dir, installs libs and deps from that file.
+  Uses pyproject.toml if poetry.lock doesn't exist.
+  --no-dev              {c("don't install dev dependencies")}
+  --no-root             {c("don't install current package")}
+  --remove-untracked    {c("remove pkgs not in lock file")}
+  """
+
   _PUBLISH = f"""{h2('publish')}
   %bash
   poe publish -u giladbarnea --build --dry-run
@@ -5682,7 +5716,10 @@ def poetry(subject=None):
       return frame.f_locals[subject]
   else:
       return f"""{h1('poetry')}
+  {_NEW}
   {_ENV}
+  {_INSTALL}
+  {_BUILD}
   {_PUBLISH}
       """
 
