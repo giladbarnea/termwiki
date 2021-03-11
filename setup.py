@@ -6,7 +6,7 @@ packages = find_packages(exclude=["tests?", "*.tests*", "*.tests*.*", "tests*.*"
 print(f'{packages = }')
 setup_args = dict(name='manuals',
                   # https://packaging.python.org/tutorials/packaging-projects/
-                  version='0.0.18',
+                  version='0.0.19',
                   description='',
                   long_description=long_description,
                   long_description_content_type="text/markdown",
