@@ -4170,12 +4170,27 @@ def ipython(subject=None):
     {h4('See also: %who')}
     """
 
-    _SHELL = f"""{h2('TerminalInteractiveShell')} {c('IPython.terminal.interactiveshell.TerminalInteractiveShell')}
+    _SHELL = _IP = f"""{h2('TerminalInteractiveShell')} {c('IPython.terminal.interactiveshell.TerminalInteractiveShell')}
+      %python 2
+      from IPython import get_ipython()
+      ip = get_ipython()
+      
       {h3('Properties')}
-        user_ns[_hidden]{c(': dict')}
-        user_global_ns{c(': dict')}
-        user_module{c(': module')}
+        ip.user_ns[_hidden]{c(': dict')}
+        ip.user_global_ns{c(': dict')}
+        ip.user_module{c(': module')}
+        ip.editing_mode{c(': str')}
+        ip.editor{c(': str')}
         ... and all configurable props
+      
+      {h3('Methods')}
+        ip.define_macro()
+        ip.enable_matplotlib()
+        ip.get_local_scope(stack_depth: int) {c('→ dict')}
+      
+      {h3('Objects')}
+        ip.extension_manager
+        ip.magics_manager
     """
 
     _PROFILE = _PROFILER = _PRUN = _LPRUN = f"""{h2('%prun')} [options] <statement>
