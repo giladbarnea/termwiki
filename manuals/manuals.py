@@ -4471,6 +4471,7 @@ def jira(subject=None):
         return rf"""{h1('jira')}
   {h2('JQL')}
     assignee = currentUser() AND resolution = Unresolved AND issueLinkType != "Child of"
+    issue not in childIssuesOf("ASM-5277")
     
   {_CLI}
         """
