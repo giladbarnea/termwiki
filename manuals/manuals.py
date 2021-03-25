@@ -605,7 +605,22 @@ def bash(subject=None):
 
     # TODO: git diff -w "$@" | view -
     __ARGUMENTS = __ARGS = f"""{h2('Arguments')}
-
+    
+    {h3('getopts')}
+      %bash
+      while getopts :d:no: OPT; do
+        case $OPT in
+          d) day="$OPTARG" ;;
+          n) DRY_RUN=1 ;;
+          o) OFFSET="$OPTARG" ;;
+          *)
+	        echo "Usage: ${{0##*/}} [-n] [-d day] [-o offset] ARGS..."
+	        exit 2
+        esac
+      done
+      shift $(( OPTIND - 1 ))
+      OPTIND=1
+      /%bash
     {h3('Parse args / kwargs')}
       %bash
       POSITIONAL=()
@@ -1071,7 +1086,7 @@ def bash(subject=None):
       >       {c('output to file')}
       >>      {c('append to file')}
       <       {c('read input from file')}
-      <<      {c('here document')}
+      <<      {c('heredoc')}
         [n]<<word
             here-document
         delimiter
