@@ -1673,8 +1673,6 @@ def bash(subject=None):
       # View fingerprint art to compare visually:
       ssh-keygen -lv -f ~/.ssh/known_hosts
       
-      # No fucking idea: (from man ssh)
-      ssh-keygen -r host.example.com 
       /%bash
   
     """
@@ -1715,6 +1713,10 @@ def bash(subject=None):
   
   {h3('ssh examples')}
     %bash
+    # Create a key pair with a remote machine:
+    ssh-keygen -f my_key -C "some comment"
+    ssh-copy-id -i ./my_key.pub user@ip
+    
     # Connect to a computer on local network:
     ssh <username>@<computer-name>.local    # e.g. ssh gilad@gilad.local
     # or:
