@@ -5710,7 +5710,7 @@ def poetry(subject=None):
   %/bash
   """
   
-  _BUILD = f"""{h2('build')} [-f wheel|sdist]
+  _BUILD = f"""{h2('build')} [-f wheel|sdist]
   %bash
   poetry build
   # creates a ./dist/ dir with PROJECT-0.1.0.tar.gz or -py3-none-any.whl
@@ -5731,7 +5731,7 @@ def poetry(subject=None):
   /%bash
   """
   
-  _INSTALL = f"""{h2('install')} [--no-dev] [--no-root] [--dry-run] [--remove-untracked] [-E <...>]
+  _INSTALL = f"""{h2('install')} [--no-dev] [--no-root] [--dry-run] [--remove-untracked] [-E <...>]
   Reads poetry.lock file from current dir, installs libs and deps from that file.
   Uses pyproject.toml if poetry.lock doesn't exist.
   --no-dev              {c("don't install dev dependencies")}
