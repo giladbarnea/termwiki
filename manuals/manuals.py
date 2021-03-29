@@ -7013,7 +7013,7 @@ def sshfs(subject=None):
         -o Ciphers=aes128-ctr
         -o Compression=no
     )
-    sudo sshfs "${options[@]}" admin@10.110.100.90:/ /mnt/u20_56
+    sudo sshfs "${{options[@]}}" admin@10.110.100.90:/ /mnt/u20_56
     /%bash
   """
   
