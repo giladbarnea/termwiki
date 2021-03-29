@@ -6970,7 +6970,53 @@ def shellcheck(subject=None):
   export SHELLCHECK_OPTS='--shell=bash --exclude=SC2016'
     """
 
+@syntax
+def sshfs(subject=None):
+  return f"""{h1('sshfs')}
+  http://manpages.ubuntu.com/manpages/precise/man8/mount.fuse.8.html
+  sudo sshfs -o allow_other,default_permissions admin@10.110.100.90:/ /mnt/u20_56
+  
+  {h3('default_permissions')}
+    Enable permission checking, restricting access based on file mode. 
+    Useful with allow_other.
+  
+  {h3('allow_other')}
+    Don't restrict file access only to the user mounting the filesystem.
+    
+  {h3('allow_root')}
+    File access is limited to the user mounting the filesystem and root.
+    Mutually exclusive with allow_other.
+  
+  {h3('max_read=N')}
+    Default infinite
+  
+  {h3('max_readahead=BYTES')}
+    Default is determined by the kernel. Linux kernel <= 2.6.22 it's 131072 (128KB).
+  
+  {h3('max_write=BYTES')}
+    In a single write operation. Default is 131072 (128KB).
+  
+  {h3('cache_timeout=SECONDS')}
+    Default 20
 
+  {h2('Examples')}
+    %bash
+    # https://superuser.com/questions/344255/faster-way-to-mount-a-remote-file-system-than-sshfs
+    options=(
+        -o allow_other
+        -o no_check_root
+        -o cache=yes
+        -o cache_timeout=115200
+        -o attr_timeout=115200
+        -o entry_timeout=1200
+        -o max_write=1310720
+        -o Ciphers=aes128-ctr
+        -o Compression=no
+    )
+    sudo sshfs "${options[@]}" admin@10.110.100.90:/ /mnt/u20_56
+    /%bash
+  """
+  
 @syntax
 def snap(subject=None):
     if subject:
