@@ -1703,6 +1703,8 @@ def bash(subject=None):
     -E <log_file>       {c('instead of to stderr')}
     -F <configfile>     {c('ignores /etc/ssh/ssh_config and defaults to ~/.ssh/config')}
     -T      {c('Disable pseudo-terminal allocation.')}
+    -X      {c('ForwardX11')}
+    -Y      {c('ForwardX11Trusted')}
     -t      {c('Force pseudo-terminal allocation. Can be used to execute arbitrary screen-based programs on remote machine.')}
     -g      {c('Allows remote hosts to connect to local forwarded ports.')}
     -i <identity_file>  {c('Multiple. defaults in ~/.ssh/: id_dsa, id_ecdsa, id_ecdsa_sk, id_ed25519, id_ed25519_sk and id_rsa.')}
@@ -1710,6 +1712,14 @@ def bash(subject=None):
     -p <port>
     -f      {c('go to background just before command execution (after prompts)')}
     -n      {c('Redirects stdin from /dev/null (actually, prevents reading from stdin).')}
+  
+  {h3('-o FOO')}
+    ForwardX11Trusted
+    DynamicForward
+    HostKeyAlias      {c('instead of the real host name')}
+    Hostname
+    LocalForward
+    NoHostAuthenticationForLocalhost
   
   {h3('ssh examples')}
     %bash
