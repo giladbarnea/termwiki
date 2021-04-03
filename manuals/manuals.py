@@ -1677,7 +1677,7 @@ def bash(subject=None):
   
     """
 
-    __SCP = f"""{h2('scp')} [options...] <SOURCE> ... <TARGET>
+    _SCP = f"""{h2('scp')} [options...] <SOURCE> ... <TARGET>
     SOURCE and TARGET may be: 
      - a local pathname (rel or abs)
      - a remote host with optional path (e.g [user@]host:[path])
@@ -1741,9 +1741,6 @@ def bash(subject=None):
     /%bash
   
   {__SSH_KEYGEN}
-  
-  {__SCP}
-  
     """
 
     _SORT = f"""{h2('sort')}
@@ -2019,6 +2016,7 @@ def bash(subject=None):
   {_SED}
   {_SORT}
   {_SPLIT}
+  {_SCP}
   {_SSH}
   {_STAT}
   {_SUDO}
