@@ -621,6 +621,11 @@ def bash(subject=None):
       shift $(( OPTIND - 1 ))
       OPTIND=1
       /%bash
+    
+    {h3('getopt')}
+      %bash 1
+      getopt [-u, --unquoted] --long difftool: -- "$@"    # supports --difftool=foo and --difftool foo
+    
     {h3('Parse args / kwargs')}
       %bash
       POSITIONAL=()
@@ -670,10 +675,6 @@ def bash(subject=None):
       {h4('last arg')}
         %bash 1
         $@[$#]
-    
-    {h3('getopt')}
-      %bash 1
-      getopt [-u, --unquoted] --long difftool: -- "$@"    # supports --difftool=foo and --difftool foo
     
     {h3('${*} vs $@')}
       {h4('Basically:')}
@@ -1024,7 +1025,7 @@ def bash(subject=None):
     done
     /%bash
     """
-    __PIPE = __PROCESSES = __FILEDESCRIPTORS = __BG = __FG = f"""{h2('Pipe, Processes, File Descriptors, Background, Foreground, >, >>, <, <<, <<<')}
+    __PIPE = __PROCESSES = __FILEDESCRIPTORS = __BG = __FG = __REDIRECTION = f"""{h2('Pipe, Processes, File Descriptors, Background, Foreground, Redirection, >, >>, <, <<, <<<')}
     {c('https://stackoverflow.com/questions/35116699/piping-not-working-with-echo-command')}
     %bash
     nohup CMD &>/dev/null &
@@ -1083,6 +1084,7 @@ def bash(subject=None):
       /%bash
 
     {h3('>, >>, <, <<, <<<')}    
+      {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l60')}
       >       {c('output to file')}
       >>      {c('append to file')}
       <       {c('read input from file')}
@@ -8301,7 +8303,7 @@ def zip_(subject=None):
 
 @syntax('friendly')
 def zsh(subject=None):
-    _ZLE = f"""{h2('zle')}
+    _ZLE = f"""{h2('zle')} - Z-Shell Line Editor
     # https://github.com/mskar/setup/blob/5d9dddd447a05e8d866b9c09b06a085f02e41bd3/.zshrc#L686
     zle up-history
     zle push-line
@@ -8309,6 +8311,12 @@ def zsh(subject=None):
     zle -N <function>
     """
 
+    _COMMANDS = f"""{h2('zsh commands')}
+    {h3('print')}
+    # http://zsh.sourceforge.net/Guide/zshguide03.html#l33
+    print -z print -z print This is a line    {c('Put in buffer')}
+    """
+    
     _KEYS = f"""{h2('Keyboard Shortcuts')}
     {c('show all with just `bindkey`')}
     {h3('Glossary')}
@@ -8365,7 +8373,8 @@ def zsh(subject=None):
   autoload -U add-zsh-hook
   emulate -L zsh
   emulate -RL zsh
-
+  {_COMMANDS}
+  
   {_ZLE}
 
   {_KEYS}
