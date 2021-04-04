@@ -1656,29 +1656,6 @@ def bash(subject=None):
   -i, --interactive   {c('prompt whether to remove destinations')}
   find . -type l ! -exec test -e {{}} \\; -print    {c('print empty symlinks')}
     """
-    __SSH_KEYGEN = f"""{h2('ssh-keygen')} [options] [flags]
-    {h3('options')}
-      -l          {c('Show fingerprint of specified public key file. With -v, shows art')}
-      -v[v[v]]    {c('verbose')}
-      -f <filename>
-      -r <hostname>       {c('Print SSHFP fingerprint resource record named hostname for specified public key file.')}
-      -t <dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa>  {c('key type to create')}
-      
-    {h3('ssh-keygen examples')}
-      %bash
-      # Create new ssh key:
-      ssh-keygen
-      
-      # Check if ssh valid:
-      ssh-keygen -l -f /Users/gilad/.ssh/id_rsa.pub
-  
-      # View fingerprint art to compare visually:
-      ssh-keygen -lv -f ~/.ssh/known_hosts
-      
-      /%bash
-  
-    """
-
     _SCP = f"""{h2('scp')} [options...] <SOURCE> ... <TARGET>
     SOURCE and TARGET may be: 
      - a local pathname (rel or abs)
@@ -1700,6 +1677,58 @@ def bash(subject=None):
       /%bash
   
     """
+    _SSH_KEYGEN = f"""{h2('ssh-keygen')} [options] [flags]
+    {h3('options')}
+      -l          {c('Show fingerprint of specified public key file. With -v, shows art')}
+      -v[v[v]]    {c('verbose')}
+      -f <filename>
+      -r <hostname>       {c('Print SSHFP fingerprint resource record named hostname for specified public key file.')}
+      -t <dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa>  {c('key type to create')}
+      
+    {h3('ssh-keygen examples')}
+      %bash
+      # Create new ssh key:
+      ssh-keygen
+      
+      # Check if ssh valid:
+      ssh-keygen -l -f /Users/gilad/.ssh/id_rsa.pub
+  
+      # View fingerprint art to compare visually:
+      ssh-keygen -lv -f ~/.ssh/known_hosts
+      
+      /%bash
+    """
+    
+    __SSHD_CONFIG = f"""{h2('sshd_config')}
+    AcceptEnv "NAME1 NAME2 NA*ME NA?ME"
+    Compression[=delayed]         {c('yes | no | delayed')}
+    DisableForwarding             {c('Overrides everything')}
+    ExposeAuthInfo[=no]           {c('Writes temp file with auth methods and public creds (e.g. keyes)')}
+    EnableSSHKeysign[=no]         {c('Enable ssh-keysign(8) during HostbasedAuthentication')}
+    GatewayPorts[=no]             {c('Allow remote to connect to local forwarded ports')}
+    HostbasedAuthentication[=no]  {c('Try rhosts based authentication with public key authentication')}
+    PermitUserEnvironment[=no]    {c('yes | no | e.g. "LANG,LC_*". Process ~/.ssh/environment and environment= options in ~/.ssh/authorized_keys by sshd')}
+    SetEnv                        {c('NAME=VALUE')}
+    X11DisplayOffset[=10]         {c("Specify first display num available for sshd(8)'s X11 forwarding")}
+    X11Forwarding[=no]
+    X11UseLocalhost[=yes]         {c('Bind X11 forwarding server to the loopback address or to the wildcard address')}
+    
+    {h3('SSHD TOKEN')}
+      %%    {c('A literal ‘%’.')}
+      %D    {c('The routing domain in which the incoming connection was received.')}
+      %F    {c('The fingerprint of the CA key.')}
+      %f    {c('The fingerprint of the key or certificate.')}
+      %h    {c('The home directory of the user.')}
+      %i    {c('The key ID in the certificate.')}
+      %K    {c('The base64-encoded CA key.')}
+      %k    {c('The base64-encoded key or certificate for authentication.')}
+      %s    {c('The serial number of the certificate.')}
+      %T    {c('The type of the CA key.')}
+      %t    {c('The key or certificate type.')}
+      %U    {c('The numeric user ID of the target user.')}
+      %u    {c('The username.')}
+    """
+
     _SSH = f"""{h2('ssh')} [options...] destination [command]
   {h3('options')}
     -E <log_file>       {c('instead of to stderr')}
@@ -1707,6 +1736,11 @@ def bash(subject=None):
     -T      {c('Disable pseudo-terminal allocation.')}
     -X      {c('ForwardX11')}
     -Y      {c('ForwardX11Trusted')}
+    -R [bind_address:]port:host:hostport
+    -R [bind_address:]port:local_socket
+    -R remote_socket:host:hostport
+    -R remote_socket:local_socket
+    -R [bind_address:]port
     -t      {c('Force pseudo-terminal allocation. Can be used to execute arbitrary screen-based programs on remote machine.')}
     -g      {c('Allows remote hosts to connect to local forwarded ports.')}
     -i <identity_file>  {c('Multiple. defaults in ~/.ssh/: id_dsa, id_ecdsa, id_ecdsa_sk, id_ed25519, id_ed25519_sk and id_rsa.')}
@@ -1715,15 +1749,44 @@ def bash(subject=None):
     -f      {c('go to background just before command execution (after prompts)')}
     -n      {c('Redirects stdin from /dev/null (actually, prevents reading from stdin).')}
   
-  {h3('-o FOO')}
-    ForwardX11Trusted
-    DynamicForward
-    HostKeyAlias      {c('instead of the real host name')}
+  {h3('-o OPTION')}
+    {c('bind_address can also be * and localhost')}
+    DynamicForward            {c('-D [bind_address:]port')}
+    ForwardAgent[=no]         {c('-A | Forward connection to authentication agent (if any) to remote')}
+    ForwardX11[=no]           {c('-X')}
+    ForwardX11Trusted[=no]    {c('-Y | Redirect X11 connection and set DISPLAY')}
+    GatewayPorts[=no]         {c('-g? | Allow remote to connect to local forwarded ports')}
+    Host                      {c('Specifies real host name to log into')}
+    HostKeyAlias              {c('Specifies alias instead of the real host name')}
     Hostname
-    LocalForward
-    NoHostAuthenticationForLocalhost
+    LocalForward [bind_address:]port    {c('Forward TCP port on local to specified host and port from remote')}
+    LocalCommand              {c('Allow local command execution via the LocalCommand')}
+    NoHostAuthenticationForLocalhost[=no]  {c('Disable host authentication for localhost (loopback addresses)')}
+    PermitLocalCommand[=no]
+    RemoteCommand             {c('execute on remote after connecting')}
+    RemoteForward [bind_address:]port   {c('Requires GatewayPorts')}
+    SendEnv                   {c('Refer to sshd_config AcceptEnv')}
+    SetEnv
+    VisualHostKey             {c('Show art')}
   
-  {h3('ssh examples')}
+  {h3('SSH TOKENS')}
+    %%    {c("A literal ‘%’.")}
+    %C    {c("Hash of %l%h%p%r.")}
+    %d    {c("Local user's home directory.")}
+    %h    {c("The remote hostname.")}
+    %i    {c("The local user ID.")}
+    %k    {c("The host key alias if specified, otherwise the orignal remote hostname given on the command line.")}
+    %L    {c("The local hostname.")}
+    %l    {c("The local hostname, including the domain name.")}
+    %n    {c("The original remote hostname, as given on the command line.")}
+    %p    {c("The remote port.")}
+    %r    {c("The remote username.")}
+    %T    {c('The local tun(4) or tap(4) network interface assigned if tunnel forwarding was requested, or "NONE" otherwise.')}
+    %u    {c("The local username.")}
+  
+  {__SSHD_CONFIG}
+  
+  {h3('Examples')}
     %bash
     # Create a key pair with a remote machine:
     ssh-keygen -f my_key -C "some comment"
@@ -1742,7 +1805,6 @@ def bash(subject=None):
     ssh-add -K ~/.ssh/<private_key_file>
     /%bash
   
-  {__SSH_KEYGEN}
     """
 
     _SORT = f"""{h2('sort')}
@@ -2020,6 +2082,7 @@ def bash(subject=None):
   {_SPLIT}
   {_SCP}
   {_SSH}
+  {_SSH_KEYGEN}
   {_STAT}
   {_SUDO}
   {_SYMLINK}
