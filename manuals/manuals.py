@@ -4547,6 +4547,25 @@ def javascript(subject=None):
 
 @syntax
 def jira(subject=None):
+    _JQL=f"""{h2('JQL')}
+    assignee = currentUser() AND resolution = Unresolved AND issueLinkType != "Child of"
+    issue not in childIssuesOf("ASM-5277")
+    """
+    
+    _REST=f"""{h2('REST v2')}
+    %bash
+    curl --request GET -s --user $JIRA_USER:$JIRA_PASS --header 'Accept: application/json' --header 'Content-Type: application/json' --data '{"fields":"parent"}' https://jira.allot.com/rest/api/2/issue/$ISSUE
+    /%bash
+    
+    {h3('/issue/<ISSUE>')}
+      {h3('/worklog')}
+        /worklog?notifyUsers=false
+        
+        timeSpent
+        started {c('h.000+m.000')}
+        comment
+    """
+    
     _CLI=f"""{h2('jira-cli')}  
     {h3('view')}
       jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com'
@@ -4559,11 +4578,11 @@ def jira(subject=None):
         return frame.f_locals[subject]
     else:
         return rf"""{h1('jira')}
-  {h2('JQL')}
-    assignee = currentUser() AND resolution = Unresolved AND issueLinkType != "Child of"
-    issue not in childIssuesOf("ASM-5277")
+  {_JQL}
     
   {_CLI}
+  
+  {_REST}
         """
 
 
