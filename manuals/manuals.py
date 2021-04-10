@@ -5801,6 +5801,8 @@ def poetry(subject=None):
   cd myproject && git init && gh repo create
   %/bash
   """
+  _ADD = f"""{h2('add')} [-D] [-E <...>] [--optional] [--python <...>] [--platform <...>] [--source <...>] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
+  """
   
   _BUILD = f"""{h2('build')} [-f wheel|sdist]
   %bash
@@ -5841,6 +5843,7 @@ def poetry(subject=None):
       return frame.f_locals[subject]
   else:
       return f"""{h1('poetry')}
+  {_ADD}
   {_NEW}
   {_ENV}
   {_INSTALL}
