@@ -383,17 +383,39 @@ def altair(subject=None):
 
 @syntax
 def apt(subject=None):
+    _LIST = f"""{h2('list')} [GLOB]                        {c('list packages based on package names')}
+    {c('Without subcommand, lists all known packages')}
+    --installed
+    --upgradeable
+    --all-versions
+    """
+    _INSTALL = f"""{h2('install')} <PKG>
+    {h3('Examples')}
+      %bash
+      # Install from web
+      install <REGEX, GLOB, EXACT>
+      install <REGEX, GLOB, EXACT>/<stable | testing | unstable | buster | bullseye | sid ...>
+      install <REGEX, GLOB, EXACT>=
+
+      # Install from file
+      install /path/to/pkg.deb
+      /%bash
+
+    {h3('options')}
+      --no-install-recommends          {c('dont install extra recommended packages')}
+      --only-upgrade                   {c('upgrade only specific')}
+      -d, --download-only
+      -f, --fix-broken
+      -s, --simulate, --dry-run
+      -V, --verbose-versions
+      --reinstall                      {c('Upgrade already-installed pkgs to newest')}
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
         return f"""{h1('apt')}
-  {h2('list')} [GLOB]                        {c('list packages based on package names')}
-    {c('Without subcommand, lists all known packages')}
-    --installed
-    --upgradeable
-    --all-versions
-
+  {_LIST}
   {h2('search')} REGEX                       
 
   {h2('show')} NAME
@@ -403,35 +425,24 @@ def apt(subject=None):
   {h2('upgrade')}                            {c('does not remove existing packages')}
     {h3('full-upgrade')}                     {c('removes existing packages')}
 
-  {h2('install')} PKG
-    {h3('install from web')}
-      install <REGEX, GLOB, EXACT>
-      install <REGEX, GLOB, EXACT>/<stable | testing | unstable | buster | bullseye | sid ...>
-      install <REGEX, GLOB, EXACT>=
+  {_INSTALL}
+  {h2('reinstall')} <REGEX, GLOB, EXACT>       {c('maybe supports file?')}
 
-    {h3('install from file')}
-      install /path/to/pkg.deb
-
-    {h3('options')}
-      install --no-install-recommends  {c('skips installing the extra recommended packages')}
-      --only-upgrade install PKG       {c('upgrade only specific')}
-
-  {h2('reinstall')} <REGEX, GLOB, EXACT>     {c('maybe supports file?')}
-
-  {h2('purge')} <REGEX, GLOB, EXACT>         {c('clean the config remove left behind')}
-                                               {c('does not remove files in home dir')}
+  {h2('purge')} <REGEX, GLOB, EXACT>           {c('clean the config remove left behind')}
+                                       {c('does not remove files in home dir')}
 
   {h2('remove')} <REGEX, GLOB, EXACT>
+    -f, --fixed-broken
 
-  {h2('autoremove')}                         {c('remove dependencies of removed packages')}
-                                                {c(f'apt-mark deps you like')}
-  
+  {h2('autoremove')}                           {c('remove dependencies of removed packages')}
+                                       {c(f'apt-mark deps you like')}
+    
   {h2('misc')}
-    dist-upgrade
+    dist-upgrade                {c('Smart handle changing deps with new versions of packages. Addition to "upgrade"')}
     ppa-purge <ppa>
-    source <pkg>        {c('Fetch the source for the specified package')}
+    source <pkg>                {c('Fetch the source for the specified package')}
     build-dep <source_pkg>
-    apt-file update     {c('Generates or updates the apt-file package database')}
+    apt-file update             {c('Generates or updates the apt-file package database')}
     apt-file search --regexp
     apt-cache search
     apt-cache policy
@@ -5780,71 +5791,72 @@ def pip(subject=None):
   {_SEARCH}
     """
 
+@alias('poe')
 @syntax
 # @rich
-def poetry(subject=None):
-  
+def poetry(subject=None):  
   _NEW = f"""{h2('new project')}
-  %bash
-  # install:
-  pip38 install --user poetry
-
-  # new project (BEFORE mkdir and git init)
-  cd ~/dev
-  poetry new myproject    
-  # creates:
-  # ~/dev/myproject/
-  #                /myproject/
-  #                /tests/
-  #                /README.rst
-  #                /pyproject.toml
-  cd myproject && git init && gh repo create
-  %/bash
+    %bash
+    # install:
+    pip38 install --user poetry
+  
+    # new project (BEFORE mkdir and git init)
+    cd ~/dev
+    poetry new myproject    
+    # creates:
+    # ~/dev/myproject/
+    #                /myproject/
+    #                /tests/
+    #                /README.rst
+    #                /pyproject.toml
+    cd myproject && git init && gh repo create
+    /%bash
   """
   _ADD = f"""{h2('add')} [-D] [-E <...>] [--optional] [--python <...>] [--platform <...>] [--source <...>] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
   """
   
   _BUILD = f"""{h2('build')} [-f wheel|sdist]
-  %bash
-  poetry build
-  # creates a ./dist/ dir with PROJECT-0.1.0.tar.gz or -py3-none-any.whl
-  # that can be pip38 install --user ./PROJECT-...whl
-  /%bash
+    %bash
+    poetry build
+    # creates a ./dist/ dir with PROJECT-0.1.0.tar.gz and -py3-none-any.whl
+    # that can be pip install --user ./PROJECT-...whl
+    # or pip install -e setup.py extracted from the .tar.gz
+    /%bash
   """
   
   _ENV = f"""{h2('env')}
-  %bash
-  poetry env info [-p]
-  poetry env list [--full-path]
-  poetry env remove <python>
-  poetry env use <python>
-  
-  # Examples
-  poetry env use python3.8                [c]Creates a venv[/c]
-  . "$(poe env info -p)"/bin/activate     [c]activates venv[/c]
-  /%bash
+    %bash
+    poetry env info [-p]
+    poetry env list [--full-path]
+    poetry env remove <python>
+    poetry env use <python>
+    
+    # Examples
+    poetry env use python3.8                [c]Creates a venv[/c]
+    . "$(poetry env info -p)"/bin/activate     [c]activates venv[/c]
+    /%bash
   """
   
   _INSTALL = f"""{h2('install')} [--no-dev] [--no-root] [--dry-run] [--remove-untracked] [-E <...>]
-  Reads poetry.lock file from current dir, installs libs and deps from that file.
-  Uses pyproject.toml if poetry.lock doesn't exist.
-  --no-dev              {c("don't install dev dependencies")}
-  --no-root             {c("don't install current package")}
-  --remove-untracked    {c("remove pkgs not in lock file")}
+    Reads poetry.lock file from current dir, installs libs and deps from that file.
+    Uses pyproject.toml if poetry.lock doesn't exist.
+    --no-dev              {c("don't install dev dependencies")}
+    --no-root             {c("don't install current package")}
+    --remove-untracked    {c("remove pkgs not in lock file")}
   """
 
   _PUBLISH = f"""{h2('publish')}
-  %bash
-  poe publish -u giladbarnea --build --dry-run
-  /%bash
+    %bash
+    poetry publish -u giladbarnea --build --dry-run
+    /%bash
   """
   if subject:
       frame = inspect.currentframe()
       return frame.f_locals[subject]
   else:
       return f"""{h1('poetry')}
-  {_ADD}
   {_NEW}
+  {_ADD}
   {_ENV}
   {_INSTALL}
   {_BUILD}
@@ -7327,6 +7339,7 @@ def tar(subject=None):
   -f --file={c('file')}
   -t        {c('list content of archive')}
   -v        {c('verbose')}
+  -C <PATH> {c('different destination')}
     """
 
 
