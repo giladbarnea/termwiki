@@ -4681,6 +4681,7 @@ def lazygit(subject=None):
   """
 
 
+
 @syntax
 @alias('md')
 def markdown(subject=None):
@@ -7332,7 +7333,53 @@ def sqlalchemy(subject=None):
   {_COLUMN}
     """
 
-
+@syntax
+def sphinx(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('sphinx')}
+    {h2('Sections')}
+      Args (alias of Parameters)
+      Arguments (alias of Parameters)
+      Attributes
+      Example
+      Examples
+      Keyword Args (alias of Keyword Arguments)
+      Keyword Arguments
+      Methods
+      Note
+      Notes
+      Other Parameters
+      Parameters
+      Return (alias of Returns)
+      Returns
+      Raises
+      References
+      See Also
+      Todo
+      Warning
+      Warnings (alias of Warning)
+      Warns
+      Yield (alias of Yields)
+      Yields        
+    
+    {h2('Examples')}
+      Args:
+          param1 (int): The first parameter.
+          param2 (Optional[str]): The second parameter. Defaults to None.
+              Second line of description should be indented.
+  
+      Other Parameters:
+          param3 (int): description
+          param4 (str): 
+          ...
+  
+      Keyword Args:
+          key1 (int): description 
+          key2 (int): description         
+        """
 def tar(subject=None):
     return f"""{h1('tar')}
   -x        {c('extract')}
