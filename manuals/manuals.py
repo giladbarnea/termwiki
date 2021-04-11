@@ -1799,6 +1799,9 @@ def bash(subject=None):
   
   {h3('Examples')}
     %bash
+    # Cool colors:
+    ip -s -c -h a
+    
     # Create a key pair with a remote machine:
     ssh-keygen -f my_key -C "some comment"
     ssh-copy-id -i ./my_key.pub user@ip
