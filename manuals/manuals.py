@@ -3154,7 +3154,44 @@ def firestore(subject=None):
   {_BATCH}
     """
 
-
+@syntax
+def flask(subject=None):
+  return f"""{h1('flask')}
+  {h2('cmd args')}
+  -h, --host TEXT                 {c('The interface to bind to.')}
+  -p, --port INTEGER              {c('The port to bind to.')}
+  --cert PATH                     {c('Specify a certificate file to use HTTPS.')}
+  --key FILE                      {c('The key file to use when specifying a')}
+                                  {c('certificate.')}
+  --reload / --no-reload          {c('Enable or disable the reloader. By default')}
+                                  {c('the reloader is active if debug is enabled.')}
+  --debugger / --no-debugger      {c('Enable or disable the debugger. By default')}
+                                  {c('the debugger is active if debug is enabled.')}
+  --eager-loading / --lazy-loader
+                                  {c('Enable or disable eager loading. By default')}
+                                  {c('eager loading is enabled if the reloader is')}
+                                  {c('disabled.')}
+  --with-threads / --without-threads
+                                  {c('Enable or disable multithreading.')}
+  --extra-files PATH              {c('Extra files that trigger a reload on change.')}
+                                  {c('Multiple paths are separated by ':'.')}
+  
+  {h2('app.run() options')}
+    host     {c('the hostname to listen on.')}
+    port     {c('the port of the web server.')}
+    debug    {c('if given, enable or disable debug mode.')}
+    load_dotenv     {c('load the nearest .env and .flaskenv files to set environment variables.')}
+    use_reloader    {c('should the server automatically restart the python process if modules were changed?')}
+    use_debugger    {c('should the werkzeug debugging system be used?')}
+    use_evalex      {c('should the exception evaluation feature be enabled?')}
+    extra_files     {c('a list of files the reloader should watch additionally to the modules.')}
+    reloader_interval     {c('the interval for the reloader in seconds.')}
+    reloader_type         {c('the type of reloader to use.')}
+    threaded       {c('should the process handle each request in a separate thread?')}
+    processes      {c('if greater than 1 then handle each request in a new process up to this maximum number of concurrent processes.')}
+    passthrough_errors    {c('set this to True to disable the error catching.')}
+    ssl_context    {c('an SSL context for the connection.')}
+  """
 def gcloud(subject=None):
     _APP = f"""{h2('app')}
     {h3('create')}
@@ -8469,9 +8506,11 @@ def zsh(subject=None):
     {c('show all with just `bindkey`')}
     {h3('Glossary')}
       ^X      {c('ctrl x')}
-      ^[x     alt x
-      ^[^X    ctrl alt x
-      ^[X     shift alt x, ESC x
+      ^[x     {c('alt x')}
+      ^[^X    {c('ctrl alt x')}
+      ^[X     {c('shift alt x, ESC x')}
+      
+      \\e[3D   {c('alt left? dirhistory')} 
     
     {h4('Keys hex values')}
       ^[      ESC
@@ -8511,6 +8550,10 @@ def zsh(subject=None):
       ^X^B    {c('vi-match-bracket')}
       ^X^O    {c('overwrite mode')}
       ^X^U    {c('undo')}
+
+    {h3('More zle functions')}  {c('zle <FN>')}
+      .kill-buffer    {c('dirhistory plugin')}
+      .accept-line    
     """
     if subject:
         frame = inspect.currentframe()
@@ -8519,6 +8562,7 @@ def zsh(subject=None):
         return rf"""{h1('zsh')}
   http://zsh.sourceforge.net/Guide/zshguide04.html
   autoload -U add-zsh-hook
+  add-zsh-hook chpwd chpwd_dirhistory    {c('dirhistory plugin')}
   emulate -L zsh
   emulate -RL zsh
   {_COMMANDS}
