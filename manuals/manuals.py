@@ -3174,7 +3174,7 @@ def flask(subject=None):
   --with-threads / --without-threads
                                   {c('Enable or disable multithreading.')}
   --extra-files PATH              {c('Extra files that trigger a reload on change.')}
-                                  {c('Multiple paths are separated by ':'.')}
+                                  {c('Multiple paths are separated by ":".')}
   
   {h2('app.run() options')}
     host     {c('the hostname to listen on.')}
@@ -7380,6 +7380,7 @@ def sphinx(subject=None):
         return frame.f_locals[subject]
     else:
         return f"""{h1('sphinx')}
+    {c('https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html')}
     {h2('Sections')}
       Args (alias of Parameters)
       Arguments (alias of Parameters)
@@ -7406,19 +7407,46 @@ def sphinx(subject=None):
       Yields        
     
     {h2('Examples')}
+      `PEP 484`_ is a good link.
+      
       Args:
           param1 (int): The first parameter.
-          param2 (Optional[str]): The second parameter. Defaults to None.
+          param2 (:obj:`str`, optional): The second parameter. Defaults to None.
               Second line of description should be indented.
+          *args: Variable length argument list.
+          **kwargs: Arbitrary keyword arguments.
   
+
       Other Parameters:
           param3 (int): description
           param4 (str): 
           ...
   
+
       Keyword Args:
           key1 (int): description 
-          key2 (int): description         
+          key2 (int): description
+
+
+      Literal blocks::
+
+          $ python example_google.py
+
+
+      Returns:
+          bool: True if successful, False otherwise.
+
+          
+      Todo:
+          * For module TODOs
+          * You have to also use ``sphinx.ext.todo`` extension
+
+
+      .. _Google Python Style Guide:
+          http://google.github.io/styleguide/pyguide.htm
+
+      .. _PEP 484:
+          https://www.python.org/dev/peps/pep-0484/         
         """
 def tar(subject=None):
     return f"""{h1('tar')}
