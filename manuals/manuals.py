@@ -2140,11 +2140,10 @@ def brew(subject=None):
       """
 
 
+# @syntax('monokai')
 @syntax('monokai')
 def click_(subject=None):
-    return f"""{h1('Click')}
-
-  {h2('Options')}
+    _OPTION = f"""{h2('Options')}
     %python
     @click.option('-s', '--string-to-echo', 'variable_name',
                   metavar=None,   # How it's displayed 
@@ -2198,24 +2197,133 @@ def click_(subject=None):
       @click.option('--username', prompt=True,
               default=lambda: os.environ.get('USER', ''),
               show_default='current user')
-    
-  {h2('Commands')}
+    """
+    _COMMAND = f"""{h2('Command')}
     %python
     @click.command(name, 
-                   context_settings=None, # core.Context() args
-                   epilog=None, # shown at the end
+                   context_settings=None,  # core.Context() args
+                   epilog=None,            # shown at the end
                    short_help=None, 
                    options_metavar='[OPTIONS]'
                    )
     /%python
-    
-    {h3('Context')}
+    """
+    _CONTEXT = f"""{h2('Context')}(
       %python
-      info_name='', 
-      max_content_width=80, 
-      help_option_names=['--help'],
-      show_default=False    # overrides show_default=True for all following options
+      command : Command cls,
+      allow_extra_args : bool = None,
+      
+      # mixing arguments and options
+      allow_interspersed_args : bool = None,  
+      
+      auto_envvar_prefix : str = None,
+      color = None,
+      context_settings=,
+      default_map : {{ str : {{ str : any }} }} = {{ command : {{ option : value }} }},
+      help_option_names : str[] = ['--help'],
+      ignore_unknown_options : bool = None,
+      info_name : str = None,
+      max_content_width : int = 80, 
+      
+      # arbitrary user data
+      obj = None,              
+      
+      parent : Context = None,
+      resilient_parsing : bool = False,
+      
+      # overrides show_default=True for all following options
+      show_default : bool = False,    
+      
+      terminal_width : int = None,
+      token_normalize_func = None
       /%python
+    """
+    _GROUP = f"""{h2('Group(MultiCommand)')}
+    {c('https://click.palletsprojects.com/en/7.x/commands/')}
+    
+    {h3('@click.group(')}
+        %python
+        name = None,
+        invoke_without_command : bool = False,
+        no_args_is_help : bool = not invoke_without_command,
+        subcommand_metavar : str = '', 
+        chain : bool = False
+        /%python
+    )
+          
+    
+    {h3('Basic')}
+      %python
+      @click.group()
+      @click.option('--debug/--no-debug', default=False)
+      def foo(debug): ...
+      
+      @foo.command()
+      def sync(): ...
+      /%python
+      
+      %bash 1
+      $ tool.py --debug sync
+        
+    {h3('No Subcommand')}
+      %python
+      @click.group(invoke_without_command=True)
+      @click.pass_context
+      def foo(ctx):
+          if ctx.invoked_subcommand is None: ...
+      
+      @foo.command()
+      def sync(): ...
+      /%python
+      
+      %bash 1
+      $ tool.py
+    
+    {h3('Merging Multiple Groups')}
+      %python
+      @click.group()
+      def foo(): ...
+      
+      @foo.command()
+      def foo_cmd(): ...
+      
+      @click.group()
+      def bar(): ...
+      
+      @bar.command()
+      def bar_cmd(): ...
+      
+      cli = click.CommandCollection(sources=[foo, bar])
+      
+      if __name__ == '__main__':
+          cli()    
+      /%python
+
+    {h3('Chaining Subcommands')}
+      %python
+      @click.group(chain=True)
+      def main(): ...
+      
+      @main.command('foo')
+      def foo(): ...
+      
+      @main.command('bar')
+      def bar(): ...
+      /%python
+      
+      %bash 1
+      $ tool foo bar
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    return f"""{h1('Click')}
+
+  {_OPTION}
+    
+  {_COMMAND}
+  
+  {_GROUP}
     """
 
 
