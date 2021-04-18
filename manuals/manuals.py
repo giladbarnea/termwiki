@@ -7258,18 +7258,8 @@ def sshfs(subject=None):
   {h2('Examples')}
     %bash
     # https://superuser.com/questions/344255/faster-way-to-mount-a-remote-file-system-than-sshfs
-    options=(
-        -o allow_other
-        -o no_check_root
-        -o cache=yes
-        -o cache_timeout=115200
-        -o attr_timeout=115200
-        -o entry_timeout=1200
-        -o max_write=1310720
-        -o Ciphers=aes128-ctr
-        -o Compression=no
-    )
-    sudo sshfs "${{options[@]}}" admin@10.110.100.90:/ /mnt/u20_56
+    opts="allow_other,no_check_root,cache=yes,cache_timeout=115200,attr_timeout=115200,entry_timeout=1200,max_write=1310720,Ciphers=aes128-ctr,Compression=no"
+    sudo sshfs -o "$opts" admin@10.110.100.90:/ /mnt/u20_56
     /%bash
   """
   
