@@ -3610,6 +3610,13 @@ def git(subject=None):
     git log {i("SHA")}          {c('of commit / branch')}
     git log {i('my_branch')} --pretty=oneline --graph
     
+    {h3('Commit Formatting')}
+      {c('Most options can have appended iso-local')}
+      date=[relative | local | iso | iso-strict | rfc | short | raw | human | unix | format:... | default]
+
+    {h3('pretty=')}
+      online | short | medium | full | fuller | reference | email | raw | format:...
+    
     {h3('Commit Limiting')}
       {h4('amount')}
         git log -n {i('1')}                {c('limit')}
@@ -6343,7 +6350,6 @@ def python(subject=None):
     dt(2020, 12, 19) {c('→ datetime.datetime(2020, 12, 19, 0, 0)')}
     dt(2020, 12, 19{c('[, 23, 45, 10, 999999, tzinfo]')})
 
-    {c('vs dt.utcnow()?')}
     now = dt.now() {c('→ datetime.datetime(2020, 12, 19, 6, 12, 57, 938731)')}
     
     {h4('Instance Methods / Attrs')}
@@ -6358,7 +6364,8 @@ def python(subject=None):
       now.timetz() {c('→ datetime.time')}
     
     {h4('Static Methods')}
-      now = dt.now() {c('→ datetime (vs dt.utcnow()?)')}
+      utcnow = dt.utcnow() {c('→ datetime (utc)')}
+      now = dt.now() {c('→ datetime (local)')}
       dt.fromtimestamp(1600000000) {c('→ datetime')}
   
     """
