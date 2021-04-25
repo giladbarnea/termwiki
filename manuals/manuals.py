@@ -380,6 +380,16 @@ def altair(subject=None):
     {_MISC}
     """
 
+def anxiety(subject=None):
+    return f"""{h1('Anxiety')}
+    {h2('Mark Manson: 5 Quick Ways to Get Rid of Anxiety')}
+      {c('https://www.youtube.com/watch?v=m6rcjY8YHJc')}
+      Emotions are expressed in body and bad feelz can become habits.
+      {h3('1. Breath')}: diaphragm, belly, maybe hold
+      {h3('2. Meditate')}
+      {h3('3. Talk to someone')}: repeated thoughts in head amplify. Sharing stops repetition.  
+      {h3('4. Negative Visualization')} (worst case + imagine how I'd handle, prob ok. stoicism?)  
+    """
 
 @syntax
 def apt(subject=None):
