@@ -4822,17 +4822,16 @@ def jupyter(subject=None):
 
 
 @syntax
-def lazygit(subject=None):
+def loguru(subject=None):
+    _RECORD = f"""{h2('record dict')}
+    elapsed, exception, extra, file, function, level, line, message, module, name, process, thread, time
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
-        return f"""{h1('lazygit')}
-  https://www.youtube.com/watch?v=CPLdltN7wgE
-  https://github.com/jesseduffield/lazygit/#usage
-  
-  lazygit --config
-  
+        return f"""{h1('loguru')}
+  {_RECORD}  
   """
 
 
