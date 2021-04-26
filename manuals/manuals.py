@@ -4834,14 +4834,157 @@ def jupyter(subject=None):
 @syntax
 def loguru(subject=None):
     _RECORD = f"""{h2('record dict')}
-    elapsed, exception, extra, file, function, level, line, message, module, name, process, thread, time
+    elapsed 
+    exception 
+    extra 
+    file 
+    function 
+    level       
+    line        
+    message 
+    module 
+    name        {c('default: __name__')}
+    process 
+    thread 
+    time        {c('datetime (record["time"].timestamp())')}
+    """
+    _ADD = f"""{h2('add')}(sink,
+    %python
+      level="DEBUG",      # file-like object, str, pathlib.Path, callable, coroutine function or logging.Handler
+      format=FORMAT,      # '<green>{{time:YYYY-MM-DD HH:mm:ss.SSS}}</green> | <level>{{level: <8}}</level> | {{message}}'
+      filter=None,        # lambda rec: rec["extra"]["task"] == "A"
+      colorize=None,      # default True if tty
+      serialize=False,    # Convert record to JSON
+      backtrace=True,     # Use better-exceptions 
+      diagnose=True,      # Use variable values
+      enqueue=False, 
+      catch=True, 
+      **kwargs            # Populate extra dict
+      ) -> int (handler id to use with remove(hid))
+    /%python
+    
+    """
+    _FORMAT = f"""{h2('Formatting')}
+    format can be function that takes a 'record' dict and returns a str e.g
+    "{{level}} | {{extra[foo]}} - {{message}}{linebreak}{{exception}}"
+    
+    {h3('Padding')}
+      {{level: <8}}
+      {{line: >3}}
+      {{name: ^15}}
+    """
+    _PATCH = f"""{h2('patch')}(callable)
+    logger.patch(lambda rec: rec["extra"].update(utc=datetime.utcnow())
+    logger.patch(lambda rec: rec.update(function=func.__name__))
+    
+    {h3('Examples')}
+      %python
+      # Example 1
+      import traceback
+      
+      def add_traceback(record):
+          extra = record["extra"]
+          if extra.get("with_traceback", False):
+              extra["traceback"] = "{linebreak}" + "".join(traceback.format_stack())
+          else:
+              extra["traceback"] = ""
+      
+      logger = logger.patch(add_traceback)
+      logger.add(sys.stderr, format="{{time}} - {{message}}{{extra[traceback]}}")
+      
+      logger.info("No traceback")
+      logger.bind(with_traceback=True).info("With traceback")
+      
+      # Example 2
+      import stackprinter
+      
+      def format(record):
+          format_ = "{{time}} {{message}}\n"
+      
+          if record["exception"] is not None:
+              record["extra"]["stack"] = stackprinter.format(record["exception"])
+              format_ += "{{extra[stack]}}\n"
+      
+          return format_
+      
+      logger.add(sys.stderr, format=format)
+      /%python
+    """
+    _BIND = f"""{h2('bind')}(**extra_kv)
+    Sets record['extra'][key] = value.
+    """
+
+    _OPT = f"""{h2('opt')}(*,
+    %python
+      exception=None,  # bool | tuple | Exception
+      record=False,    # Use record dict e.g "Current line is: {{record[line]}}"
+      lazy=False,      # .info("If sink <= DEBUG: {{x}}", x=lambda: math.factorial(2**5))
+      colors=False,    # .info("We got a <red>BIG</red> problem")
+      raw=False,       # Don't format sink e.g .info("No formatting{linebreak}")
+      capture=True,    # If False, don't populate extra with **kwargs
+      depth=0 
+      )
+      
+    # To persist (because resets every call):
+    logger.opt = partial(logger.opt, colors=True)
+    /%python
+    """
+    _CONFIGURE = f"""{h2('configure')}(*,
+    %python
+      handlers=None,     # list[dict] (list of add() params) 
+      levels=None,       # list[dict] (list of level() params)
+      extra=None,        # dict (bind() params)
+      patcher=None,      # callable
+      activation=None,   # list[(logger_name : str, state : bool)]
+      )
+    /%python
+    """
+    _LEVEL = f"""{h2('level')}(name,
+    %python
+        no=None,     # int (severity)
+        color=None,  # str, markup
+        icon=None,   # str
+        ) -> Level (namedtuple)
+    /%python
+    
+    {h3('Examples')}
+      %python
+      logger.level("custom", no=15, color="<blue><bold>", icon="❌")
+      logger.log("custom", "Logging...")
+      
+      # Convenience:
+      logger.__class__.custom = partialmethod(logger.__class__.log, "custom")
+      logger.custom("Logging...")
+      /%python
+    """
+    _SNIPPETS = f"""{h2('Snippets')}
+    %python
+    # Monkeypatch all warnings
+    import warnings
+    from loguru import logger
+    
+    showwarning_ = warnings.showwarning
+    
+    def showwarning(message, *args, **kwargs):
+        logger.warning(message)
+        showwarning_(message, *args, **kwargs)
+    
+    warnings.showwarning = showwarning
+    /%python
     """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
         return f"""{h1('loguru')}
+  {_CONFIGURE}  
   {_RECORD}  
+  {_FORMAT}  
+  {_ADD}  
+  {_PATCH}  
+  {_OPT}  
+  {_LEVEL}  
+  {_SNIPPETS}  
   """
 
 
