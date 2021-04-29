@@ -4143,7 +4143,7 @@ def inspect_(subject=None):
     """
 
     _INSPECT = f"""
-    https://docs.python.org/3/library/inspect.html
+    {c('https://docs.python.org/3/library/inspect.html')}
     inspect.getcurrentframe() {c('→ frame')}
     inspect.getargs(code{c(': code')}) {c('→ Arguments')}
     inspect.getfile(obj{c(': object')}) {c('→ Arguments')}
@@ -4160,6 +4160,22 @@ def inspect_(subject=None):
     inspect.signature(function{c(': function')}) {c('→ Signature')}
     inspect.stack() {c('→ List[FrameInfo]')}
     """
+    _TRACEBACK = f"""{h1('traceback')}
+    {c('https://docs.python.org/3/library/traceback.html')}
+    traceback.extract_stack(f=None, limit=None) {c('→ StackSummary')}
+    """
+    _STACK_SUMMARY = f"""{h2('StackSummary')} {c(': List[FrameSummary]    # traceback.extract_stack()')}
+    ss.extract(frame_gen, *, limit=None, lookup_lines=True, capture_locals=False) {c('Create a StackSummary from a traceback or stack object.')}
+    ss.format() {c('Format the stack ready for printing')}
+    """
+    _FRAME_SUMMARY = f"""{h2('FrameSummary')}    {c('# traceback.extract_stack()[0]')}
+    fs.filename {c('→ str')}
+    fs.line {c('→ str (e.g "stack=tb.extract_stack()")')}
+    fs.lineno {c('→ int')}
+    fs.locals {c('→ int')}
+    fs.name {c('→ str (e.g "run_code")')}
+    """
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -4177,8 +4193,13 @@ def inspect_(subject=None):
     {_ARGUMENTS}
     {_ARG_INFO}
     {_MODULE}
+    
+    {_TRACEBACK}
+    {_STACK_SUMMARY}
+    {_FRAME_SUMMARY}
     """
 
+traceback = inspect_
 
 @syntax
 def ipython(subject=None):
