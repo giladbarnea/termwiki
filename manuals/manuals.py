@@ -31,7 +31,7 @@ backslash = '\\'
 Style = Literal['default', 'fruity', 'friendly', 'native', 'algol_nu', 'solarized-dark', 'inkpot', 'monokai']
 Language = Literal['mysql', 'python', 'bash', 'ipython', 'ini', 'json', 'js', 'ts', 'css', 'sass', 'docker']
 langs = Language.__args__
-HIGHLIGHT_START_RE = re.compile(fr'%({"|".join(langs)})(?: )?(\d|{"|".join(Style.__args__)})?')
+HIGHLIGHT_START_RE = re.compile(fr'%({"|".join(langs)}) ?(\d|{"|".join(Style.__args__)})?')
 HIGHLIGHT_END_RE = re.compile(fr'/%({"|".join(langs)})')
 formatters: Dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__, None)
 lexers: Dict[Language, Lexer] = dict.fromkeys(langs, None)
@@ -2150,7 +2150,6 @@ def brew(subject=None):
       """
 
 
-# @syntax('monokai')
 @syntax('monokai')
 def click_(subject=None):
     _OPTION = f"""{h2('Options')}
@@ -2218,7 +2217,7 @@ def click_(subject=None):
                    )
     /%python
     """
-    _CONTEXT = f"""{h2('Context')}(
+    _CONTEXT = f"""{h2('Context(')}
       %python
       command : Command cls,
       allow_extra_args : bool = None,
@@ -2246,6 +2245,7 @@ def click_(subject=None):
       
       terminal_width : int = None,
       token_normalize_func = None
+      )
       /%python
     """
     _GROUP = f"""{h2('Group(MultiCommand)')}
@@ -2258,8 +2258,8 @@ def click_(subject=None):
         no_args_is_help : bool = not invoke_without_command,
         subcommand_metavar : str = '', 
         chain : bool = False
+        )
         /%python
-    )
           
     
     {h3('Basic')}
@@ -6179,6 +6179,9 @@ def poetry(subject=None):
     poetry publish -u giladbarnea --build --dry-run
     /%bash
   """
+  _UPDATE = f"""{h2('update')} [--no-dev] [--dry-run] [--lock] [package...]
+  Resolve latest versions of deps and write exact versions to poetry.lock.
+  """
   if subject:
       frame = inspect.currentframe()
       return frame.f_locals[subject]
@@ -6190,6 +6193,7 @@ def poetry(subject=None):
   {_INSTALL}
   {_BUILD}
   {_PUBLISH}
+  {_UPDATE}
       """
 
 @syntax
@@ -6659,30 +6663,102 @@ def python(subject=None):
     mm python cmd
     """
 
+    __FORMATTER = f"""{h3('Formatter(')}
+        %python
+        fmt : str = None,
+        datefmt: str = None,
+        style: str = "%"
+        )
+        /%python
+        
+        formatter.formatException((etype, einst, tb))
+        formatter.formatStack(stack_info)
+        formatter.formatMessage(record)
+        formatter.format(record)
+    """
+    __HANDLER = f"""{h3('Handler(level=NOTSET)')}
+        handler.name    {c('Getter / setter to lock and release')}
+        handler.format(record)
+        handler.setFormatter(formatter : Formatter)
+        handler.handlerError(record)
+    """
+    __LOGRECORD = f"""{h3('LogRecord(')}
+        %python
+        name : str, 
+        
+        # self.levelname = getLevelName(level)
+        # 'INFO' → 20
+        # 20 → 'INFO'
+        # 'foo' → 'Level foo'
+        level : str | int,
+        
+        pathname, 
+        lineno,
+        msg, 
+        args, 
+        exc_info, 
+        func=None, 
+        
+        # stack info
+        sinfo=None, 
+        **kwargs
+        )
+        /%python
+    
+    {h4('Attributes')} {c('%(attr)[s f d]')}
+      {c('https://docs.python.org/3/library/logging.html#logrecord-attributes')}
+      asctime
+      created           {c('when LogRecord was created. %(created)f')}
+      exc_info          {c('Exception tuple (like sys.exc_info)')}
+      exc_text
+      filename
+      funcName
+      levelname
+      levelno           {c('e.g 20')}
+      lineno            {c('%(lineno)d')}
+      message           {c('result of record.getMessage()')}
+      module
+      msecs             {c('%(msecs)d')}
+      name              {c('logging.getLogger(name)')}
+      pathname
+      process           {c('process ID. %(process)d')}
+      processName       {c('process name')}
+      relativeCreated   {c('ms between logging module was loaded and LogRecord created. %(relativeCreated)d')}
+      stack_info
+      thread            {c('thread ID. %(thread)d')}
+      threadName
+    
+    {h4('logging.setLogRecordFactory(factory : LogRecord)')}
+      Sets global logging._logRecordFactory
+    
+    {h4('logging.getLogRecordFactory() -> LogRecord')}
+      Returns global logging._logRecordFactory
+    """
     _LOGGING = f"""{h2(f'logging')}
-  {h3('LogRecord attributes')} {c('%(attr)[s f d]')}
-  {c('https://docs.python.org/3/library/logging.html#logrecord-attributes')}
-    asctime
-    created           when LogRecord was created
-    exc_info          Exception tuple (à la sys.exc_info)
-    exc_text
-    filename
-    funcName
-    levelname
-    levelno           numeric
-    lineno
-    message
-    module
-    msecs
-    name              logging.getLogger(name)
-    pathname
-    process           process ID
-    processName       process name
-    relativeCreated   ms between logging module was loaded and LogRecord created
-    stack_info
-    thread            thread ID
-    threadName
-
+  {__HANDLER}
+  {__LOGRECORD}
+  {__FORMATTER}
+  
+  {h3('_loggerClass : Logger')}
+    {c('Used by Logger.manager in Manager.getLogger(name)')}
+    logging.setLoggerClass(cls : Logger)    {c('Sets global logging._loggerClass')}
+    logging.getLoggerClass()    {c('Returns global logging._loggerClass')}
+  
+  {h3('basicConfig(')}
+            %python
+            filename,
+            filemode = 'a',
+            format,
+            datefmt,
+            style = '%',
+            level,
+            stream,
+            handlers
+            )
+            /%python
+            
+    {h3('getLogger(name=None)')}
+      {c('Returns Logger.manager.getLogger(name) if name else root')}
     """
     _OPEN = rf"""{h2(f'with open(path, mode="rt" {c("default")}, errors=None)')}
   {h2('mode')}
@@ -7008,7 +7084,7 @@ def restructured_text(subject=None):
 
 @syntax(python='friendly')
 def rich_(subject=None):
-    _INSPECT = f"""{h3('inspect(')}    {c('like pyinspect.what() without source code')}
+    _INSPECT = f"""{h3('inspect(')}
         %python
         obj, *,
         console = None,
