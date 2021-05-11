@@ -4869,7 +4869,7 @@ def loguru(subject=None):
     thread 
     time        {c('datetime (record["time"].timestamp())')}
     """
-    _ADD = f"""{h2('add')}(sink,
+    _ADD = fr"""{h2('add')}(sink,
     %python
       level="DEBUG",      # file-like object, str, pathlib.Path, callable, coroutine function or logging.Handler
       format=FORMAT,      # '<green>{{time:YYYY-MM-DD HH:mm:ss.SSS}}</green> | <level>{{level: <8}}</level> | {{message}}'
@@ -4882,12 +4882,38 @@ def loguru(subject=None):
       catch=True, 
       **kwargs            # Populate extra dict
       ) -> int (handler id to use with remove(hid))
+    
+      # Example 1: Formatting Traceback
+      import stackprinter
+      
+      def format(record):
+          format_ = "{{time}} {{message}}\n"
+      
+          if record["exception"] is not None:
+              record["extra"]["stack"] = stackprinter.format(record["exception"])
+              format_ += "{{extra[stack]}}\n"
+      
+          return format_
+      
+      logger.add(sys.stderr, format=format)
+      
+      # Example 2: Syntax Highlighting
+      from pygments.formatters import TerminalTrueColorFormatter
+      from pygments.lexers import PythonLexer
+      from pygments import highlight
+      
+      def format(record):
+          record["message"] = highlight(record["message"], PythonLexer(), TerminalTrueColorFormatter(style="monokai"))
+          fmt = '[<level>{{level: <7}}</level>]\n{{message}}\n'
+          return fmt
+      
+      logger.add(sys.stderr, format=format)    
     /%python
     
     """
-    _FORMAT = f"""{h2('Formatting')}
+    _FORMAT = rf"""{h2('Formatting')}
     format can be function that takes a 'record' dict and returns a str e.g
-    "{{level}} | {{extra[foo]}} - {{message}}{linebreak}{{exception}}"
+    "{{level}} | {{extra[foo]}} - {{message}}\n{{exception}}"
     
     {h3('Padding')}
       {{level: <8}}
@@ -4916,32 +4942,19 @@ def loguru(subject=None):
       logger.info("No traceback")
       logger.bind(with_traceback=True).info("With traceback")
       
-      # Example 2
-      import stackprinter
-      
-      def format(record):
-          format_ = "{{time}} {{message}}\n"
-      
-          if record["exception"] is not None:
-              record["extra"]["stack"] = stackprinter.format(record["exception"])
-              format_ += "{{extra[stack]}}\n"
-      
-          return format_
-      
-      logger.add(sys.stderr, format=format)
       /%python
     """
     _BIND = f"""{h2('bind')}(**extra_kv)
     Sets record['extra'][key] = value.
     """
 
-    _OPT = f"""{h2('opt')}(*,
+    _OPT = rf"""{h2('opt')}(*,
     %python
       exception=None,  # bool | tuple | Exception
       record=False,    # Use record dict e.g "Current line is: {{record[line]}}"
       lazy=False,      # .info("If sink <= DEBUG: {{x}}", x=lambda: math.factorial(2**5))
       colors=False,    # .info("We got a <red>BIG</red> problem")
-      raw=False,       # Don't format sink e.g .info("No formatting{linebreak}")
+      raw=False,       # Don't format sink e.g .info("No formatting\n")
       capture=True,    # If False, don't populate extra with **kwargs
       depth=0 
       )
