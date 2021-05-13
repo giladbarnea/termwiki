@@ -1749,7 +1749,10 @@ def bash(subject=None):
       %U    {c('The numeric user ID of the target user.')}
       %u    {c('The username.')}
     """
-
+    __TUNNEL = f"""{h2('Tunneling')}
+    https://www.youtube.com/watch?v=N8f5zv9UUMI
+    https://www.youtube.com/watch?v=aOmIqUs0fbY
+    """
     _SSH = f"""{h2('ssh')} [options...] destination [command]
   {h3('options')}
     -E <log_file>       {c('instead of to stderr')}
@@ -1807,6 +1810,8 @@ def bash(subject=None):
   
   {__SSHD_CONFIG}
   
+  {__TUNNEL}
+  
   {h3('Examples')}
     %bash
     # Cool colors:
@@ -1827,6 +1832,14 @@ def bash(subject=None):
     # Add ssh key:
     eval `ssh-agent`
     ssh-add -K ~/.ssh/<private_key_file>
+    
+    # ~/.ssh/config file:
+    Host 10.100.200.6
+    User root
+    # Hostname example.com
+    IdentityFile ~/.ssh/id_rsa_example
+    IdentityFile ~/.ssh/id_rsa_example2
+    IdentitiesOnly yes
     /%bash
   
     """
@@ -3977,6 +3990,18 @@ def githubcli(subject=None):
   {h2('help')}          {c('Help about any command ')}
   """
 
+@syntax
+def gunicorn(subject=None):
+    _APP = f"""{h2('app')}"""
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('gunicorn')}
+  {h2('Signals')}
+  """
+  
+  
 
 @syntax('friendly')
 def heroku(subject=None):
@@ -6121,6 +6146,8 @@ def pip(subject=None):
     -e, --editable {i('<path/url>')}      {c('implies setuptool "develop" mode')}
 
     pip3 freeze | grep -v "^-e" | xargs pip3 uninstall -y   {c('uninstall all packages')}
+
+    pip install ./pip-21.1.1.tar.gz --user --ignore-requires-python --no-build-isolation --no-clean --retries 1 --timeout 10 --disable-pip-version-check
     """
 
     _SEARCH = f"""{h2('search')}"""
