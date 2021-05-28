@@ -5146,6 +5146,33 @@ def micro(subject=None):
     "Alt-foo" : "command:pwd",
     "Mouse<Left | Middle | Right | Wheel<Up | Down | Left | Right>>": "Mouse<Press | MultiCursor>"
     /%json
+
+  {h2('plugins')}
+    {c('https://github.com/micro-editor/plugin-channel')}
+    %bash 1
+    micro -plugin install PLUGIN
+    {h3('filemanager')}
+      {c('https://github.com/NicolaiSoeborg/filemanager-plugin')}
+      micro -plugin install filemanager
+    
+    {h3('manipulator')}
+      {c('https://github.com/NicolaiSoeborg/manipulator-plugin')}
+      Surround selection
+      keybindings: "manipulator.lower"
+      commands: curly, square, angle, dquote, squote, upper, lower, capital
+    
+    {h3('bounce')}
+      {c('https://github.com/deusnefum/micro-bounce')}
+      help bounce
+      lua:bounce.smartHome
+      lua:bounce.bounce         {c('matching bracket')}
+      lua:bounce.keepLoc        {c('save cursor location')}
+      lua:bounce.gotoStoredLoc  
+    
+    {h3('fmt')}
+      {c('https://github.com/sum01/fmt-micro')}
+      Settings: "fmt-onsave", "fmt|js": "prettier --write"
+      commands: fmt [formatter | list]
   
   """
 
@@ -5175,7 +5202,29 @@ def moment(subject=None):
     M.replace({i("year=1980")})  {c(f"→ Moment (inplace)")}
         """
 
+@syntax
+def mongo(subject=None):
+    _SHELL = f"""{h2('shell')}
+    {c('https://docs.mongodb.com/manual/reference/method/')}
+    
+    """
+    _PYMONGO = f"""{h2('PyMongo')}
+    {c('https://pymongo.readthedocs.io/en/stable/api/pymongo/collection.html#pymongo.collection.Collection')}
 
+    """
+    _OPERATOR = f"""{h2('Operator')}
+    {c('https://docs.mongodb.com/manual/reference/operator/')}
+
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('mongo')}
+  {_SHELL}
+  {_PYMONGO}
+  {_OPERATOR}
+  """
 @syntax
 def mysql(subject=None):
     _CLI = f"""{h2('cli')}
@@ -7350,7 +7399,69 @@ def ripgrep(subject=None):
       --sort[r] <none | path | modified | accessed | created>   {c('"none" is multithreaded')}
       """
 
+@syntax
+def rsync(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('rsync')}
+    -n, --dry-run
+    -v, --verbose
+    --info=FLAGS                {c('fine-grained informational verbosity')}
+                                {c('--info=help    # view options')}
+                                {c('--info=progress2')}
+                                {c('--info=stats2,misc1,flist0')}
+    -r, --recursive
+    -u, --update                {c('skip files that are newer on the receiver')}
+        --inplace               {c('update destination files in-place')}
+        --super                 {c('receiver attempts super-user activities')}
+        --fake-super            {c('store/recover privileged attrs using xattrs')}
+    -p, --perms
+        --chmod=CHMOD           {c('affect file and/or directory permissions')}
+    -S, --sparse                {c('handle sparse files efficiently')}
+        --preallocate           {c('allocate dest files before writing')}
+    -e, --rsh=COMMAND           {c('specify the remote shell to use')}
+        --existing              {c('skip creating new files on receiver')}
+        --ignore-existing       {c('skip updating files that exist on receiver')}
+        --remove-source-files   {c('sender removes synchronized files (non-dir)')}'
+        --delete                {c('delete extraneous files from dest dirs')}
+        --ignore-errors         {c('delete even if there are I/O errors')}
+        --force                 {c('force deletion of dirs even if not empty')}
+        --max-size=SIZE         {c('dont transfer any file larger than SIZE')}
+        --min-size=SIZE         {c('dont transfer any file smaller than SIZE')}
+        --partial               {c('keep partially transferred files')}
+    -m, --prune-empty-dirs      {c('prune empty directory chains from file-list')}
+    -I, --ignore-times          {c('dont skip files that match size and time')}
+    -z, --compress              {c('compress file data during the transfer')}
+        --compress-level=NUM    {c('explicitly set compression level')}
+    -C, --cvs-exclude           {c('auto-ignore files in the same way CVS does')}
+    -f, --filter=RULE           {c('add a file-filtering RULE')}
+        --exclude=PATTERN       {c('exclude files matching PATTERN')}
+        --include=PATTERN       {c('dont exclude files matching PATTERN')}
+        --stats                 {c('give some file-transfer stats')}
+    -h, --human-readable        {c('output numbers in a human-readable format')}
+        --progress              {c('show progress during transfer')}
+    -P                          {c('same as --partial --progress')}
+    -i, --itemize-changes       {c('output a change-summary for all updates')}
 
+    {h2('Examples')}
+      %bash
+      # Identity file:
+      -e "ssh -i $HOME/.ssh/somekey"
+      
+      # Whatever:
+      exclude=()
+      for x in '*.apk' '*.exe' '*.gif' '*.jpg' '*.mib' '*.png' \\
+               '*.so*' '*.svg' '*.tar' '*.ttf' '*.zip' 'php' \\ 
+               'frontend' 'site-packages' 'vagrant' 'tools' '*.whl' 
+      do
+        exclude+=(--exclude "$x")
+      done
+      rsync --ignore-existing -z --compress-level=9 -C -h --progress \\
+        "${{exclude[@]}}" --recursive ./allotsecure root@10.111.242.38:/tmp/allotsecure
+      /%bash
+        """
 def s3(subject=None):
     _BUCKET = f"""{h2('Bucket')}    {c(f"b = s3.Bucket('bucket')")}
 
