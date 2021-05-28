@@ -7417,31 +7417,40 @@ def rsync(subject=None):
         --inplace               {c('update destination files in-place')}
         --super                 {c('receiver attempts super-user activities')}
         --fake-super            {c('store/recover privileged attrs using xattrs')}
-    -p, --perms
+    -p, --perms                 {c('preserve permissions')}
+    -t, --times                 {c('preserve modification times')}
+    -t, --times                 {c('preserve modification times')}
+    -E, --executability         {c('preserve executability')}
         --chmod=CHMOD           {c('affect file and/or directory permissions')}
     -S, --sparse                {c('handle sparse files efficiently')}
         --preallocate           {c('allocate dest files before writing')}
     -e, --rsh=COMMAND           {c('specify the remote shell to use')}
-        --existing              {c('skip creating new files on receiver')}
-        --ignore-existing       {c('skip updating files that exist on receiver')}
-        --remove-source-files   {c('sender removes synchronized files (non-dir)')}'
-        --delete                {c('delete extraneous files from dest dirs')}
         --ignore-errors         {c('delete even if there are I/O errors')}
         --force                 {c('force deletion of dirs even if not empty')}
+
         --max-size=SIZE         {c('dont transfer any file larger than SIZE')}
         --min-size=SIZE         {c('dont transfer any file smaller than SIZE')}
         --partial               {c('keep partially transferred files')}
+        
     -m, --prune-empty-dirs      {c('prune empty directory chains from file-list')}
     -I, --ignore-times          {c('dont skip files that match size and time')}
+        --size-only             {c('skip files that match in size')}
     -z, --compress              {c('compress file data during the transfer')}
         --compress-level=NUM    {c('explicitly set compression level')}
+
+        --delete                {c('delete extraneous files from dest dirs')}
+        --remove-source-files   {c('sender removes synchronized files (non-dir)')}'
+        --existing              {c('skip creating new files on receiver')}
+        --ignore-existing       {c('skip updating files that exist on receiver')}
     -C, --cvs-exclude           {c('auto-ignore files in the same way CVS does')}
     -f, --filter=RULE           {c('add a file-filtering RULE')}
         --exclude=PATTERN       {c('exclude files matching PATTERN')}
         --include=PATTERN       {c('dont exclude files matching PATTERN')}
+
         --stats                 {c('give some file-transfer stats')}
     -h, --human-readable        {c('output numbers in a human-readable format')}
         --progress              {c('show progress during transfer')}
+
     -P                          {c('same as --partial --progress')}
     -i, --itemize-changes       {c('output a change-summary for all updates')}
 
