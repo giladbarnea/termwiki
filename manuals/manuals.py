@@ -1753,6 +1753,7 @@ def bash(subject=None):
     https://www.youtube.com/watch?v=N8f5zv9UUMI
     https://www.youtube.com/watch?v=aOmIqUs0fbY
     """
+    
     _SSH = f"""{h2('ssh')} [options...] destination [command]
   {h3('options')}
     -E <log_file>       {c('instead of to stderr')}
@@ -1840,6 +1841,12 @@ def bash(subject=None):
     IdentityFile ~/.ssh/id_rsa_example
     IdentityFile ~/.ssh/id_rsa_example2
     IdentitiesOnly yes
+    
+    # Get originating IP inside remote:
+    sudo netstat -taepn | grep -Po "\b(\d|\.)+:22(?= .*ssh)"
+    
+    # In host:
+    ss -ant
     /%bash
   
     """
@@ -2099,6 +2106,7 @@ def bash(subject=None):
     else:
         return f"""{h1('bash')}
   http://www.etalabs.net/sh_tricks.html
+  {_BASENAME}
   {_CHMOD}
   {_CUT}
   {_DIFF}
@@ -2109,6 +2117,7 @@ def bash(subject=None):
   {_FIND}
   {_FZF}
   {_GREP}
+  {_HEAD}
   {_LESS}
   {_MAN}
   {_MOUNT}
@@ -2341,7 +2350,8 @@ def click_(subject=None):
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     return f"""{h1('Click')}
-
+  {_CONTEXT}
+  
   {_OPTION}
     
   {_COMMAND}
@@ -3121,7 +3131,8 @@ def ffmpeg(subject=None):
   {_CONVERT}
   {_SRT}
   {_AUDIO}
-  {_VIDEO}"""
+  {_VIDEO}
+  """
 
 
 @syntax
@@ -5040,6 +5051,7 @@ def loguru(subject=None):
   {_RECORD}  
   {_FORMAT}  
   {_ADD}  
+  {_BIND}  
   {_PATCH}  
   {_OPT}  
   {_LEVEL}  
@@ -5205,17 +5217,128 @@ def moment(subject=None):
 @syntax
 def mongo(subject=None):
     _SHELL = f"""{h2('shell')}
-    {c('https://docs.mongodb.com/manual/reference/method/')}
+    {c('https://docs.mongodb.com/manual/reference/mongo-shell/')}
+    Shell vs JS table:
+    https://docs.mongodb.com/manual/tutorial/write-scripts-for-the-mongo-shell/#differences-between-interactive-and-scripted-mongo 
     
     """
     _PYMONGO = f"""{h2('PyMongo')}
     {c('https://pymongo.readthedocs.io/en/stable/api/pymongo/collection.html#pymongo.collection.Collection')}
 
     """
+    _CURSOR = f"""{h2('Cursor')}
+    {c('https://docs.mongodb.com/manual/reference/method/db.collection.find/#std-label-find-cursor-methods')}
+    addOption()             forEach()       min()
+    allowDiskUse()          hasNext()       noCursorTimeout()
+    allowPartialResults()   next()          objsLeftInBatch()
+    batchSize()             hint()          pretty()
+    close()                 isExhausted()   readConcern()
+    isClosed()              itcount()       readPref()
+    collation()             limit()         returnKey()
+    comment()               map()           showRecordId()
+    count()                 max()           size()
+    explain()               maxTimeMS()     skip()
+    tailable()              sort()          toArray()
+    """
+    _COLLECTION = f"""{h2('Collection')}
+    {c('https://docs.mongodb.com/manual/reference/method/js-collection/')}
+    insertOne()
+    updateOne()
+    findOne()
+    """
+    _GLOBAL = f"""{h2('Global namespace (Native)')}
+    {c('https://docs.mongodb.com/manual/reference/method/#native')}
+    cat()			    {c('Returns the contents of the specified file.')}
+    cd()			    {c('Changes the current working directory to the specified path.')}
+    copyDbpath()	    {c('Copies a local dbPath. For internal use.')}
+    getHostName()	    {c('Returns the hostname of the system running the mongo shell.')}
+    getMemInfo()	    {c('Returns a document that reports the amount of memory used by the shell.')}
+    hostname()		    {c('Returns the hostname of the system running the shell.')}
+    isInteractive()	    {c('Returns a boolean indicating whether the mongo shell is running in interactive or script mode.')}
+    listFiles()		    {c('Returns an array of documents that give the name and size of each object in the directory.')}
+    load()			    {c('Loads and runs a JavaScript file in the shell.')}
+    ls()			    {c('Returns a list of the files in the current directory.')}
+    md5sumFile()	    {c('The md5 hash of the specified file.')}
+    mkdir()			    {c('Creates a directory at the specified path.')}
+    pwd()			    {c('Returns the current directory.')}
+    quit()			    {c('Exits the current shell session.')}
+    removeFile()	    {c('Removes the specified file from the local file system.')}
+    resetDbpath()	    {c('Removes a local dbPath. For internal use.')}
+    sleep()			    {c('Suspends the mongo shell for a given period of time.')}
+    setVerboseShell()	{c('Configures the mongo shell to report operation timing.')}
+    version()		    {c('Returns the current version of the mongo shell instance.')}
+    _isWindows()	    {c('Returns true if the shell runs on a Windows system; false if a Unix or Linux system.')}
+    _rand()			    {c('Returns a random number between 0 and 1.')}
+    """
+    _DB = f"""{h2('db')}
+    {c('https://docs.mongodb.com/manual/reference/method/js-database/')}
+    getCollectionInfos(filter, nameOnly, authorizedCollections)
+    getCollectionNames(){c(' → str[]')}
+    getCollection(name){c(' → Collection')}
+    """
+
+    __QUERY = f"""{h3('Query Operators')}
+    {c('https://docs.mongodb.com/manual/reference/operator/query/#std-label-query-selectors')}
+    {h4('Comparison')}
+      $nin, $in     [ 5, ObjectId("507c35dd8fada716c89d0013") ]
+      $gt, $gte     new Date('1950-01-01')
+      $lt, $lte
+      $eq, $ne
+      
+      AND:
+      $gt           new Date('1940-01-01'), $lt: new Date('1960-01-01') (exclusive)
+      {{ 
+          birth: {{ $gt: new Date('1920-01-01') }},
+          death: {{ $exists: false }}
+      }}
+    
+    {h5('Logical')}
+      $and, $not, $nor, $or
+    
+    {h5('Element')}
+      $exists, $type
+    
+    {h5('Evaluation')}
+      $expr
+      $jsonSchema
+      $mod
+      $regex        /^N/
+      $text
+      $where        {c('Javascript expression')}
+    
+    {h5('Geo')}
+      $geoIntersects, $geoWithin, $near, $nearSphere
+    
+    {h5('Array')}
+      $all          [ "ALGOL", "Lisp" ]
+      $elemMatch  {{ <query1>, <query2>, ... }}   
+          Array with at least 1 matching all queries
+          No: $where, $text
+      $size         4
+    
+    {h5('Bitwise')}
+      $bitsAllClear, $bitsAllSet, $bitsAnyClear, $bitsAnySet
+      """
+    __PROJECTION = f"""{h3('Projection Operators')}
+    {h3('Projection')}
+      $             First item in arr that matches query
+      $elemMatch
+      $meta         Document's score assigned during $text operation
+      $slice
+    
+    {h3('Misc')}
+      $comment, $rand
+    """
+    __UPDATE = f"""{h3('Update Operators')}
+    {c('https://docs.mongodb.com/manual/reference/operator/update/')}
+    """
     _OPERATOR = f"""{h2('Operator')}
     {c('https://docs.mongodb.com/manual/reference/operator/')}
-
+    {__QUERY}
+    {__PROJECTION}
+    {__UPDATE}
     """
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -5223,6 +5346,9 @@ def mongo(subject=None):
         return f"""{h1('mongo')}
   {_SHELL}
   {_PYMONGO}
+  {_GLOBAL}
+  {_DB}
+  {_CURSOR}
   {_OPERATOR}
   """
 @syntax
@@ -7087,6 +7213,8 @@ def python(subject=None):
   {_DECORATORS}
 
   {_DIFFLIB}
+  
+  {_ARGPARSE}
 
   {_DOCTEST}
 

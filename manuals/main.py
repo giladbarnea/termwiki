@@ -218,13 +218,16 @@ def create_new_manual(newtopic: str):  # called in __main__.py
     # from mytool.myman import manuals
     # print(f"creating {newtopic} in {manuals.__file__}...")
     # with open(manuals.__file__, mode='r+') as manfile:
-
 def get_skipped_subtopics(undecorated_main_topic_fn):
-    """python3.8 -m mytool.myman --check calls this"""
+    """python -m manuals <MAIN TOPIC> --doctor calls this"""
     lines = inspect.getsource(undecorated_main_topic_fn).splitlines()
-    last_else_idx = -next(i for i, line in enumerate(reversed(lines)) if line.strip() == 'else:') - 1
+    try:
+        last_else_idx = -next(i for i, line in enumerate(reversed(lines)) if line.strip() == 'else:') - 1
+    except StopIteration:
+        # no else: clause, just return (like click)
+        last_else_idx = -next(i for i, line in enumerate(reversed(lines)) if line.strip().startswith('return ')) - 1
     before_else = [line.strip().partition('=')[0].strip() for line in lines[:last_else_idx] if
-                   line and SUB_TOPIC_RE.search(line)]
+                   line and SUB_TOPIC_RE.search(line) and not '__' in line]
     after_else = [line.strip()[1:-1] for line in lines[last_else_idx:] if
                   (stripped := line.strip()).startswith('{_') and stripped.endswith('}')]
     if diff := set(before_else).difference(set(after_else)):
@@ -507,7 +510,7 @@ def print_manual(main_topic: str, sub_topic=None):
 
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']), help="--check is also possible")
+@click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.argument('main_topic')
 @click.argument('sub_topic', required=False)
 @unrequired_opt('-l', '--list', 'list_subtopics', is_flag=True, help='list sub topics')
