@@ -783,6 +783,25 @@ def bash(subject=None):
       ${{numbers_arr[1]}}        # one
       ${{numbers_arr:1}}         # ero
     /%bash
+    
+    {h3('Associative array')}
+      %bash
+      # Printing:
+      for x in "${{!array[@]}}"; do printf "[%q]=%q\n" "$x" "${{array[$x]}}" ; done\
+      
+      # Zsh:
+      echo ${{(t)array}}
+      echo ${{(k)array}}
+      echo ${{(kv)array}}
+      
+      # Tricks:
+      delcare -A LISA=([url]=www.google.com)
+      tmp=$(declare -p LISA)
+      eval "declare -A lisa=${{tmp#*=}}"
+      echo ${{lisa[url]}}   # www.google.com
+      /%bash
+      
+      {h4('See "declare"')}
     """
 
     __CASE = f"""{h3('case')}
@@ -794,6 +813,24 @@ def bash(subject=None):
         *)   echo 'none of the above';;
     esac
     /%bash
+    """
+    __DECLARE = f"""{h3('declare')} [-aAfFgilnrtux] [-p] [name[=value] ...]
+    Without NAME, display all attributes/values of all variables.
+    
+    {h4('Options')}
+      -g	{c('Makes variables global when inside function')}
+      -p	{c('Print attributes/values of each NAME')}
+    
+    {h4('Options which set attributes')}
+      -a	{c("Indexed arrays (if supported)")}
+      -A	{c("Associative arrays (if supported)")}
+      -i	{c("NAMEs are integers")}
+      -l	{c("Convert NAMEs to lowercase")}
+      -n	{c("NAMEs are refs to matching vars")}
+      -r	{c("NAMEs are readonly")}
+      -t	{c("NAMEs have 'trace' attribute")}
+      -u	{c("Convert NAMEs to uppercase")}
+      -x	{c("NAMEs are exported")}
     """
     __EXEC = __EVAL = f"""{h3('exec, eval and $(...)')}
     %bash 2
@@ -1185,7 +1222,46 @@ def bash(subject=None):
       -H          {c('if arg is symlink to dir, traverse it')}
       -L          {c('when encountering a symlink to dir, traverse it (default is not to traverse)')}
     """
-
+    _COMPLETE = _COMPGEN = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
+    {h3('Flags')}
+      -abcdefgjksuv
+    
+    {h3('Options')}
+      -A action 
+      -G globpat 
+      -W wordlist 
+      -F function 
+      -C command 
+      -X filterpat 
+      -P prefix 
+      -S suffix
+      {h4('-o <OPTION>')}
+        -p    {c('print existing completion specifications in a reusable format')}
+        -r    {c('remove a completion specification for each NAME, or, if no')}
+              {c('  NAMEs are supplied, all completion specifications')}
+        -D    {c('apply the completions and actions as the default for commands')}
+              {c('  without any specific completion defined')}
+        -E    {c('apply the completions and actions to "empty" commands --')}
+              {c('  completion attempted on a blank line')}
+    
+    {h3('Globals')}
+      COMP_WORDS{c(': Associative array')}
+      COMP_CWORD{c(': int (index of current work in COMP_WORDS)')}
+      COMPREPLY
+    
+    {h3('compgen')}
+      %bash
+      possible_completions='
+        help install
+        alias unalias'
+      COMPREPLY=($(compgen -W "$possible_completions" -- "${{current_word}}"))
+      /%bash
+    
+    {h3('Examples')}
+      %bash
+      complete -o default -F __nvm nvm
+      /%bash
+    """
     _CP = f"""{h2('cp')}
     {h4('Examples')}
     Given:
@@ -1379,49 +1455,7 @@ def bash(subject=None):
       -wholename    F   F       F       T       T        T
       -regex        F   F       F       F       T        F
 
-            """
-
-    _FZF = f"""{h2('fzf')}
-  https://www.youtube.com/watch?v=qgG5Jhi_Els
-  https://github.com/junegunn/fzf#options
-  
-  FZF_DEFAULT_OPTS
-  
-  %bash
-  # Aliases:
-    alias fzfp="fzf --preview 'bat --style=numbers --color=always {{}}' --preview-window=right:60%"
-    alias fzff="find . -type f | fzf"
-    alias fzffp="find . -type f | fzfp"
-    alias fzfd="find . -type d | fzf"
-    alias fzfdp="find . -type d | fzfp"
-  
-  # Options:
-    --height 40%
-    --preview 'bat --style=numbers --color=always {{}}' --preview-window=right:60%
-    --reverse         # first result from top
-    --cycle           # allows scrolling down to top
-    -0, --exit-0          # Exit immediately when there's no match
-    -f, --filter=STR      # Filter mode. Do not start interactive finder.
-    -1, --select-1        # Automatically select the only match
-    -q, --query=STR       # Start the finder with the given query
-    --ansi                # Enable processing of ANSI color codes
-  
-  # Usage examples:
-    find . -type f | fzf
-    find -- * -type f | fzf
-  
-    fzf -q "foo" < /path/to/file
-
-  # fzf as the selector interface for ripgrep:
-    sudo rg -l "$@" 2>/dev/null | fzfp
-    
-    # OR
-    
-    INITIAL_QUERY=""
-    RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
-    FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY'" fzf --bind "change:reload:$RG_PREFIX {{q}} || true" --ansi --phony --query "$INITIAL_QUERY" --layout=reverse
-  /%bash
-    """
+        """
 
     _GREP = f"""{h2('grep')}
     {h4('grep')} [OPTION...] PATTERN [FILE...]
@@ -1698,158 +1732,6 @@ def bash(subject=None):
       /%bash
   
     """
-    _SSH_KEYGEN = f"""{h2('ssh-keygen')} [options] [flags]
-    {h3('options')}
-      -l          {c('Show fingerprint of specified public key file. With -v, shows art')}
-      -v[v[v]]    {c('verbose')}
-      -f <filename>
-      -r <hostname>       {c('Print SSHFP fingerprint resource record named hostname for specified public key file.')}
-      -t <dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa>  {c('key type to create')}
-      
-    {h3('ssh-keygen examples')}
-      %bash
-      # Create new ssh key:
-      ssh-keygen
-      
-      # Check if ssh valid:
-      ssh-keygen -l -f /Users/gilad/.ssh/id_rsa.pub
-  
-      # View fingerprint art to compare visually:
-      ssh-keygen -lv -f ~/.ssh/known_hosts
-      
-      /%bash
-    """
-    
-    __SSHD_CONFIG = f"""{h2('sshd_config')}
-    AcceptEnv "NAME1 NAME2 NA*ME NA?ME"
-    Compression[=delayed]         {c('yes | no | delayed')}
-    DisableForwarding             {c('Overrides everything')}
-    ExposeAuthInfo[=no]           {c('Writes temp file with auth methods and public creds (e.g. keyes)')}
-    EnableSSHKeysign[=no]         {c('Enable ssh-keysign(8) during HostbasedAuthentication')}
-    GatewayPorts[=no]             {c('Allow remote to connect to local forwarded ports')}
-    HostbasedAuthentication[=no]  {c('Try rhosts based authentication with public key authentication')}
-    PermitUserEnvironment[=no]    {c('yes | no | e.g. "LANG,LC_*". Process ~/.ssh/environment and environment= options in ~/.ssh/authorized_keys by sshd')}
-    SetEnv                        {c('NAME=VALUE')}
-    X11DisplayOffset[=10]         {c("Specify first display num available for sshd(8)'s X11 forwarding")}
-    X11Forwarding[=no]
-    X11UseLocalhost[=yes]         {c('Bind X11 forwarding server to the loopback address or to the wildcard address')}
-    
-    {h3('SSHD TOKEN')}
-      %%    {c('A literal ‘%’.')}
-      %D    {c('The routing domain in which the incoming connection was received.')}
-      %F    {c('The fingerprint of the CA key.')}
-      %f    {c('The fingerprint of the key or certificate.')}
-      %h    {c('The home directory of the user.')}
-      %i    {c('The key ID in the certificate.')}
-      %K    {c('The base64-encoded CA key.')}
-      %k    {c('The base64-encoded key or certificate for authentication.')}
-      %s    {c('The serial number of the certificate.')}
-      %T    {c('The type of the CA key.')}
-      %t    {c('The key or certificate type.')}
-      %U    {c('The numeric user ID of the target user.')}
-      %u    {c('The username.')}
-    """
-    __TUNNEL = f"""{h2('Tunneling')}
-    https://www.youtube.com/watch?v=N8f5zv9UUMI
-    https://www.youtube.com/watch?v=aOmIqUs0fbY
-    """
-    
-    _SSH = f"""{h2('ssh')} [options...] destination [command]
-  {h3('options')}
-    -E <log_file>       {c('instead of to stderr')}
-    -F <configfile>     {c('ignores /etc/ssh/ssh_config and defaults to ~/.ssh/config')}
-    -T      {c('Disable pseudo-terminal allocation.')}
-    -X      {c('ForwardX11')}
-    -Y      {c('ForwardX11Trusted')}
-    -R [bind_address:]port:host:hostport
-    -R [bind_address:]port:local_socket
-    -R remote_socket:host:hostport
-    -R remote_socket:local_socket
-    -R [bind_address:]port
-    -t      {c('Force pseudo-terminal allocation. Can be used to execute arbitrary screen-based programs on remote machine.')}
-    -g      {c('Allows remote hosts to connect to local forwarded ports.')}
-    -i <identity_file>  {c('Multiple. defaults in ~/.ssh/: id_dsa, id_ecdsa, id_ecdsa_sk, id_ed25519, id_ed25519_sk and id_rsa.')}
-    -l <login_name>
-    -p <port>
-    -f      {c('go to background just before command execution (after prompts)')}
-    -n      {c('Redirects stdin from /dev/null (actually, prevents reading from stdin).')}
-  
-  {h3('-o OPTION')}
-    {c('bind_address can also be * and localhost')}
-    DynamicForward            {c('-D [bind_address:]port')}
-    ForwardAgent[=no]         {c('-A | Forward connection to authentication agent (if any) to remote')}
-    ForwardX11[=no]           {c('-X')}
-    ForwardX11Trusted[=no]    {c('-Y | Redirect X11 connection and set DISPLAY')}
-    GatewayPorts[=no]         {c('-g? | Allow remote to connect to local forwarded ports')}
-    Host                      {c('Specifies real host name to log into')}
-    HostKeyAlias              {c('Specifies alias instead of the real host name')}
-    Hostname
-    LocalForward [bind_address:]port    {c('Forward TCP port on local to specified host and port from remote')}
-    LocalCommand              {c('Allow local command execution via the LocalCommand')}
-    NoHostAuthenticationForLocalhost[=no]  {c('Disable host authentication for localhost (loopback addresses)')}
-    PermitLocalCommand[=no]
-    RemoteCommand             {c('execute on remote after connecting')}
-    RemoteForward [bind_address:]port   {c('Requires GatewayPorts')}
-    SendEnv                   {c('Refer to sshd_config AcceptEnv')}
-    SetEnv
-    VisualHostKey             {c('Show art')}
-  
-  {h3('SSH TOKENS')}
-    %%    {c("A literal ‘%’.")}
-    %C    {c("Hash of %l%h%p%r.")}
-    %d    {c("Local user's home directory.")}
-    %h    {c("The remote hostname.")}
-    %i    {c("The local user ID.")}
-    %k    {c("The host key alias if specified, otherwise the orignal remote hostname given on the command line.")}
-    %L    {c("The local hostname.")}
-    %l    {c("The local hostname, including the domain name.")}
-    %n    {c("The original remote hostname, as given on the command line.")}
-    %p    {c("The remote port.")}
-    %r    {c("The remote username.")}
-    %T    {c('The local tun(4) or tap(4) network interface assigned if tunnel forwarding was requested, or "NONE" otherwise.')}
-    %u    {c("The local username.")}
-  
-  {__SSHD_CONFIG}
-  
-  {__TUNNEL}
-  
-  {h3('Examples')}
-    %bash
-    # Cool colors:
-    ip -s -c -h a
-    
-    # Create a key pair with a remote machine:
-    ssh-keygen -f my_key -C "some comment"
-    ssh-copy-id -i ./my_key.pub user@ip
-    
-    # Connect to a computer on local network:
-    ssh <username>@<computer-name>.local    # e.g. ssh gilad@gilad.local
-    # or:
-    ssh <name>@<local-port>    # e.g. ssh gilad@10.0.0.13
-    
-    # Check access to site:
-    ssh -T git@bitbucket.org
-
-    # Add ssh key:
-    eval `ssh-agent`
-    ssh-add -K ~/.ssh/<private_key_file>
-    
-    # ~/.ssh/config file:
-    Host 10.100.200.6
-    User root
-    # Hostname example.com
-    IdentityFile ~/.ssh/id_rsa_example
-    IdentityFile ~/.ssh/id_rsa_example2
-    IdentitiesOnly yes
-    
-    # Get originating IP inside remote:
-    sudo netstat -taepn | grep -Po "\b(\d|\.)+:22(?= .*ssh)"
-    
-    # In host:
-    ss -ant
-    /%bash
-  
-    """
 
     _SORT = f"""{h2('sort')}
   sort -u   {c('unique')}
@@ -2004,61 +1886,6 @@ def bash(subject=None):
     set
     """
 
-    _TREE = f"""{h2('/snap/bin/tree')}
-  {h3('filtering')}
-    -P <PATTERN> {c('List only files that match pattern')}
-      --ignore-case
-      --matchdirs      {c('Include directory names in pattern matching')}
-      --filelimit <N>  {c("Don't descend dirs with more than N files")}
-    -I <PATTERN> {c('Do not list files that match pattern')}
-    -a All files are listed (including hidden)
-    -d dirs only
-    -L descend only <level>
-    -l Follow symbolic links like directories
-    -R Rerun tree when max dir level reached ?
-
-  {h3('output')}
-    -h    {c('Human size')}
-    -p Print the protections for each file
-    
-    {h4('sorting')}
-    -v    {c('alphanumerically by version')}
-    -t    {c('last modification time')}
-    -c    {c('last status change time')}
-    --dirsfirst
-    --sort <name|version|size|mtime|ctime>
-    
-    """
-
-    _VIPE = f"""{h2('vipe examples')}
-    {h3('cat')}
-      %bash
-      echo "hello world" > hello.txt
-      cat hello.txt | vipe | $SHELL   # or just "... | sh"
-      # or:
-      cat hello.txt | vipe | xargs -I % $SHELL -c "%"
-      /%bash
-      {i('hello world')}
-
-    {h3('?')}
-      %bash 1
-      vipe <&- | $SHELL
-
-    {h3('Pipe to stdin')} (is it really stdin?)
-      %bash
-      : | vipe | $SHELL
-      # or:
-      : | vipe | xargs -I % $SHELL -c "%"
-      # or:
-      vipe < /tmp/scratch.sh | $SHELL
-      /%bash
-
-    {h3('Load to variable')}
-      %bash 2
-      cmd=$(echo -n "$line" | vipe)
-      eval "$cmd"
-    """
-
     _WC = f"""{h2('wc')} {c('[OPTION]... [FILE]...')}
     -l, --lines     {c('newline count')}
     -w, --words     {c('word count')}
@@ -2115,7 +1942,6 @@ def bash(subject=None):
   {_CP}
   {_ECHO}
   {_FIND}
-  {_FZF}
   {_GREP}
   {_HEAD}
   {_LESS}
@@ -2127,16 +1953,12 @@ def bash(subject=None):
   {_SORT}
   {_SPLIT}
   {_SCP}
-  {_SSH}
-  {_SSH_KEYGEN}
   {_STAT}
   {_SUDO}
   {_SYMLINK}
   {_SYNTAX}
   {_TR}
   {_TRAP}
-  {_TREE}
-  {_VIPE}
   {_WC}
   {_WHERE}
   {_XARGS}
@@ -3334,6 +3156,55 @@ def flask(subject=None):
     passthrough_errors    {c('set this to True to disable the error catching.')}
     ssl_context    {c('an SSL context for the connection.')}
   """
+
+@syntax
+def fzf(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('fzf')}
+  https://www.youtube.com/watch?v=qgG5Jhi_Els
+  https://github.com/junegunn/fzf#options
+  
+  FZF_DEFAULT_OPTS
+  
+  %bash
+  # Aliases:
+    alias fzfp="fzf --preview 'bat --style=numbers --color=always {{}}' --preview-window=right:60%"
+    alias fzff="find . -type f | fzf"
+    alias fzffp="find . -type f | fzfp"
+    alias fzfd="find . -type d | fzf"
+    alias fzfdp="find . -type d | fzfp"
+  
+  # Options:
+    --height 40%
+    --preview 'bat --style=numbers --color=always {{}}' --preview-window=right:60%
+    --reverse         # first result from top
+    --cycle           # allows scrolling down to top
+    -0, --exit-0          # Exit immediately when there's no match
+    -f, --filter=STR      # Filter mode. Do not start interactive finder.
+    -1, --select-1        # Automatically select the only match
+    -q, --query=STR       # Start the finder with the given query
+    --ansi                # Enable processing of ANSI color codes
+  
+  # Usage examples:
+    find . -type f | fzf
+    find -- * -type f | fzf
+  
+    fzf -q "foo" < /path/to/file
+
+  # fzf as the selector interface for ripgrep:
+    sudo rg -l "$@" 2>/dev/null | fzfp
+    
+    # OR
+    
+    INITIAL_QUERY=""
+    RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+    FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY'" fzf --bind "change:reload:$RG_PREFIX {{q}} || true" --ansi --phony --query "$INITIAL_QUERY" --layout=reverse
+  /%bash
+  """
+
 def gcloud(subject=None):
     _APP = f"""{h2('app')}
     {h3('create')}
@@ -6590,29 +6461,45 @@ def pytest(subject=None):
 
 @syntax
 def python(subject=None):
-    _ARGPARSE = f"""[h2]argparse[/]
-  [c]https://docs.python.org/3.8/library/argparse.html[/]
-  [h3]ArgumentParser(...)[/]
-    prog        [c]default: sys.argv[0][/]
-    usage       [c]default: generated from args[/]
+    _ARGPARSE = f"""{h2('argparse')}
+  {c('https://docs.python.org/3.8/library/argparse.html')}
+  
+  {h3('ArgumentParser(...)')}
+    prog        {c('default: sys.argv[0]')}
+    usage       {c('default: generated from args')}
     description
     epilog
     ...
-    [h4]add_argument(*name_or_flags, ...)[/]
-      *name_or_flags      [c]str[/]               'bar' or ('-f', '--foo')
-      action              [c]str | Action[/]      'store' (default), 'store_const',
-                                            'store_true', 'store_false',
-                                            'append', 'append_const', 'count'
-      prog                [c]str[/]
-      nargs               [c]int | '?' | '*' | '+' | argparse.REMAINDER[/]
+    
+    {h4('add_argument(...)')}
+      *name_or_flags      {c("str               'bar' or ('-f', '--foo')")}
+      action              {c("str | Action      'store' (default), 'store_const',")}
+                                            {c("'store_true', 'store_false',")}
+                                            {c("'append', 'append_const', 'count'")}
+      choices             {c("list[str]")}
+      const               
       default
+      dest                {c("str; eventual VARIABLE name")}
+      help                {c("str               '%(prog)s %(default)s'")}
+      metavar             {c("str; how DISPLAYED in help")}
+      nargs               {c("int | '?' | '*' | '+' | argparse.REMAINDER")}
+      prog                {c("str")}
+      required            {c("bool")}
       type
-      choices             [c]list\[str][/]
-      required            [c]bool[/]
-      help                [c]str[/]               '%(prog)s %(default)s'
-      metavar             [c]str; how DISPLAYED in help[/]
-      dest                [c]str; eventual VARIABLE name[/]
       ...
+    
+    {h4('parse_args(args: list[str] = None, namespace: Namespace = None)')}
+      %python friendly
+      # Examples
+      >>> parser.parse_args(['--max-depth', 1])
+      Namespace(max_depth=1)
+      
+      >>> parser.parse_args(['--max-depth=1'])
+      Namespace(max_depth=1)
+      
+      >>> parser.parse_args(['-mr'])
+      Namespace(mode='r')
+      /%python
     """
     _BITWISE = f"""{h2('Bitwise')}
   &  |  0  1  F  T 10
@@ -7770,6 +7657,164 @@ def shellcheck(subject=None):
   export SHELLCHECK_OPTS='--shell=bash --exclude=SC2016'
     """
 
+
+@syntax
+def ssh(subject=None):
+    _SSH_KEYGEN = f"""{h2('ssh-keygen')} [options] [flags]
+  {h3('options')}
+    -l          {c('Show fingerprint of specified public key file. With -v, shows art')}
+    -v[v[v]]    {c('verbose')}
+    -f <filename>
+    -r <hostname>       {c('Print SSHFP fingerprint resource record named hostname for specified public key file.')}
+    -t <dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa>  {c('key type to create')}
+    
+  {h3('ssh-keygen examples')}
+    %bash
+    # Create new ssh key:
+    ssh-keygen
+    
+    # Check if ssh valid:
+    ssh-keygen -l -f /Users/gilad/.ssh/id_rsa.pub
+  
+    # View fingerprint art to compare visually:
+    ssh-keygen -lv -f ~/.ssh/known_hosts
+    
+    /%bash
+    """
+    _SSHD_CONFIG = f"""{h2('sshd_config')}
+    AcceptEnv "NAME1 NAME2 NA*ME NA?ME"
+    Compression[=delayed]         {c('yes | no | delayed')}
+    DisableForwarding             {c('Overrides everything')}
+    ExposeAuthInfo[=no]           {c('Writes temp file with auth methods and public creds (e.g. keyes)')}
+    EnableSSHKeysign[=no]         {c('Enable ssh-keysign(8) during HostbasedAuthentication')}
+    GatewayPorts[=no]             {c('Allow remote to connect to local forwarded ports')}
+    HostbasedAuthentication[=no]  {c('Try rhosts based authentication with public key authentication')}
+    PermitUserEnvironment[=no]    {c('yes | no | e.g. "LANG,LC_*". Process ~/.ssh/environment and environment= options in ~/.ssh/authorized_keys by sshd')}
+    SetEnv                        {c('NAME=VALUE')}
+    X11DisplayOffset[=10]         {c("Specify first display num available for sshd(8)'s X11 forwarding")}
+    X11Forwarding[=no]
+    X11UseLocalhost[=yes]         {c('Bind X11 forwarding server to the loopback address or to the wildcard address')}
+    
+    {h3('SSHD TOKEN')}
+      %%    {c('A literal ‘%’.')}
+      %D    {c('The routing domain in which the incoming connection was received.')}
+      %F    {c('The fingerprint of the CA key.')}
+      %f    {c('The fingerprint of the key or certificate.')}
+      %h    {c('The home directory of the user.')}
+      %i    {c('The key ID in the certificate.')}
+      %K    {c('The base64-encoded CA key.')}
+      %k    {c('The base64-encoded key or certificate for authentication.')}
+      %s    {c('The serial number of the certificate.')}
+      %T    {c('The type of the CA key.')}
+      %t    {c('The key or certificate type.')}
+      %U    {c('The numeric user ID of the target user.')}
+      %u    {c('The username.')}
+    """
+    _TUNNEL = f"""{h2('Tunneling')}
+    https://www.youtube.com/watch?v=N8f5zv9UUMI
+    https://www.youtube.com/watch?v=aOmIqUs0fbY
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('ssh')}
+  {_SSH_KEYGEN}
+  {_SSHD_CONFIG}
+  {_TUNNEL}
+  {h2('ssh')} [options...] destination [command]
+    {h3('options')}
+      -E <log_file>       {c('instead of to stderr')}
+      -F <configfile>     {c('ignores /etc/ssh/ssh_config and defaults to ~/.ssh/config')}
+      -T      {c('Disable pseudo-terminal allocation.')}
+      -X      {c('ForwardX11')}
+      -Y      {c('ForwardX11Trusted')}
+      -R [bind_address:]port:host:hostport
+      -R [bind_address:]port:local_socket
+      -R remote_socket:host:hostport
+      -R remote_socket:local_socket
+      -R [bind_address:]port
+      -t      {c('Force pseudo-terminal allocation. Can be used to execute arbitrary screen-based programs on remote machine.')}
+      -g      {c('Allows remote hosts to connect to local forwarded ports.')}
+      -i <identity_file>  {c('Multiple. defaults in ~/.ssh/: id_dsa, id_ecdsa, id_ecdsa_sk, id_ed25519, id_ed25519_sk and id_rsa.')}
+      -l <login_name>
+      -p <port>
+      -f      {c('go to background just before command execution (after prompts)')}
+      -n      {c('Redirects stdin from /dev/null (actually, prevents reading from stdin).')}
+    
+    {h3('-o OPTION')}
+      {c('bind_address can also be * and localhost')}
+      DynamicForward            {c('-D [bind_address:]port')}
+      ForwardAgent[=no]         {c('-A | Forward connection to authentication agent (if any) to remote')}
+      ForwardX11[=no]           {c('-X')}
+      ForwardX11Trusted[=no]    {c('-Y | Redirect X11 connection and set DISPLAY')}
+      GatewayPorts[=no]         {c('-g? | Allow remote to connect to local forwarded ports')}
+      Host                      {c('Specifies real host name to log into')}
+      HostKeyAlias              {c('Specifies alias instead of the real host name')}
+      Hostname
+      LocalForward [bind_address:]port    {c('Forward TCP port on local to specified host and port from remote')}
+      LocalCommand              {c('Allow local command execution via the LocalCommand')}
+      NoHostAuthenticationForLocalhost[=no]  {c('Disable host authentication for localhost (loopback addresses)')}
+      PermitLocalCommand[=no]
+      RemoteCommand             {c('execute on remote after connecting')}
+      RemoteForward [bind_address:]port   {c('Requires GatewayPorts')}
+      SendEnv                   {c('Refer to sshd_config AcceptEnv')}
+      SetEnv
+      VisualHostKey             {c('Show art')}
+    
+    {h3('SSH TOKENS')}
+      %%    {c("A literal ‘%’.")}
+      %C    {c("Hash of %l%h%p%r.")}
+      %d    {c("Local user's home directory.")}
+      %h    {c("The remote hostname.")}
+      %i    {c("The local user ID.")}
+      %k    {c("The host key alias if specified, otherwise the orignal remote hostname given on the command line.")}
+      %L    {c("The local hostname.")}
+      %l    {c("The local hostname, including the domain name.")}
+      %n    {c("The original remote hostname, as given on the command line.")}
+      %p    {c("The remote port.")}
+      %r    {c("The remote username.")}
+      %T    {c('The local tun(4) or tap(4) network interface assigned if tunnel forwarding was requested, or "NONE" otherwise.')}
+      %u    {c("The local username.")}
+  
+    {h3('Examples')}
+      %bash
+      # Cool colors:
+      ip -s -c -h a
+      
+      # Create a key pair with a remote machine:
+      ssh-keygen -f my_key -C "some comment"
+      ssh-copy-id -i ./my_key.pub user@ip
+      
+      # Connect to a computer on local network:
+      ssh <username>@<computer-name>.local    # e.g. ssh gilad@gilad.local
+      # or:
+      ssh <name>@<local-port>    # e.g. ssh gilad@10.0.0.13
+      
+      # Check access to site:
+      ssh -T git@bitbucket.org
+
+      # Add ssh key:
+      eval `ssh-agent`
+      ssh-add -K ~/.ssh/<private_key_file>
+      
+      # ~/.ssh/config file:
+      Host 10.100.200.6
+      User root
+      # Hostname example.com
+      IdentityFile ~/.ssh/id_rsa_example
+      IdentityFile ~/.ssh/id_rsa_example2
+      IdentitiesOnly yes
+      
+      # Get originating IP inside remote:
+      sudo netstat -taepn | grep -Po "\b(\d|\.)+:22(?= .*ssh)"
+      
+      # In host:
+      ss -ant
+      /%bash
+  """
+
+
 @syntax
 def sshfs(subject=None):
   return f"""{h1('sshfs')}
@@ -8099,7 +8144,36 @@ def tar(subject=None):
   -C <PATH> {c('different destination')}
     """
 
+@syntax
+def tree(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('tree')}
+  {h2('filtering')}
+    -P <PATTERN> {c('List only files that match pattern')}
+      --ignore-case
+      --matchdirs      {c('Include directory names in pattern matching')}
+      --filelimit <N>  {c("Don't descend dirs with more than N files")}
+    -I <PATTERN> {c('Do not list files that match pattern')}
+    -a All files are listed (including hidden)
+    -d dirs only
+    -L descend only <level>
+    -l Follow symbolic links like directories
+    -R Rerun tree when max dir level reached ?
 
+  {h2('output')}
+    -h    {c('Human size')}
+    -p Print the protections for each file
+    
+    {h3('sorting')}
+    -v    {c('alphanumerically by version')}
+    -t    {c('last modification time')}
+    -c    {c('last status change time')}
+    --dirsfirst
+    --sort <name|version|size|mtime|ctime>
+  """
 @syntax
 @alias('ts')
 def typescript(subject=None):
@@ -8689,7 +8763,40 @@ def vim(subject=None):
     "*              {c('system clipboard; so `"*y$` copies to line end to sys clpbrd, `"*p` pastes')}
   """
 
-
+@syntax
+def vipe(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('vipe')}
+  {h3('cat')}
+    %bash
+    echo "hello world" > hello.txt
+    cat hello.txt | vipe | $SHELL   # or just "... | sh"
+    # or:
+    cat hello.txt | vipe | xargs -I % $SHELL -c "%"
+    /%bash
+    {i('hello world')}
+  
+  {h3('?')}
+    %bash 1
+    vipe <&- | $SHELL
+  
+  {h3('Pipe to stdin')} (is it really stdin?)
+    %bash
+    : | vipe | $SHELL
+    # or:
+    : | vipe | xargs -I % $SHELL -c "%"
+    # or:
+    vipe < /tmp/scratch.sh | $SHELL
+    /%bash
+  
+  {h3('Load to variable')}
+    %bash 2
+    cmd=$(echo -n "$line" | vipe)
+    eval "$cmd"
+    """
 @alias('wmc')
 def wmctrl(subject=None):
     if subject:
