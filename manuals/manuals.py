@@ -3441,9 +3441,9 @@ def git(subject=None):
         # git diff --ignore-cr-at-eol --ignore-space-at-eol -b -w --ignore-blank-lines
     
     {h3(f'Excluding / Including files')}
-      git diff origin/main -- . ':(exclude)*.csv' ':(exclude)*.ipynb' ':(exclude)*.sql'
-      git diff origin/main -- . ':!*.csv' ':!*.ipynb' ':!*.sql'
-      git diff origin/main -- ':*.ts' ':!*.d.ts'
+      git diff origin/master -- . ':(exclude)*.csv' ':(exclude)*.ipynb' ':(exclude)*.sql'
+      git diff origin/master -- . ':!*.csv' ':!*.ipynb' ':!*.sql'
+      git diff origin/master -- ':*.ts' ':!*.d.ts'
     
     {h3('--diff-filter')}
       git diff --diff-filter={i('[(A|C|D|M|R|T|U|X|B)...[*]]')}
@@ -3511,21 +3511,21 @@ def git(subject=None):
     git log -p [-1]             {c('also show patch diff (can limit patches)')}
     git log --pretty=[oneline | short | medium | full | fuller | reference | email | raw]
     git log --oneline           {c('short SHAs; convenience for --pretty=oneline --abbrev-commit')}
-    git log {i("origin/main")}       {c('show where HEAD and origin/main is')}
-    git log {i("SHA")}          {c('of commit / branch')}
+    git log {i("origin/master")}       {c('show where HEAD and origin/master is')}
+    git log {i("SHA")}                 {c('of commit / branch')}
     git log {i('my_branch')} --pretty=oneline --graph
     
-    {h3('Commit Formatting')}
+    {h3('Formatting')}
       {c('Most options can have appended iso-local')}
       date=[relative | local | iso | iso-strict | rfc | short | raw | human | unix | format:... | default]
 
     {h3('pretty=')}
       online | short | medium | full | fuller | reference | email | raw | format:...
     
-    {h3('Commit Limiting')}
+    {h3('Limiting')}
       {h4('amount')}
-        git log -n {i('1')}                {c('limit')}
-        git log --skip={i('n')}            {c('dont show first n')}
+        git log -n {i('1')}            {c('limit')}
+        git log --skip={i('n')}        {c('dont show first n')}
 
       {h4('when')}
         --[since until]={i('date')}
@@ -3534,12 +3534,12 @@ def git(subject=None):
         --author={i('pattern')}
 
       {h4('filtering')}
-        --grep={i('pattern')}             {c('filter log message')}
-        --all-match                       {c('if mult greps, return only which matched all (not any)')}
-        --invert-grep                     {c('if mult greps, return only which matched all (not any)')}
-        --i                               {c('ignore case')}
-        --E                               {c('extended')}
-        --[no]-merges                     {c('only do [not] return commits with parents > 1')}
+        --grep={i('pattern')}          {c('filter log message')}
+        --all-match             {c('if mult greps, return only which matched all (not any)')}
+        --invert-grep           {c('if mult greps, return only which matched all (not any)')}
+        --i                     {c('ignore case')}
+        --E                     {c('extended')}
+        --[no]-merges           {c('only do [not] return commits with parents > 1')}
         --[branches tags remotes]={i('pattern')}
         --exclude={i('pattern')}
 
@@ -3654,12 +3654,25 @@ def git(subject=None):
     """
 
     _STASH = f"""{h2('stash')}
-    git stash       {c('puts in stash')}
-    show            {c('relevant file names')}
-    list            {c('all stashed entries ever')}
-    apply           {c('load from stash')}
-    pop             {c('load latest from stash and remove it from list')}
-    clear           {c('remove all. will be pruned.')}
+    git stash                  {c(f"convenience for {i('git stash push')}")}
+    list [git log options]     {c('all stashed entries ever')}
+    show [stash]               {c('diff. stash.showStat / stash.showPatch config')}
+    drop [stash]               {c(f"removes {i('stash')}")}
+    pop [--index] [stash]      {c(f"apply {i('stash')} and remove it")}
+    apply [--index] [stash]    {c('load from stash')}
+    branch <branchname> [stash]
+    clear                      {c('remove all. will be pruned.')}
+    create <message>
+    store [-m|--mes_sage <message>] <commit>
+    push [-p|--patch] [-k|--[no-]keep-index]
+         [-u|--include-untracked]    {c("untracked are stashed then 'git clean'ed")} 
+         [-a|--all]                  {c("untracked and ignored are stashed then 'git clean'ed")}
+         [-m|--message <message>] [-- pathspec...]
+    
+    stash@{{0}}, stash@{{2.hours.ago}}
+    
+    {h3('Examples')}
+      git stash list --source --name-status --pretty=full
     """
 
     _STATUS = f"""{h2('status')}
