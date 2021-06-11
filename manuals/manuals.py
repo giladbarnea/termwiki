@@ -603,6 +603,8 @@ def autohotkey(subject=None):
         return frame.f_locals[subject]
     else:
         return f"""{h1('autohotkey')}
+  {_SYNTAX}
+  {h2('Examples')}
   %ahk
   ActiveHwnd := WinExist("A")
   /%ahk
@@ -1942,6 +1944,7 @@ def bash(subject=None):
   http://www.etalabs.net/sh_tricks.html
   {_BASENAME}
   {_CHMOD}
+  {_COMPLETE}
   {_CUT}
   {_DIFF}
   {_DU}
@@ -3743,6 +3746,8 @@ def git(subject=None):
     else:
         return f"""{h1('git')}
 
+  {_BLAME}
+  
   {_BRANCH}
 
   {_CHECKOUT}
@@ -5268,6 +5273,7 @@ def mongo(subject=None):
   {_PYMONGO}
   {_GLOBAL}
   {_DB}
+  {_COLLECTION}
   {_CURSOR}
   {_OPERATOR}
   """
@@ -9388,6 +9394,7 @@ def zsh(subject=None):
         return rf"""{h1('zsh')}
   http://zsh.sourceforge.net/Guide/zshguide04.html
   autoload -U add-zsh-hook
+  autoload -Uz compinit
   add-zsh-hook chpwd chpwd_dirhistory    {c('dirhistory plugin')}
   emulate -L zsh
   emulate -RL zsh

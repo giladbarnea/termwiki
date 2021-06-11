@@ -344,8 +344,7 @@ def fuzzy_find_topic(topic, collection, *extra_opts, raise_if_exhausted=False, *
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
     # not even a subtopic, could be gibberish
     # try assuming it's a substring
-    import search
-    import prompt
+    from manuals import search, prompt
     for maybes, is_last in search.iter_maybes(topic, collection, criterion='substring'):
         if not maybes:
             continue

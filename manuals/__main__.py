@@ -5,7 +5,9 @@
 # from IPython.core import ultratb
 #
 # sys.excepthook = ultratb.VerboseTB(include_vars=False)
+from rich.traceback import install
 
+install(extra_lines=5, show_locals=True)
 if __name__ == '__main__':
     from . import main
     import sys
