@@ -12,6 +12,7 @@ from pygments import highlight as pyglight
 from pygments.formatters import TerminalTrueColorFormatter
 # noinspection PyUnresolvedReferences
 from pygments.lexers import (get_lexer_by_name,
+                             AutohotkeyLexer,
                              BashLexer,
                              CssLexer,
                              DockerLexer,
@@ -29,17 +30,19 @@ backslash = '\\'
 # color = '\x1b['
 # https://help.farbox.com/pygments.html     ← previews of all styles
 Style = Literal['default', 'fruity', 'friendly', 'native', 'algol_nu', 'solarized-dark', 'inkpot', 'monokai']
-Language = Literal['mysql', 'python', 'bash', 'ipython', 'ini', 'json', 'js', 'ts', 'css', 'sass', 'docker']
+Language = Literal['mysql', 'python', 'bash', 'ipython', 'ini', 'json', 'js', 'ts', 'css', 'sass', 'docker', 'ahk']
 langs = Language.__args__
 HIGHLIGHT_START_RE = re.compile(fr'%({"|".join(langs)}) ?(\d|{"|".join(Style.__args__)})?')
 HIGHLIGHT_END_RE = re.compile(fr'/%({"|".join(langs)})')
-formatters: Dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__, None)
-lexers: Dict[Language, Lexer] = dict.fromkeys(langs, None)
+formatters: Dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__)
+lexers: Dict[Language, Lexer] = dict.fromkeys(langs)
 
 
 # *** Helper Functions
 
 def _get_lexer_ctor(lang: Language) -> Type[Lexer]:
+    if lang == 'ahk':
+        return AutohotkeyLexer
     if lang == 'bash':
         return BashLexer
     if lang == 'css':
@@ -584,6 +587,26 @@ def asyncio(subject=None):
   {_LOOP}
     """
 
+@syntax
+@alias('ahk')
+def autohotkey(subject=None):
+    _SYNTAX = f"""{h2('Syntax')}
+    %ahk
+    if WinActive("ahk_class Notepad") or WinActive("ahk_class" ClassName)
+        WinClose ; Use the window found by WinActive.
+        
+    if (Color = "Blue" or Color = "White")
+    /%ahk
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('autohotkey')}
+  %ahk
+  ActiveHwnd := WinExist("A")
+  /%ahk
+  """
 
 @syntax(bash='friendly')
 def bash(subject=None):
@@ -787,7 +810,11 @@ def bash(subject=None):
     {h3('Associative array')}
       %bash
       # Printing:
-      for x in "${{!array[@]}}"; do printf "[%q]=%q\n" "$x" "${{array[$x]}}" ; done\
+      for x in "${{!array[@]}}"; do printf "[%q]=%q\n" "$x" "${{array[$x]}}" ; done
+      
+      # Bash:
+      echo ${{!arr[@]}}      # keys
+      echo ${{arr[@]}}      # values
       
       # Zsh:
       echo ${{(t)array}}
@@ -795,10 +822,15 @@ def bash(subject=None):
       echo ${{(kv)array}}
       
       # Tricks:
+      # Copy arr to a new one:
       delcare -A LISA=([url]=www.google.com)
-      tmp=$(declare -p LISA)
+      tmp=$(declare -p LISA)        # tmp now holds 'declare -A LISA=([url]="www.google.com")'
       eval "declare -A lisa=${{tmp#*=}}"
       echo ${{lisa[url]}}   # www.google.com
+      
+      # Another way:
+      declare -A FOO
+      for k in ${{!LISA[@]}}; do eval "FOO[$k]=${{LISA[$k]}}"; done
       /%bash
       
       {h4('See "declare"')}
@@ -1361,31 +1393,6 @@ def bash(subject=None):
       diff <(echo "foo") <(echo "fo0")
       """
 
-    _DPKG = f"""{h2('dpkg')} [option...] <action>   {c('options first')}
-    {h3('action')}
-      -i, --install <package-file>...
-      --unpack <package-file>...
-      -r, --remove <package>...     {c('removes everything except conffiles and other data')}
-      -P, --purge <package>...
-    
-    {h3('option')}
-      --no-act, --dry-run, --simulate
-      -G, --refuse-downgrade      {c('do nothing if newer is installed')}
-      -E, --skip-same-version     {c('do nothing if same version is installed')}
-      --log=<filename>            {c('instead of to /var/log/dpkg.log')}
-    
-    {h3('dpkg-query')}
-      -l, --list <package-name-pattern>...    {c('list matching packages')}
-      -s, --status <package-name>...
-      -L, --listfiles <package-name-pattern>...    {c('list files from packages')}
-      -S, --search <filename-name-pattern>...    
-      -p, --print-avail <package-name>...     {c('display details')}
-
-    {h3('trick')}
-      If online it says a file is in pool/main/g/gcc-10/, then this works:
-      http://ftp.fr.debian.org/debian/pool/main/g/gcc-10/
-    """
-
     _DU = f"""{h2('du')} [options] [path]
     {h3('options')}
       -a                  {c('all files, not just dirs')}
@@ -1937,7 +1944,6 @@ def bash(subject=None):
   {_CHMOD}
   {_CUT}
   {_DIFF}
-  {_DPKG}
   {_DU}
   {_CP}
   {_ECHO}
@@ -2828,6 +2834,36 @@ def docker(subject=None):
   {_CLI}
   """
 
+@syntax
+def dpkg(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('dpkg')} [option...] <action>   {c('options first')}
+    {h2('action')}
+      -i, --install <package-file>...
+      --unpack <package-file>...
+      -r, --remove <package>...     {c('removes everything except conffiles and other data')}
+      -P, --purge <package>...
+    
+    {h2('option')}
+      --no-act, --dry-run, --simulate
+      -G, --refuse-downgrade      {c('do nothing if newer is installed')}
+      -E, --skip-same-version     {c('do nothing if same version is installed')}
+      --log=<filename>            {c('instead of to /var/log/dpkg.log')}
+    
+    {h2('dpkg-query')}
+      -l, --list <package-name-pattern>...    {c('list matching packages')}
+      -s, --status <package-name>...
+      -L, --listfiles <package-name-pattern>...    {c('list files from packages')}
+      -S, --search <filename-name-pattern>...    
+      -p, --print-avail <package-name>...     {c('display details')}
+
+    {h2('trick')}
+      If online it says a file is in pool/main/g/gcc-10/, then this works:
+      http://ftp.fr.debian.org/debian/pool/main/g/gcc-10/
+    """
 
 def fasd(subject=None):
     return f"""{h1('fasd')}
