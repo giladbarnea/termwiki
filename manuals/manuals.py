@@ -765,7 +765,12 @@ def bash(subject=None):
 
     __ARRAY = rf"""{h3("Array")}
     %bash
-    numbers_arr=( zero one two three four five )
+    # Build array from multiline string
+    arr=( $(echo ${{lines//" "/$'\n'}}) )
+      # These also worked?
+      arr=( $(echo ${{lines// /}}) ) 
+      arr=( $(echo $lines) )
+    
     # indexed array
       declare -a arr=([0]="mars" [2]="pluto")
     
@@ -774,16 +779,16 @@ def bash(subject=None):
       'bar')
 
     # length
-      ${{#numbers_arr[0]}}       #4 (len of 0th item)
-      ${{#numbers_arr}}          #4
-      ${{#numbers_arr[*]}}       #6 (num of items)
-      ${{#numbers_arr:[@]}}      #6
+      ${{#arr[0]}}       #4 (len of 0th item)
+      ${{#arr}}          #4
+      ${{#arr[*]}}       #6 (num of items)
+      ${{#arr:[@]}}      #6
     
-    # iterate over indexed array indices (keys; not necessarily continuous)\
+    # iterate over indexed array indices (keys; not necessarily continuous)
       for i in "${{!arr[@]}}"
     
     # append
-      numbers_arr+=("six")
+      arr+=("six")
     
     # delete
       arr=("${{arr[@]/pluto}}")      # removes matching prefixes, not whole items
@@ -794,19 +799,15 @@ def bash(subject=None):
       # also (echo looks ok):
       array+=${{other[@]}}
   
-    # split string to array by linebreak
-      arr=(${{wids//$'{linebreak}'/}})  # possibly space after '{linebreak}'/
-      arr=( $(echo $wids | python3 -c "import sys; print(sys.stdin.read())") )
-  
     # last item
       ${{array[${{#array}}]}}
     
     # get
       #TODO: this is all wrong?
-      ${{numbers_arr[0]}}        # zero
-      ${{numbers_arr:0}}         # zero
-      ${{numbers_arr[1]}}        # one
-      ${{numbers_arr:1}}         # ero
+      ${{arr[0]}}        # zero
+      ${{arr:0}}         # zero
+      ${{arr[1]}}        # one
+      ${{arr:1}}         # ero
     /%bash
     
     {h3('Associative array')}
