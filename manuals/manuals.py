@@ -7863,7 +7863,9 @@ def ssh(subject=None):
       IdentitiesOnly yes
       
       # Get originating IP inside remote:
-      sudo netstat -taepn | grep -Po "\b(\d|\.)+:22(?= .*ssh)"
+      sudo netstat -taepn | grep -Po "\\b(\d|\.)+:22(?= .*ssh)"
+        # or:
+      ifconfig | awk '/inet addr/{{print substr($2,6)}}'
       
       # In host:
       ss -ant
