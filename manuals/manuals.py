@@ -6226,9 +6226,9 @@ def pip(subject=None):
     {h3('options')}
       --no-deps
       --upgrade-strategy "only-if-needed"|"eager"   {c('default "only-if-needed"')}
-      --force-reinstall    {c('Reinstall all packages even if they are already up-to-date.')}
-      -I, --ignore-installed    {c('Overwrite installed')}
-      --exists-action <action>    {c('action when a path already exists: (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort.')}
+      --force-reinstall                             {c('Reinstall all packages even if they are already up-to-date.')}
+      -I, --ignore-installed                        {c('Overwrite installed')}
+      --exists-action <action>                      {c('action when a path already exists: (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort.')}
 
     {h3('From VCS')}
       {c('watch the slashes etc when pasting')}
@@ -6241,18 +6241,62 @@ def pip(subject=None):
       {c('sudo chmod 777 target dir, and make sure no prompts in target setup.py')}
       (env) pip install --log ./PIP.log -v -e /home/gilad/Code/IGit
 
-    --src {i('<dir>')}        {c('virenv default is "<venv path>/src", global default is "<current dir>/src"')}
-    --root {i('<dir>')}        {c('Install everything relative to this alternate root directory')}
-    --user                      {c('install to user dir (~/.local/ or %APPDATA%/Python)')}
+    --src {i('<dir>')}     {c('virenv default is "<venv path>/src", global default is "<current dir>/src"')}
+    --root {i('<dir>')}    {c('Install everything relative to this alternate root directory')}
+    --user                 {c('install to user dir (~/.local/ or %APPDATA%/Python)')}
     -t, --target {i('<dir>')}
-    -e, --editable {i('<path/url>')}      {c('implies setuptool "develop" mode')}
+    -e, --editable {i('<path/url>')}    {c('implies setuptool "develop" mode')}
 
-    pip3 freeze | grep -v "^-e" | xargs pip3 uninstall -y   {c('uninstall all packages')}
+    pip3 freeze | grep -v "^-e" | xargs pip3 uninstall -y    {c('uninstall all packages')}
 
     pip install ./pip-21.1.1.tar.gz --user --ignore-requires-python --no-build-isolation --no-clean --retries 1 --timeout 10 --disable-pip-version-check
     """
 
     _SEARCH = f"""{h2('search')}"""
+    _DOWNLOAD = f"""{h2('download')} [options] [pkg]
+    {h3('pkg')}
+      <requirement specifier> [package-index-options] ...
+      -r <requirements file> [package-index-options] ...
+      <vcs project url> / <local project path> / <archive url/path> ...
+    
+    {h3('options')}
+      --platform <platform>      {c('Default to running platform. Mulitplable.')}
+                                   {c('macosx-10_10_x86_64, linux_x86_64, any, manylinux1_x86_64')}
+      --python-version <ver>     {c('3, 3.7, 3.7.0, 37')}
+      --implementation <impl>    {c('pp | jy | cp | ip | py')}
+      --abi <abi>
+    
+      --no-binary=<FMT>          {c("Don't use specified binary. Can be multiple.")}
+      --only-binary=<FMT>        {c("Don't use source pkgs. Can be multiple.")}
+                                   {c(":all: | :none: | pkg names with commas")}
+      --no-deps                  {c("Don't install deps")}
+      --prefer-binary            {c("Older bin pkgs over newer source pkgs")}
+      
+      -i, --index-url <url>      {c("Default https://pypi.org/simple. Must PEP-503 compliant.")}
+      --extra-index-url <url>
+      --no-index                 {c("Only look at --find-links URLs")}
+      -f, --find-links <url>     {c('VCS not supported')}
+          URL / path to .html: parse archive links (.tar.gz, .whl) 
+          Local path or file:// to dir: look for archives in dir
+      
+      --global-options <options>   {c("to setup.py")}
+      --src <dir>                {c("defaults to <venv/src> or <pwd/src>")}
+      -d, --dest <dir>           {c("Download into <dir>")}
+      
+      --no-build-isolation       {c("PEP-518 deps must already be installed")}
+      --use-pep517, --no-use-pep517    {c("--no-use-pep517 to force legacy behavior")}
+      --ignore-requires-python
+      
+      --no-clean                 {c("Don't clean build dirs")}
+      
+      --proxy <proxy>            {c('[user:passwd@]proxy.server:port')}
+      --retries <N=5>
+      --isolated                 {c('from env vars')}
+      --timeout <SECS=15>
+      --exists-action <action>   {c('When path exists: (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort')}
+      --no-cache-dir             {c('Disable cache')}
+      --disable-pip-version-check
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -6260,6 +6304,7 @@ def pip(subject=None):
         return f"""{h1('pip')}
   {_INSTALL}
   {_SEARCH}
+  {_DOWNLOAD}
     """
 
 @alias('poe')
@@ -9321,7 +9366,7 @@ def zip_(subject=None):
     """
 
 
-@syntax('friendly')
+@syntax('monokai')
 def zsh(subject=None):
     _ZLE = f"""{h2('zle')} - Z-Shell Line Editor
     # https://github.com/mskar/setup/blob/5d9dddd447a05e8d866b9c09b06a085f02e41bd3/.zshrc#L686
@@ -9333,8 +9378,28 @@ def zsh(subject=None):
 
     _COMMANDS = f"""{h2('zsh commands')}
     {h3('print')}
-    # http://zsh.sourceforge.net/Guide/zshguide03.html#l33
+    {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
     print -z print -z print This is a line    {c('Put in buffer')}
+    
+    {h3('zparseopts')}
+    {c('https://xpmo.gitlab.io/post/using-zparseopts/')}
+    %bash
+    # Example 1
+    zmodload zsh/zutil
+    zparseopts -D -E -F - a:=arg_val -arg:=arg_val f=flag -flag=flag {backslash}
+    	F=foobar -foo=foobar B=foobar -bar=foobar || exit 1
+    
+    # remove first -- or -
+    end_opts=$@[(i)(--|-)]
+    set -- "${{@[0,end_opts-1]}}" "${{@[end_opts+1,-1]}}"
+    
+    # Example 2
+    zparseopts -D -E - a:+=a_and_b b:+=a_and_b
+    
+    # Example 3
+    zparseopts -D -E - v+=flag_v -verbose+=flag_v q+=flag_q -quiet+=flag_q
+    (( verbosity = $#flag_v - $#flag_q ))
+    /%bash
     """
     
     _KEYS = f"""{h2('Keyboard Shortcuts')}
