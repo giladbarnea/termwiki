@@ -1182,10 +1182,14 @@ def bash(subject=None):
       >>      {c('append to file')}
       <       {c('read input from file')}
       <<      {c('heredoc')}
-        [n]<<word
-            here-document
-        delimiter
-        {c('n is file descriptor, defaults to stdin (0). can be <<- to remove leading <tab> chars')}
+        {c('https://linuxize.com/post/bash-heredoc/')}
+        [COMMAND] <<[-] 'DELIMITER'
+          HERE-DOCUMENT
+        DELIMITER
+        
+        - COMMAND is file descriptor, defaults to stdin (0)
+        - '-' after '<<' to remove leading <tab> chars
+        - Quote "EOF" to disable parameter expansion 
         
         %bash
         # Assign multi-line string to a shell variable
@@ -1257,7 +1261,8 @@ def bash(subject=None):
       -H          {c('if arg is symlink to dir, traverse it')}
       -L          {c('when encountering a symlink to dir, traverse it (default is not to traverse)')}
     """
-    _COMPLETE = _COMPGEN = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
+    _COMPLETE = _COMPGEN = _COMPDEF = _COMPCTL = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
+    {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
     {h3('Flags')}
       -abcdefgjksuv
     
@@ -1278,25 +1283,70 @@ def bash(subject=None):
               {c('  without any specific completion defined')}
         -E    {c('apply the completions and actions to "empty" commands --')}
               {c('  completion attempted on a blank line')}
+        bashdefault
+        default
+        dirnames
+        filenames
+        noquote
+        nosort
+        nospace
+        plusdirs      
     
     {h3('Globals')}
-      COMP_WORDS{c(': Associative array')}
-      COMP_CWORD{c(': int (index of current work in COMP_WORDS)')}
+      COMP_WORDS{c(': Numbered array')}
+      COMP_CWORD{c(': int (1-index of current word in COMP_WORDS)')}
+      COMP_LINE{c(': ?')}
+      COMP_POINT{c(': int (1-index of current char)')}
       COMPREPLY
     
-    {h3('compgen')}
+    {h3('compgen')} [option] [word]
       %bash
+      # Ex. 1
+      current="${{COMP_WORDS[COMP_CWORD]}}"
+      prev="${{COMP_WORDS[COMP_CWORD - 1]}}"
       possible_completions='
         help install
         alias unalias'
-      COMPREPLY=($(compgen -W "$possible_completions" -- "${{current_word}}"))
+      COMPREPLY=($(compgen -W "$possible_completions" -- "${{current}}"))
+      /%bash
+    
+    {h3('compdef')}
+      %bash
+      compadd -- $(COMP_CWORD=$((CURRENT-1)) \\
+                   COMP_LINE=$BUFFER \\
+                   COMP_POINT=0 \\
+                   npm completion -- "${{words[@]}}" \\
+                   2>/dev/null)
+      /%bash
+    
+    {h3('compctl')}
+      %bash
+      local cword line point words si
+      read -Ac words
+      read -cn cword
+      let cword-=1
+      read -l line
+      read -ln point
+      si="$IFS"
+      IFS=$'\\n' reply=($(COMP_CWORD="$cword" \\
+                         COMP_LINE="$line" \\
+                         COMP_POINT="$point" \\
+                         npm completion -- "${{words[@]}}" \\
+                         2>/dev/null)) || return $?
+      IFS="$si"
       /%bash
     
     {h3('Examples')}
       %bash
       complete -o default -F __nvm nvm
+      
+      complete -o filenames -C '_z --complete "$COMP_LINE"' ${{_Z_CMD:-z}}
+      complete -o default -C 'compgen -W "a b c d" -- "${{COMP_WORDS[COMP_CWORD]}}"' hfzf
+      
+      complete -o bashdefault -o default -o nospace -F _drush_completion d dr drush drush5 drush6 drush7 drush8 drush.php
       /%bash
     """
+
     _CP = f"""{h2('cp')}
     {h4('Examples')}
     Given:
