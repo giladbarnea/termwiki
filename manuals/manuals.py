@@ -7864,6 +7864,13 @@ def ssh(subject=None):
     _TUNNEL = f"""{h2('Tunneling')}
     https://www.youtube.com/watch?v=N8f5zv9UUMI
     https://www.youtube.com/watch?v=aOmIqUs0fbY
+    
+    %bash
+    # Tunnel IRC session from client to IRC server at “server.example.com”, 
+    # join channel “#users”, nickname “pinky”, using the standard IRC port 6667
+    ssh -f -L 6667:localhost:6667 server.example.com sleep 10
+    irc -c '#users' pinky IRC/127.0.0.1
+    /%bash
     """
     if subject:
         frame = inspect.currentframe()
@@ -7930,40 +7937,50 @@ def ssh(subject=None):
   
     {h3('Examples')}
       %bash
-      # Cool colors:
-      ip -s -c -h a
-      
       # Create a key pair with a remote machine:
-      ssh-keygen -f my_key -C "some comment"
-      ssh-copy-id -i ./my_key.pub user@ip
+        ssh-keygen -f my_key -C "some comment"
+        ssh-copy-id -i ./my_key.pub user@ip
       
-      # Connect to a computer on local network:
-      ssh <username>@<computer-name>.local    # e.g. ssh gilad@gilad.local
-      # or:
-      ssh <name>@<local-port>    # e.g. ssh gilad@10.0.0.13
+      # Connect to a host on local network:
+        ssh <username>@<computer-name>.local    # e.g. ssh gilad@gilad.local
+        # or:
+        ssh <name>@<local-port>    # e.g. ssh gilad@10.0.0.13
+      
+      # Scan local network for hosts: 
+        # Scan .1 to .254 range:
+        nmap -sn 192.168.2.1/24       # also e.g 192.168.1.0/24
+        # Or:
+        arp -a 
       
       # Check access to site:
-      ssh -T git@bitbucket.org
+        ssh -T git@bitbucket.org
 
       # Add ssh key:
-      eval `ssh-agent`
-      ssh-add -K ~/.ssh/<private_key_file>
+        eval `ssh-agent`
+        ssh-add -K ~/.ssh/<private_key_file>
       
       # ~/.ssh/config file:
-      Host 10.100.200.6
-      User root
-      # Hostname example.com
-      IdentityFile ~/.ssh/id_rsa_example
-      IdentityFile ~/.ssh/id_rsa_example2
-      IdentitiesOnly yes
+        Host 10.100.200.6
+        User root
+        # Hostname example.com
+        IdentityFile ~/.ssh/id_rsa_example
+        IdentityFile ~/.ssh/id_rsa_example2
+        IdentitiesOnly yes
       
-      # Get originating IP inside remote:
-      sudo netstat -taepn | grep -Po "\\b(\d|\.)+:22(?= .*ssh)"
-        # or:
-      ifconfig | awk '/inet addr/{{print substr($2,6)}}'
-      
-      # In host:
-      ss -ant
+      # Network info:
+        # Windows public IP:
+        nslookup myip.opendns.com. resolver1.opendns.com
+        
+        # Cool colors:
+        ip -s -c -h a
+        
+        # Get originating IP inside remote:
+        sudo netstat -taepn | grep -Po "\\b(\d|\.)+:22(?= .*ssh)"
+          # or:
+          ifconfig | awk '/inet addr/{{print substr($2,6)}}'
+        
+        # In host:
+        ss -ant
       /%bash
   """
 
