@@ -9474,25 +9474,32 @@ def zsh(subject=None):
     {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
     print -z print -z print This is a line    {c('Put in buffer')}
     
-    {h3('zparseopts')}
+    {h3('zparseopts')} [ -D -E -F -K -M ] [ -a array ] [ -A assoc ] [ - ] spec ...
     {c('https://xpmo.gitlab.io/post/using-zparseopts/')}
-    %bash
-    # Example 1
-    zmodload zsh/zutil
-    zparseopts -D -E -F - a:=arg_val -arg:=arg_val f=flag -flag=flag {backslash}
-    	F=foobar -foo=foobar B=foobar -bar=foobar || exit 1
+    {c('man zshmodules')}
     
-    # remove first -- or -
-    end_opts=$@[(i)(--|-)]
-    set -- "${{@[0,end_opts-1]}}" "${{@[end_opts+1,-1]}}"
-    
-    # Example 2
-    zparseopts -D -E - a:+=a_and_b b:+=a_and_b
-    
-    # Example 3
-    zparseopts -D -E - v+=flag_v -verbose+=flag_v q+=flag_q -quiet+=flag_q
-    (( verbosity = $#flag_v - $#flag_q ))
-    /%bash
+    {h4('Flags')}
+      -D    {c('Remove matches from $@')}
+      -E    {c("Don't stop at first string that doesn't match specj")}
+      
+    {h4('Examples')}
+      %bash
+      # Example 1
+      zmodload zsh/zutil
+      zparseopts -D -E -F - a:=arg_val -arg:=arg_val f=flag -flag=flag {backslash}
+      	F=foobar -foo=foobar B=foobar -bar=foobar || exit 1
+      
+      # remove first -- or -
+      end_opts=$@[(i)(--|-)]
+      set -- "${{@[0,end_opts-1]}}" "${{@[end_opts+1,-1]}}"
+      
+      # Example 2
+      zparseopts -D -E - a:+=a_and_b b:+=a_and_b
+      
+      # Example 3
+      zparseopts -D -E - v+=flag_v -verbose+=flag_v q+=flag_q -quiet+=flag_q
+      (( verbosity = $#flag_v - $#flag_q ))
+      /%bash
     """
     
     _KEYS = f"""{h2('Keyboard Shortcuts')}
