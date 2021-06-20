@@ -1835,11 +1835,26 @@ def bash(subject=None):
     %z    {c('status-change time, human')}
     %Z    {c('status-change time, epoch')}
     """
-    _SUDO = f"""{h2('sudo')}
-    sudo -u USER          {c('instead of usual default "root"')}
-    sudo -S, --stdin      {c('prompt to stderr, read pass from stdin')}
-
-
+    _SUDO = _SU = f"""{h2('sudo, su')}
+    {h3('sudo')}
+      -u, --user=USER     {c('instead of usual default "root"')}
+      -S, --stdin         {c('prompt to stderr, read pass from stdin')}
+                            {c('echo mypass | sudo -S, or sudo -S <<< mypass')}
+      -E, --preserve-env
+      -g, --group=GROUP
+      -H, --set-home
+      -h, --host=HOST
+      -i, --login         {c('read e.g .profile, .bash_profile or .login')}
+      -P, --preserve-groups
+      -s, --shell         {c('honor SHELL env var')}
+    
+    {h3('su')}
+      -c, --command=CMD
+      -g, --group=GROUP
+      -, -i, --login      {c('Clear all env vars except TERM and --whitelist-environment')}
+                            {c('Init HOME, SHELL, USER, LOGNAME, PATH, cd to HOME')}
+      -m, -p, --preserve-environment
+      -w, --whitelist-environment=FOO,BAR   {c('Ignores HOME, SHELL, USER, LOGNAME, PATH')}
     """
     _SYNTAX = rf"""{h2('Syntax')}
   {__ARGUMENTS}
@@ -7935,6 +7950,32 @@ def ssh(subject=None):
       %T    {c('The local tun(4) or tap(4) network interface assigned if tunnel forwarding was requested, or "NONE" otherwise.')}
       %u    {c("The local username.")}
   
+    {h3('Network Information')}
+      %bash
+      # Public IP:
+        # Windows:
+        nslookup myip.opendns.com. resolver1.opendns.com
+        # or: (PS)
+          $wc = new-object System.Net.WebClient
+          $wc.DownloadString("http://myexternalip.com/raw")
+        
+        # Linux:
+        dig +short myip.opendns.com @resolver1.opendns.com
+        # or:
+          curl "http://myexternalip.com/raw"
+
+      # Cool colors:
+      ip -s -c -h a
+      
+      # Get originating IP inside remote:
+      sudo netstat -taepn | grep -Po "\\b(\d|\.)+:22(?= .*ssh)"
+        # or:
+        ifconfig | awk '/inet addr/{{print substr($2,6)}}'
+      
+      # In host:
+      ss -ant
+      /%bash    
+
     {h3('Examples')}
       %bash
       # Create a key pair with a remote machine:
@@ -7966,21 +8007,6 @@ def ssh(subject=None):
         IdentityFile ~/.ssh/id_rsa_example
         IdentityFile ~/.ssh/id_rsa_example2
         IdentitiesOnly yes
-      
-      # Network info:
-        # Windows public IP:
-        nslookup myip.opendns.com. resolver1.opendns.com
-        
-        # Cool colors:
-        ip -s -c -h a
-        
-        # Get originating IP inside remote:
-        sudo netstat -taepn | grep -Po "\\b(\d|\.)+:22(?= .*ssh)"
-          # or:
-          ifconfig | awk '/inet addr/{{print substr($2,6)}}'
-        
-        # In host:
-        ss -ant
       /%bash
   """
 
