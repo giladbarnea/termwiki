@@ -2999,9 +2999,10 @@ def ffmpeg(subject=None):
     ffmpeg -i {i('input.mp3')} -filter_complex 'compand=attacks=0:points=3/1' {i('output.mp3')}
     """
     __CONCAT = f"""{h3('Concat')}
-      ffmpeg -i {i('vid1.mp4')} -c copy -bsf:v h264_mp4toannexb -f mpegts {i('tmp1.ts')}
-      ffmpeg -i {i('vid2.mp4')} -c copy -bsf:v h264_mp4toannexb -f mpegts {i('tmp2.ts')}
-      ffmpeg -i "concat:{i('tmp1.ts|tmp2.ts')}" -c copy -bsf:a aac_adtstoasc {i('out.mp4')}
+      {c('Has to convert to .ts first')}
+      ffmpeg -i {i('vid1.mp4')} -c copy -bsf:v h264_mp4toannexb -f mpegts {i('tmp1.ts')} && \\
+      ffmpeg -i {i('vid2.mp4')} -c copy -bsf:v h264_mp4toannexb -f mpegts {i('tmp2.ts')} && \\
+      ffmpeg -i "concat:{i('tmp1.ts|tmp2.ts')}" -c copy -bsf:a aac_adtstoasc {i('out.mp4')} && \\
       rm {i('tmp1.ts tmp2.ts')}
     """
     __MERGE = f"""{h3('Merge (audio and video)')}
@@ -3011,7 +3012,10 @@ def ffmpeg(subject=None):
     """
     __TRIM = f"""{h3('Trim')}
       {c('starting from 00:32:44 and lasting 11m:')}
-      ffmpeg -ss 00:32:44 -i full.mp4 -c copy -t 00:11:00 trimmed.mp4
+      ffmpeg -ss 00:32:44 -i full.mp4 [-t 00:11:00] [-c:v libx264] -async 1 -strict -2 trimmed.mp4
+      
+      {c('starting from 00:32:44 to 00:33:00:')}
+      ffmpeg -ss 00:32:44 -i full.mp4 -to 00:33:00 [-c:v libx264] -async 1 -strict -2 trimmed.mp4
     """
     __CROP = f"""{h3('Crop')}
       -qp [0/lossless : 50/lossy]
