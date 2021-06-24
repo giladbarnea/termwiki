@@ -3567,7 +3567,7 @@ def git(subject=None):
         X unknown
         B pairing broken
 
-    {h3(f'-G{i("<regex>")}')}
+    {h3(f'-G')} <regex>
       {c('https://stackoverflow.com/a/35301258/11842164')}
       Look for differences whose patch text contains added/removed lines that match <regex>
       
@@ -3580,17 +3580,17 @@ def git(subject=None):
       --pickaxe-all   {c(f'show all changes in changeset, not just files with change in {i("<regex>")}')}
       
       {h4('Examples')}
-        git diff -G"def*" --pickaxe-all
-        git diff -w -G'(^[^\*# /])|(^#\w)|(^\s+[^\*#/])'
+        git diff -G "def*" --pickaxe-all
+        git diff -w -G '(^[^\*# /])|(^#\w)|(^\s+[^\*#/])'
         
         {c('Only show file differences with at least one line that mentions foo:')}
-        git diff -G'foo'
+        git diff -G 'foo'
         
         {c('Show file differences for everything except lines that start with a #:')}
-        git diff -G'^[^#]'
+        git diff -G '^[^\# ]+\w+$'
         
         {c('Show files that have differences mentioning FIXME or TODO:')}
-        git diff -G`(FIXME)|(TODO)`
+        git diff -G '(FIXME)|(TODO)'
 
     """
 
