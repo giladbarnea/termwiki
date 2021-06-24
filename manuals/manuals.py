@@ -1302,8 +1302,8 @@ def bash(subject=None):
     {h3('compgen')} [option] [word]
       %bash
       # Ex. 1
-      current="${{COMP_WORDS[COMP_CWORD]}}"
-      prev="${{COMP_WORDS[COMP_CWORD - 1]}}"
+      current="${{COMP_WORDS[$COMP_CWORD]}}"
+      prev="${{COMP_WORDS[$COMP_CWORD - 1]}}"
       possible_completions='
         help install
         alias unalias'
