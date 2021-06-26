@@ -2974,41 +2974,47 @@ def fasd(subject=None):
 def ffmpeg(subject=None):
     _CONVERT = f"""{h2('Convert')}
     {h3('between video formats')}
-    ffmpeg -i {i('vid.mkv')} -codec copy {i('vid.mp4')}
+    ffmpeg -i vid.mkv -codec copy vid.mp4
 
     {h3('between audio formats')}
-    ffmpeg -i {i('song.m4a')} -acodec lame_enc -aq 2 {i('song.mp3')}
+    ffmpeg -i song.m4a -acodec lame_enc -aq 2 song.mp3
 
     {h3('mp4 to gif')}
-    ffmpeg -i {i('vid.mp4')} -f gif -s 960x540 -r 10 {i('vid.gif')}
-    ffmpeg -i {i('vid.mp4')} -filter_complex '[0:v] fps=30,scale=480:-1,split [a][b];[a] palettegen [p];[b][p] paletteuse' {i('vid.gif')}
+    ffmpeg -i vid.mp4 -f gif -s 960x540 -r 10 vid.gif
+    ffmpeg -i vid.mp4 -filter_complex '[0:v] fps=30,scale=480:-1,split [a][b];[a] palettegen [p];[b][p] paletteuse' vid.gif
     """
     _SRT = _SUBS = f"""{h2('SRT')}
     {h3('embed srt')}
-    ffmpeg -i {i('vid.mp4')} -c copy -filter:v subtitles={i('vid.srt vid_with_subs.mp4')}
-    ffmpeg -i {i('vid.mp4')} -i {i('vid.srt')} -map 0 -map 1 -c copy -metadata:s:s:0 language=eng -metadata:s:s:1 language=ipk {i('vid_with_subs.mkv')}
+    ffmpeg -i vid.mp4 -c copy -filter:v subtitles=vid.srt vid_with_subs.mp4
+    ffmpeg -i vid.mp4 -i vid.srt -map 0 -map 1 -c copy -metadata:s:s:0 language=eng -metadata:s:s:1 language=ipk vid_with_subs.mkv
 
     {h3('extract srt from mkv')}
-    ffmpeg -i {i('vid.mkv')}-map 0:s:0 {i('vid.srt')}
+    ffmpeg -i vid.mkv-map 0:s:0 vid.srt
     """
     _AUDIO = f"""{h2('Audio')}
     {h3('reduce filesize')}
-    ffmpeg -i {i('input.mp3')} -map 0:a:0 -b:a 96k {i('output.mp3')}
+    ffmpeg -i input.mp3 -map 0:a:0 -b:a 96k output.mp3
 
     {h3('compress')}
-    ffmpeg -i {i('input.mp3')} -filter_complex 'compand=attacks=0:points=3/1' {i('output.mp3')}
+    ffmpeg -i input.mp3 -filter_complex 'compand=attacks=0:points=3/1' output.mp3
+
+    {h3('remove audio track')}
+    ffmpeg -i vid.mp4 -c:v copy -an vid-no-audio.mp4
     """
     __CONCAT = f"""{h3('Concat')}
       {c('Has to convert to .ts first')}
-      ffmpeg -i {i('vid1.mp4')} -c copy -bsf:v h264_mp4toannexb -f mpegts {i('tmp1.ts')} && \\
-      ffmpeg -i {i('vid2.mp4')} -c copy -bsf:v h264_mp4toannexb -f mpegts {i('tmp2.ts')} && \\
-      ffmpeg -i "concat:{i('tmp1.ts|tmp2.ts')}" -c copy -bsf:a aac_adtstoasc {i('out.mp4')} && \\
-      rm {i('tmp1.ts tmp2.ts')}
+      ffmpeg -i vid1.mp4 -c copy -bsf:v h264_mp4toannexb -f mpegts tmp1.ts && \\
+      ffmpeg -i vid2.mp4 -c copy -bsf:v h264_mp4toannexb -f mpegts tmp2.ts && \\
+      ffmpeg -i "concat:tmp1.ts|tmp2.ts" -c copy -bsf:a aac_adtstoasc out.mp4 && \\
+      rm tmp1.ts tmp2.ts
+      
+      {c('Picture overlay')}
+      ffmpeg -i vid.mp4 -i pic.jpg  -filter_complex "[0:v][1:v] overlay=0:0:enable='between(t,26,32)'" -pix_fmt yuv420p out.mp4
     """
     __MERGE = f"""{h3('Merge (audio and video)')}
-      ffmpeg -i video.mp4 -i audio.wav -c copy {i('output.mkv')}
+      ffmpeg -i video.mp4 -i audio.wav -c copy output.mkv
       {c('OR (replace existing audio)')}
-      ffmpeg -i video.mp4 -i audio.mp3 -c:v copy -c:a aac -strict experimental -map 0:v:0 -map 1:a:0 {i('output.mp4')}
+      ffmpeg -i video.mp4 -i audio.mp3 -c:v copy -c:a aac -strict experimental -map 0:v:0 -map 1:a:0 output.mp4
     """
     __TRIM = f"""{h3('Trim')}
       {c('starting from 00:32:44 and lasting 11m:')}
@@ -3025,27 +3031,33 @@ def ffmpeg(subject=None):
 
       {c('puts info at beginning of file, good for streaming (youtube)')}
       {c('https://trac.ffmpeg.org/wiki/Encode/H.264')}
-      ffmpeg -i {i('input.mp4')} -filter:v "crop=w:h:x:y" -qp 12 -preset ultrafast -tune zerolatency -profile:v baseline -level 3.0 -movflags +faststart {i('output.mp4')}
+      ffmpeg -i input.mp4 -filter:v "crop=w:h:x:y" -qp 12 -preset ultrafast -tune zerolatency -profile:v baseline -level 3.0 -movflags +faststart output.mp4
+      ffmpeg -i input.mp4 -filter:v "crop=in_w/2:in_h/2:in_w/2:in_h/2" -c:a copy output.mp4
+      ffmpeg -i input.mp4 -filter:v "crop=320/2:240/2:320/2:240/2" -c:a copy output.mp4
+      ffmpeg -i input.mp4 -filter:v "crop=iw:ih-40" -c:a copy output.mp4
+      
+      {c('Preview')}
+      ffplay -i input.mp4 -vf "crop=in_w:in_h-40"
     """
     __SIZE = f"""{h3('Reduce filesize')}
       {c('constant rate; higher = lower bitrate')}
-      ffmpeg -i {i('input.mp4')} -vcodec [h264 / libx265] [-crf 20] [-acodec [mp3 / aac] -b:a 96k] {i('output.mp4')}
+      ffmpeg -i input.mp4 -vcodec [h264 / libx265] [-crf 20] [-acodec [mp3 / aac] -b:a 96k] output.mp4
         -vcodec libx265 -crf 20    {c('153kbps vid')}
-        -vcodec h264 -crf 20    {c('137kbps vid')}
-        -vcodec h264 -crf 30     {c('81kbps vid')}
+        -vcodec h264 -crf 20       {c('137kbps vid')}
+        -vcodec h264 -crf 30       {c('81kbps vid')}
     """
     __FRAMERATE = f"""{h3('Framerate')}
-      ffmpeg -i {i('input.avi')} -r 24 -b:v 1640k -bufsize 1640k {i('output.avi')}
+      ffmpeg -i input.avi -r 24 -b:v 1640k -bufsize 1640k output.avi
 
       {c('OR (with reencoding, takes time, much smaller filesize)')}
       {c('setpts=1.25*PTS makes it 1.25x SLOWER (30/1.25 = 24)')}
-      ffmpeg -i {i('input.mp4')} -vf "setpts=1.25*PTS" -r 24 {i('output.mp4')}
+      ffmpeg -i input.mp4 -vf "setpts=1.25*PTS" -r 24 output.mp4
         -vf "setpts=1.25*PTS"   {c('makes it 1.25x slower')}
         -r 24                   {c('compensates')}
 
       {c('OR (without reencoding, takes some time, same filesize)')}
-      ffmpeg -i {i('input.mp4')} -c copy -f h264 {i('output.h264')}
-      ffmpeg -r 24 -i {i('output.h264')} -c copy {i('output.mp4')}
+      ffmpeg -i input.mp4 -c copy -f h264 output.mp4
+      ffmpeg -r 24 -i output.mp4 -c copy output.mp4
     """
     _VIDEO = f"""{h2('Video')}
     {__CONCAT}
