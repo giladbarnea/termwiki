@@ -854,6 +854,8 @@ def bash(subject=None):
     
     {h4('Options')}
       -g	{c('Makes variables global when inside function')}
+      -f	{c('Print functions including content')}
+      -F	{c('Print function names')}
       -p	{c('Print attributes/values of each NAME')}
     
     {h4('Options which set attributes')}
@@ -1048,7 +1050,23 @@ def bash(subject=None):
     mystr+="u"
     /%bash
     """
-
+    __TYPE = f"""{h3('type')} [-afptP] name [name ...]
+    Display information about command type.
+    
+    no flag       {c("print type and content of would be used.")}
+                  {c("  type -f cd → cd is a function; cd () {{...}}")} 
+    -t            {c("output alias, keyword, function, builtin, file, or nothing (1)")}
+    -a            {c("display all locations, including content.")}
+                  {c("  type -f cd → cd is a function; cd () {{...}}; cd is a shell builtin")}  
+    -f            {c("suppress custom function lookup")}
+                  {c("  type -f cd → cd is a shell builtin")}  
+                  {c("  type -f log → not found (1)")}
+    -P            {c("search PATH, output disk file")}
+                  {c("  type -P ls → /bin/ls (even if overridden or aliased)")}
+    -p            {c("output disk file, restricted to -t → 'function'")}
+    
+    see {bg('declare')}
+    """
     __VARIABLES = __VARS = f"""{h3('Variables')}
     %bash 2
     ${{var:?}}          # fail if the variable is unset (or empty)
@@ -1118,8 +1136,9 @@ def bash(subject=None):
     done
     /%bash
     """
-    __PIPE = __PROCESSES = __FILEDESCRIPTORS = __BG = __FG = __REDIRECTION = f"""{h2('Pipe, Processes, File Descriptors, Background, Foreground, Redirection, >, >>, <, <<, <<<')}
+    __PIPE = __PROCESSES = __FILEDESCRIPTORS = __BG = __FG = __REDIRECTION = __JOB = f"""{h2('Pipe, Processes, File Descriptors, Background, Foreground, Redirection, >, >>, <, <<, <<<')}
     {c('https://stackoverflow.com/questions/35116699/piping-not-working-with-echo-command')}
+    {c('http://tiswww.case.edu/php/chet/bash/bashref.html#Job-Control')}
     %bash
     nohup CMD &>/dev/null &
     CMD 2>&1
@@ -1261,13 +1280,17 @@ def bash(subject=None):
       -H          {c('if arg is symlink to dir, traverse it')}
       -L          {c('when encountering a symlink to dir, traverse it (default is not to traverse)')}
     """
-    _COMPLETE = _COMPGEN = _COMPDEF = _COMPCTL = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
+    _COMPLETE = _COMPGEN = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
+    {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
     {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
     {h3('Flags')}
       -abcdefgjksuv
     
     {h3('Options')}
-      -A action 
+      -A ⟨action⟩    {c('one of the following to generate a list of possible completions:')}
+              {c('alias arrayvar binding builtin command directory disabled enabled')}
+              {c('export file function group helptopic hostname job keyword running')}
+              {c('service setopt shopt signal stopped user variable')} 
       -G globpat 
       -W wordlist 
       -F function 
@@ -1275,7 +1298,7 @@ def bash(subject=None):
       -X filterpat 
       -P prefix 
       -S suffix
-      {h4('-o <OPTION>')}
+      {h4('-o ⟨OPTION⟩')}
         -p    {c('print existing completion specifications in a reusable format')}
         -r    {c('remove a completion specification for each NAME, or, if no')}
               {c('  NAMEs are supplied, all completion specifications')}
@@ -1290,14 +1313,23 @@ def bash(subject=None):
         noquote
         nosort
         nospace
-        plusdirs      
+        plusdirs    {c('attempt and add dir name completion after any matches')}
     
     {h3('Globals')}
-      COMP_WORDS{c(': Numbered array')}
+      COMP_WORDS{c(': Numbered array (words in biffer)')}
       COMP_CWORD{c(': int (1-index of current word in COMP_WORDS)')}
-      COMP_LINE{c(': ?')}
+      COMP_LINE{c(': str (the whole buffer)')}
       COMP_POINT{c(': int (1-index of current char)')}
+      COMP_TYPE
+      COMP_KEY
+      BASH_REMATCH
+      CURSOR
       COMPREPLY
+      BUFFER
+      PREBUFFER
+      CUTBUFFER
+      RBUFFER
+      LBUFFER
     
     {h3('compgen')} [option] [word]
       %bash
@@ -1310,7 +1342,17 @@ def bash(subject=None):
       COMPREPLY=($(compgen -W "$possible_completions" -- "${{current}}"))
       /%bash
     
-    {h3('compdef')}
+    {h3('Examples')}
+      %bash
+      complete -o default -F __nvm nvm
+      
+      complete -o filenames -C '_z --complete "$COMP_LINE"' ${{_Z_CMD:-z}}
+      complete -o default -C 'compgen -W "a b c d" -- "${{COMP_WORDS[COMP_CWORD]}}"' hfzf
+      
+      complete -o bashdefault -o default -o nospace -F _drush_completion d dr drush drush5 drush6 drush7 drush8 drush.php
+      /%bash
+    """
+    _COMPDEF = _COMPCTL = f"""{h3('compdef')}
       %bash
       compadd -- $(COMP_CWORD=$((CURRENT-1)) \\
                    COMP_LINE=$BUFFER \\
@@ -1335,17 +1377,8 @@ def bash(subject=None):
                          2>/dev/null)) || return $?
       IFS="$si"
       /%bash
-    
-    {h3('Examples')}
-      %bash
-      complete -o default -F __nvm nvm
-      
-      complete -o filenames -C '_z --complete "$COMP_LINE"' ${{_Z_CMD:-z}}
-      complete -o default -C 'compgen -W "a b c d" -- "${{COMP_WORDS[COMP_CWORD]}}"' hfzf
-      
-      complete -o bashdefault -o default -o nospace -F _drush_completion d dr drush drush5 drush6 drush7 drush8 drush.php
-      /%bash
     """
+
 
     _CP = f"""{h2('cp')}
     {h4('Examples')}
@@ -1880,6 +1913,8 @@ def bash(subject=None):
   {__EXEC}
   
   {__SET}
+  
+  {__TYPE}
   
   {__VARIABLES}
       
@@ -9472,6 +9507,10 @@ def zip_(subject=None):
 {h1('unzip')} [-Z] [-cflptTuvz[abjnoqsCDKLMUVWX$/:^]] file[.zip] [file(s) ...]  [-x xfile(s) ...] [-d exdir='.']
   {h2('options')}
     -x <GLOB>   {c("Example: '-x */*' extract all files in root but none in subdirs")}
+
+  {h2('examples')}
+    {c('View contents')}
+    unzip -l rsevents.zip
     """
 
 
