@@ -457,8 +457,15 @@ def apt(subject=None):
     build-dep <source_pkg>
     apt-file update             {c('Generates or updates the apt-file package database')}
     apt-file search --regexp
-    apt-cache search
-    apt-cache policy
+    apt-cache [options] command
+        showsrc         {c('Show source records')}
+        search          {c('Search the package list for a regex pattern')}
+        depends         {c('Show raw dependency information for a package')}
+        rdepends        {c('Show reverse dependency information for a package')}
+        show            {c('Show a readable record for the package')}
+        pkgnames        {c('List the names of all packages in the system')}
+        policy          {c('Show policy settings')}    
+    apt-cache [options] show pkg...
   """
 
 
@@ -9119,86 +9126,148 @@ def xdotool(subject=None):
     else:
         return f"""{h1('xdotool')}
   https://gitlab.com/cunidev/gestures/wikis/xdotool-list-of-key-codes
-  {h2('Examples')}
-    xdotool key 'Home'
-    xdotool search [--onlyvisible] [--name, --class] GL503VM
-    xdotool windowactivate `xdotool search --class --onlyvisible pycharm | head -1`
 
-  {h2('Functions')}
-    {h3('getters')}
-      getactivewindow {c(': WID → 98566151')}
-      getwindowfocus {c(': WID → 98566151')}
-      selectwindow {c(': WID → 98566151')}
-      getwindowname {i('<WID>')} {c(': str → "MyTool - myman.py"')}
-      getwindowpid {i('<WID>')} {c(': PID → 9779')}
+  {h2('Getters')}
+    getactivewindow {c(': WID → 98566151')}
+    getwindowfocus [-f] {c(': WID → 98566151. Prints currently focused window.')}
+    getwindowname <WID> {c(': str → "MyTool - myman.py"')}
+    getwindowpid <WID> {c(': PID → 9779')}
+    selectwindow {c(': WID → 98566151')}
 
-      getwindowgeometry [--shell] {c('x, y, width, height, screen num. --shell suitable for eval')}
-      getdisplaygeometry
+    getwindowgeometry [--shell] [window] {c('x, y, width, height, screen num. --shell suitable for eval')}
+    getdisplaygeometry
+      
+    get_num_desktops
+    get_desktop_viewport [--shell]
+    get_desktop
+    get_desktop_for_window [window]
 
-    {h3('search')} {c('[options] REGEXP → WID ("71303175")')}
-      --class
-      --classname
-      --name
-      {c('default tries all three')}
-      --maxdepth {i('N')} {c('default infinite = -1')}
-      --onlyvisible
-      --limit {i('N')} {c('break search after N results')}
-      --shell {c('print results as shell array WINDOWS=( ... )')}
-      --all {c('require all conditions to be true')}
-      --any {c('require any condition to be true (default)')}
-      --sync {c('wait until search result is found')}
+  {h2('search')} {c('[options] REGEXP → WID ("71303175")')}
+    --class
+    --classname
+    --name
+    {c('default tries all three')}
+    --maxdepth <N> {c('default infinite = -1')}
+    --onlyvisible
+    --screen <N>
+    --desktop <N>
+    --limit <N> {c('break search after N results')}
+    --shell {c('print results as shell array WINDOWS=( ... )')}
+    --all {c('require all conditions to be true')}
+    --any {c('require any condition to be true (default)')}
+    --sync {c('wait until search result is found')}
 
-    {h3('setters')}
-      windowactivate {i('<[H]WID>')}
-      windowclose
-      windowfocus (vs raise?)
-      windowkill
-      windowmap ?
-      windowminimize
-      windowmove
-      windowraise (vs focus?)
-      windowreparent ?
-      windowsize [options] [window] <width> <height>
+  {h2('Setters')}
+    windowactivate <[H]WID>
+      
+    windowclose
+      
+    windowfocus [--sync] [window] (vs raise?)
+      
+    windowkill [window]
+      
+    windowmap [--sync] [window]
+      
+    windowminimize [--sync] [window]
+      
+    windowmove [options] [window] <X> <Y>
+      xdotool getactivewindow windowmove x 100
+      --relative
+      --sync
+      
+    windowraise [window] (vs focus?)
+      
+    windowreparent [source_window] <destination_window>
+      Make source child of destination
+      
+    windowsize [options] [window] <width> <height>
+      --usehints
+      --sync
+      
+    windowunmap [--sync] [WID=%1]
+      No longer appears on screen
+      
+    set_window [options] [WID=%1]
+      --name <name>         {c('WM_NAME')}
+      --icon-name <name>    {c('WM_ICON_NAME')}
+      --role <role>         {c('WM_WINDOW_ROLE')}
+      --classname <name>    {c('not the window class')}
+      --class <class>       {c('not the window class name')}
+      --overrideredirect <value>
+        
+    set_num_desktop <N>
+    set_desktop_viewport <x> <y>
+    set_desktop [--relative] <N>
+    set_desktop_for_window [window] <N>
 
-    {h3('actions')}
-      {h4('click')} {c('[options] button')}
+  {h2('Actions')}
+    {h3('Mouse')}
+      {h4('click')} [options] <button>
         {c('mousedown followed by mouseup after 12ms delay')}
+        button              {c('1: left, 2: middle, 3: right, 4: whlup, 5: whldown')}
         --clearmodifiers
         --repeat <repeat>   {c('default 1.  for dbl-click: `--repeat 2`')}
         --delay <ms>        {c('ignored unless --repeat > 1')}
         --window <WID>      {c('default %1')}
-      {h4('key')} {c(f'[--window {i("WID")}]')} {c(f'[--delay {i("ms=12")}]')} {c(f'[--clearmodifiers]')}
-        {c('"alt+r", "Control_L+J", "ctrl+alt+n", "BackSpace"')}
+
+      {h4('mousedown')} ...
+      {h4('mouseup')} ...
+
+      {h4('mousemove')} [options] <X> <Y> or 'restore'
+        --window <WID>
+        --screen <SCREEN>
+        --polar
+        --clearmodifiers
+        --sync
+
+      {h4('mousemove_relative')} [options] <X> <Y>
+
+      {h4('getmouselocation')} [--shell]
+        --shell             {c('X Y SCREEN=0 WINDOW=16777250')}
+        
+      {h4('behave_screen_edge')} <where> <command>
+        where               {c('left, top-left, top, top-right, right, bottom-right, bottom, bottom-left')}
+        xdotool behave_screen_edge bottom-left search --class google-chrome windowactivate
+
+    {h3('Keyboard')}
+      {h4('key')} {c(f'[--window WID]')} {c(f'[--delay ms=12]')} {c(f'[--clearmodifiers]')}
+        {c('"alt+r", "Control_L+J", "ctrl+alt+n", BackSpace, XF86Forward, Return')}
         xdt key F2
         xdt key Aacute
         xdt key ctrl+l BackSpace
         {c("Send ctrl+c to all windows matching title 'gdb':")}
         xdt search --name gdb key ctrl+c
-      keydown
-      keyup
-      mousedown
-      {h4('type')} {c(f'[--window {i("WID")}]')} {c(f'[--delay {i("ms")}]')} {c(f'[--clearmodifiers]')}
-        xdt type 'Hello world!'
 
-    {h3('behave')} {i('window action command ...')}
-      {h4('examples')}
-        {c('Print cursor location on mouse enter to any visible window')}
-        xdotool search --onlyvisible . behave %@ mouse-enter getmouselocation
+      {h4('keydown')} ...
 
-        {c('Print window title and pid whenever an xterm gets focus')}
-        xdotool search --class xterm behave %@ focus getwindowname getwindowpid
+      {h4('keyup')} ...
 
-        {c('Emulate focus-follows-mouse')}
-        xdotool search . behave %@ mouse-enter windowfocus
-      {h4('events')}
-        mouse-enter
-        mouse-leave
-        mouse-click     {c('when released')}
-        focus
-        blur
+    {h3('type')} {c(f'[--window WID]')} {c(f'[--delay ms]')} {c(f'[--clearmodifiers]')}
+      xdt type 'Hello world!'
 
-    {h3('exec')} {c('[--sync]')}
-      xdotool search --onlyvisible terminator behave %@ mouse-enter exec echo hi
+  {h2('behave')} <window> <action> <command> ...
+    {h3('Examples')}
+      {c('Print cursor location on mouse enter to any visible window')}
+      xdotool search --onlyvisible . behave %@ mouse-enter getmouselocation
+
+      {c('Print window title and pid whenever an xterm gets focus')}
+      xdotool search --class xterm behave %@ focus getwindowname getwindowpid
+
+      {c('Emulate focus-follows-mouse')}
+      xdotool search . behave %@ mouse-enter windowfocus
+      
+    {h3('Events')}
+      mouse-enter
+      mouse-leave
+      mouse-click     {c('when released')}
+      focus
+      blur
+
+  {h2('exec')} [--sync]
+    xdotool search --onlyvisible terminator behave %@ mouse-enter exec echo hi
+    
+  {h2('sleep')} <sec>
+    xdotool sleep 0.4
     """
 
 
