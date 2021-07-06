@@ -937,11 +937,12 @@ def bash(subject=None):
     for i in {{1..$n}};   # Problematic: SC2051
     /%bash
     """
-    __NUMBER = f"""{h3('numbers')}
+    __NUMBER = __INT = f"""{h3('numbers')}
     %bash 3
     count=$((0))
     count=$((0+1))
-    count=$((count+1))      # $((count + 1)) also fine'
+    count=$((count+1))
+    ((count++))
     """
     __RETURN = f"""{h3('return value from functions')}
     %bash
