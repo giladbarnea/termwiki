@@ -2117,14 +2117,21 @@ def click_(subject=None):
     _OPTION = f"""{h2('Options')}
     %python
     @click.option('-s', '--string-to-echo', 'variable_name',
-                  metavar=None,   # How it's displayed 
+                  metavar=None,                # How it's displayed 
                   required=False,
-                  show_default=True,
+                  show_default=False,
                   type=(str, int)
                   # or:
                   type=click.types.ParamType,  # Choice, INT, ...
-                  show_choices=False    # if type is Choice
-                   )
+                  show_choices=False,          # if type is Choice
+                  is_flag=False,
+                  flag_value=False,
+                  multiple=False,
+                  count=False,                 # Increment and int
+                  allow_from_autoenv=False,    # ?
+                  show_envvar=False,
+                  ...
+                  )
     /%python
 
     {h3('Multi-value options')}         {c('Tuple')}
@@ -2171,11 +2178,14 @@ def click_(subject=None):
     """
     _COMMAND = f"""{h2('Command')}
     %python
-    @click.command(name, 
-                   context_settings=None,  # core.Context() args
-                   epilog=None,            # shown at the end
+    @click.command(name,                   # Unless a group overrides
+                   help=None,              # core.Context() args
                    short_help=None, 
-                   options_metavar='[OPTIONS]'
+                   epilog=None,            # shown at the end
+                   context_settings=None,  # core.Context() args
+                   callback=None,          # ?
+                   options_metavar='[OPTIONS]',
+                   ...
                    )
     /%python
     """
