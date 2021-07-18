@@ -615,6 +615,9 @@ def autohotkey(subject=None):
   %ahk
   ActiveHwnd := WinExist("A")
   /%ahk
+  
+  {c('Parse web page:')}
+  https://www.autohotkey.com/boards/viewtopic.php?t=66376
   """
 
 @syntax(bash='friendly')
