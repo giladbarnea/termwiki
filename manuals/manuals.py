@@ -2029,18 +2029,19 @@ def bash(subject=None):
       man whatis
     """
     _XARGS = f"""{h2('xargs')} [options] [command [initial-args]]
-    {h3('options')}
-      -P max-procs, --max-procs=max-procs   {c('in Parallel')}
+    {h3('Options')}
+      -P <max-procs>, --max-procs=<max-procs>   {c('in Parallel')}
       -t, --verbose
-      -L max-lines      {('Use at most N nonblank input lines per command line. Implies -x')}
-      -n max-args, --max-args=max-args
-      -I replace-str
+      -L <max-lines>        {c('Use at most N nonblank input lines per command line. Implies -x')}
+      -n <max-args>, --max-args=<max-args>      {c('Use at most max-args arguments per command line')}
+      -I <replace-str>      {c('Implies -x and -L 1')}
       -p, --interactive     {c('Prompt before running each command. Implies -t')}
       -r, --no-run-if-empty
-    {h3('examples')}
+    
+    {h3('Examples')}
       ls | xargs echo
-      ls | xargs -L 1 echo            {c('-L max-lines. Implies -x')}
-      xargs -0 -I % cp % ~/backups    {c('"-I %" specifies which placeholder char, "cp %" is where to place it')}
+      ls | xargs -L 1 echo            {c('max 1 lines')}
+      xargs -0 -I % cp % ~/backups    
       -0 seems to keep line breaks?   {c("cat requirements.txt | cut -d'=' -f1 | xargs")}
       cat zooecho | vipe | xargs -I % $SHELL -c "%"
     """
@@ -9586,6 +9587,7 @@ def zip_(subject=None):
   {h2('examples')}
     zip -r -9 'outfile' . -i "somedir/*"
     zip -r -9 'out' 'vid.mkv'
+    zip -d compressed.zip "somedir/*"       {c('Delete from zip')}
     
 {h1('unzip')} [-Z] [-cflptTuvz[abjnoqsCDKLMUVWX$/:^]] file[.zip] [file(s) ...]  [-x xfile(s) ...] [-d exdir='.']
   {h2('options')}
