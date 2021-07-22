@@ -8940,22 +8940,62 @@ def vagrant(subject=None):
 
 
 def vim(subject=None):
-    return f"""{h1('vim')}
-  https://factorpad.com/tech/vim-cheat-sheet.html
-  https://www.fprintf.net/vimCheatSheet.html
-  Command structure:    {i('[count][operator]motion')}
-
-  echo hello | vi -     {c('from stdin')}
-  {h2('Counts')}
-    A count requires an operator and / or a motion.
-    1-9 are normal counts; 0 moves cursor to first col of line
-
-  {h2('Modes')}
+    _MODES = f"""{h2('Modes')}
     normal → insert    A, a, C, I, i, O, o, S, s
     normal → command   :
     normal → command   v
     any → normal       Esc
+    """
+    _MOVEMENT = f"""{h2('Movement')}
+    Keeps you in normal mode.
+    {h3('Character   Motion         Units')}
+    h . . . . . left . . . . . characters
 
+    l . . . . . right. . . . . characters
+    j . . . . . down . . . . . lines
+    k . . . . . up . . . . . . lines
+    $ . . . . . forward  . . . lines {c('(move to end of line)')}
+    ^ . . . . . forward  . . . lines {c('(first non-blank char of line)')}
+    0 . . . . . backward . . . lines {c('(first char of line)')}
+
+    b[count]. . backward . . . words
+    B[count]. . backward . . . words
+    w[count]  . forward  . . . words
+    W[count]  . forward  . . . WORDS
+    e . . . . . forward  . . . Forward to the end of word [count] inclusive
+    E . . . . . forward  . . . Forward to the end of WORD [count] inclusive
+
+    t<char> . . forward  . . . Till before [count]'th occurrence of <char> to the right
+    T<char> . . backward . . . Till before [count]'th occurrence of <char> to the left
+    f<char> . . forward  . . . To [count]'th occurrence of <char> to the right
+    F<char> . . backward . . . To [count]'th occurrence of <char> to the left
+
+    ;  . . . . . . . . . . . . Repeat latest f, t, F or T [count] times
+    ,  . . . . . . . . . . . . Repeat latest f, t, F or T [count] times in opposite direction
+
+    < . . . . . backward . . . paragraphs
+    > . . . . . forward  . . . paragraphs
+    
+    ctrl-d . .  down . . . . . 1/2 screen
+    ctrl-u . .  up . . . . . . 1/2 screen
+    ctrl-b . .  backward . . . 1/2 screen
+    ctrl-f . .  forward  . . . 1/2 screen
+    """
+    _MOVEMENT = re.sub(r'(?<=[^.])(\. )+',lambda match:black(match.group()), _MOVEMENT)
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('vim')}
+  {c('https://factorpad.com/tech/vim-cheat-sheet.html')}
+  {c('https://www.fprintf.net/vimCheatSheet.html')}
+  Command structure:    {i('[count][operator]motion')}
+
+  {h2('Counts')}
+    A count requires an operator and / or a motion.
+    1-9 are normal counts; 0 moves cursor to first col of line
+
+  {_MODES}
   {h2('Operators')}
     c     {c('Change')}
     d     {c('Delete')}
@@ -8968,34 +9008,7 @@ def vim(subject=None):
     <     {c('Shift left')}
     >     {c('Shift right')}
 
-  {h2('Movement')}
-    Keep you in normal mode.
-    {h4('Character   Synonym(s)          Motion         Units')}
-    h . . . . . backspace, ctrl-h . left . . . . . characters
-    l . . . . . space . . . . . . . right . . . . .characters
-    j . . . . . enter, ctrl-[jmn] . down . . . . . lines
-    k . . . . . ctrl-p . . . . . . .up . . . . . . lines
-    $ . . . . . . . . . . . . . . . forward . . . .lines {c('(move to end of line)')}
-    ^ . . . . . . . . . . . . . . . forward . . . .lines {c('(first non-blank char of line)')}
-    0 . . . . . . . . . . . . . . . backward . . . lines {c('(first char of line)')}
-    b[count]. . . . . . . . . . . . backward . . . words
-    B[count]. . . . . . . . . . . . backward . . . words
-    w[count]  . . . . . . . . . . . forward . . . .words
-    W[count]  . . . . . . . . . . . forward . . . .WORDS
-    e . . . . . . . . . . . . . . . forward . . . .Forward to the end of word [count] inclusive
-    E . . . . . . . . . . . . . . . forward . . . .Forward to the end of WORD [count] inclusive
-    t{{char}}   . . . . . . . . . .  forward . . . .Till before [count]'th occurrence of {{char}} to the right
-    T{{char}}   . . . . . . . . . .  backward  . . .Till before [count]'th occurrence of {{char}} to the left
-    f{{char}}   . . . . . . . . . .  forward . . . .To [count]'th occurrence of {{char}} to the right
-    F{{char}}   . . . . . . . . . .  backward  . . .To [count]'th occurrence of {{char}} to the left
-    {{ . . . . . . . . . . . . . . . backward . . . paragraphs
-    }} . . . . . . . . . . . . . . . forward  . . . paragraphs
-    ;  . . . . . . . . . . . . . . . . . . . . . . Repeat latest f, t, F or T [count] times
-    ,  . . . . . . . . . . . . . . . . . . . . . . Repeat latest f, t, F or T [count] times in opposite direction
-    ctrl-d . . . . . . . . . . . . .down . . . . . 1/2 screen
-    ctrl-u . . . . . . . . . . . . .up . . . . . . 1/2 screen
-    ctrl-b . . . . . . . . . . . . .backward . . . 1/2 screen
-    ctrl-f . . . . . . . . . . . . .forward . . . .1/2 screen
+  {_MOVEMENT}
 
   {h2('Insertion')}
     i    {c('Insert text before the cursor')}
@@ -9006,18 +9019,18 @@ def vim(subject=None):
     O    {c('Insert new command line above the current one')}
   
   {h2('Delete and Insert')}
-    ctrl-h    {c('While in Insert mode: delete character before the cursor')}
-    ctrl-w    {c('While in Insert mode: delete word before the cursor')}
-    d{{motion}}    {c('Delete text that {{motion}} moves over')}
-    dd    {c('Delete line')}
-    D    {c('Delete characters under the cursor until the end of the line')}
-    c{{motion}}    {c('Delete {{motion}} text and start insert')}
-    cc    {c('Delete line and start insert')}
-    C    {c('Delete to the end of the line and start insert')}
-    r{{char}}    {c('Replace the character under the cursor with {{char}}')}
-    R    {c('Enter replace mode: Each character replaces existing one')}
-    x    {c('Delete count characters under and after the cursor')}
-    X    {c('Delete count characters before the cursor')}
+    ctrl-h       {c('While in Insert mode: delete character before the cursor')}
+    ctrl-w       {c('While in Insert mode: delete word before the cursor')}
+    d<motion>    {c('Delete text that <motion> moves over')}
+    dd           {c('Delete line')}
+    D            {c('Delete characters under the cursor until the end of the line')}
+    c<motion>    {c('Delete <motion> text and start insert')}
+    cc           {c('Delete line and start insert')}
+    C            {c('Delete to the end of the line and start insert')}
+    r<char>      {c('Replace the character under the cursor with <char>')}
+    R            {c('Enter replace mode: Each character replaces existing one')}
+    x            {c('Delete count characters under and after the cursor')}
+    X            {c('Delete count characters before the cursor')}
   
   {h2('Examples')}
     yiw    {c('yank current word (excluding surrounding whitespace)')}
