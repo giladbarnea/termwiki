@@ -1291,17 +1291,30 @@ def bash(subject=None):
       -H          {c('if arg is symlink to dir, traverse it')}
       -L          {c('when encountering a symlink to dir, traverse it (default is not to traverse)')}
     """
+
     _COMPLETE = _COMPGEN = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
     {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
     {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
     {h3('Flags')}
-      -abcdefgjksuv
-    
+      -a      {c('alias')}
+      -b      {c('shell builtins')}
+      -c      {c('all commands')}
+      -d      {c('directory')}
+      -e      {c('exported shell variables')}
+      -f      {c('file and functions')}
+      -g      {c('groups')}
+      -j      {c('job')}
+      -k      {c('Shell reserved words')}
+      -s      {c('service')}
+      -u      {c('userAlias names')}
+      -v      {c('shell variables')}
+          
     {h3('Options')}
       -A ⟨action⟩    {c('one of the following to generate a list of possible completions:')}
-              {c('alias arrayvar binding builtin command directory disabled enabled')}
-              {c('export file function group helptopic hostname job keyword running')}
-              {c('service setopt shopt signal stopped user variable')} 
+              {c('alias    arrayvar  binding   builtin  command    directory')}
+              {c('enabled  disabled  job       keyword  running    variable')}
+              {c('export   file      function  group    helptopic  hostname')}
+              {c('service  setopt    shopt     signal   stopped    user')} 
       -G globpat 
       -W wordlist 
       -F function 
@@ -1358,12 +1371,22 @@ def bash(subject=None):
       complete -o default -F __nvm nvm
       
       complete -o filenames -C '_z --complete "$COMP_LINE"' ${{_Z_CMD:-z}}
+      
       complete -o default -C 'compgen -W "a b c d" -- "${{COMP_WORDS[COMP_CWORD]}}"' hfzf
       
+      complete -o default -C "compgen -W 'INPUT_1... INPUT_N OUTPATH'" ffmpeg.concat
+      
       complete -o bashdefault -o default -o nospace -F _drush_completion d dr drush drush5 drush6 drush7 drush8 drush.php
+      
+      complete -o nosort -W 'a b c d' ffmpeg.slice.get
+      
+      complete -o default -C 'completion.generate ⟨INPUT_PATH⟩ ⟨OUTPUT_PATH⟩ "⟨INCREASE_FACTOR: int⟩" [ffmpeg_args...]' ffmpeg.inc-rate
       /%bash
+    
+    {h3('See also')}
+      compdef, compctl
     """
-    _COMPDEF = _COMPCTL = f"""{h3('compdef')}
+    _COMPDEF = _COMPCTL = f"""{h3('compdef, compctl')}
       %bash
       compadd -- $(COMP_CWORD=$((CURRENT-1)) \\
                    COMP_LINE=$BUFFER \\
@@ -4076,7 +4099,72 @@ def gunicorn(subject=None):
   {h2('Signals')}
   """
   
-  
+
+@syntax
+def kitty(subject=None):
+    _CMD = f"""{h2('Commandline Args')}
+    kitty --debug-input
+    kitty --debug-keyboard
+    
+    ctrl+shift+f6   {c('view current config')}
+    """
+    _MOUSE = f"""{h2('Mouse')}
+    {c('https://sw.kovidgoyal.net/kitty/conf/#shortcut-kitty.Select-line-from-point')}
+    
+    {c('Select from the clicked point to the end of the line:')}
+    mouse_map ctrl+alt+left triplepress ungrabbed mouse_selection line_from_point
+    """
+
+    _KEYBOARD = f"""{h2('Keyboard')}
+    {c('https://sw.kovidgoyal.net/kitty/conf/#keyboard-shortcuts')}
+    
+    map ctrl+0x61 something
+    map kitty_mod+space no_op
+    map kitty_mod+e combine : new_window : next_layout
+    map ctrl+f>2 set_font_size 20   {c('multi key')}
+    map kitty_mod+y new_window less @selection
+    map ctrl+shift+p>f kitten hints --type path --program -
+    """
+    _LAUNCH = f"""{h2('launch')}
+    {c('https://sw.kovidgoyal.net/kitty/launch/')}
+    
+    --cwd=current|?
+    --type=tab|overlay|?
+    --watcher python_module
+    map f1 launch --stdin-source=@screen_scrollback --stdin-add-formatting --type=overlay less +G -R
+    
+    {h3('Special variables')}
+    @selection
+    @active-kitty-window-id
+    @line-count
+    @input-line-number
+    @scrolled-by
+    @cursor-x
+    @cursor-y
+    """
+
+    _HINTS = f"""{h2('Hints')}
+    {c('https://sw.kovidgoyal.net/kitty/kittens/hints/')}
+    
+    --type hash|hyperlink|ip|line|linenum|path|regex|url|word
+    --program -     {c('Sends to terminal')}
+    --program @     {c('Sends to clipboard')}
+    
+    kitty @kitten hints [options]     {c('xdg-open choice. defaults to --type url')}
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('kitty')}
+  All actions:
+  https://sw.kovidgoyal.net/kitty/actions/ 
+  {_CMD}
+  {_MOUSE}
+  {_KEYBOARD}
+  {_LAUNCH}
+  {_HINTS}
+  """
 
 @syntax('friendly')
 def heroku(subject=None):
