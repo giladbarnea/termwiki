@@ -6456,12 +6456,12 @@ def pip(subject=None):
       -I, --ignore-installed                        {c('Overwrite installed')}
       --exists-action <action>                      {c('action when a path already exists: (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort.')}
 
-    {h3('From VCS')}
-      {c('watch the slashes etc when pasting')}
+    {h3('From VCS')} Must have '-e'
       {c('bzr+http, bzr+https, bzr+ssh, bzr+sftp, bzr+ftp, bzr+lp, bzr+file, git+http, git+https, git+ssh, git+git,')}
       {c('git+file, hg+file, hg+http, hg+https, hg+ssh, hg+static-http, svn+ssh, svn+http, svn+https, svn+svn, svn+file')}
       pip install -e "git+ssh://git@bitbucket.org/cashdash/reconciliation_services.git@recon-services-v2.4.0#egg=reconciliation_services"
       pip install -e "git+ssh://git@github.com/giladbarnea/more_termcolor.git#egg=more_termcolor"
+      pip install -e "git+https://git@github.com/ipython/ipython.git#egg=ipython"
 
     {h3('From local dir')}
       {c('sudo chmod 777 target dir, and make sure no prompts in target setup.py')}
