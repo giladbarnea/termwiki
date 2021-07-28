@@ -5254,7 +5254,8 @@ def markdown(subject=None):
         return frame.f_locals[subject]
     else:
         return f"""{h1('markdown')}
-	
+  {c('https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet')}	
+
   {h2('Definition list')}
   term
   : definition
