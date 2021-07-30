@@ -9729,28 +9729,57 @@ def zip_(subject=None):
 @syntax('monokai')
 def zsh(subject=None):
     _ZLE = f"""{h2('zle')} - Z-Shell Line Editor
-    # https://github.com/mskar/setup/blob/5d9dddd447a05e8d866b9c09b06a085f02e41bd3/.zshrc#L686
+    {c('https://github.com/mskar/setup/blob/5d9dddd447a05e8d866b9c09b06a085f02e41bd3/.zshrc#L686')}
     zle up-history
     zle push-line
     zle accept-line
     zle -N <function>
     """
 
-    _COMMANDS = f"""{h2('zsh commands')}
+    _MISC = f"""{h2('zsh misc command')}
     {h3('print')}
     {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
     print -z print -z print This is a line    {c('Put in buffer')}
+    """
     
-    {h3('zparseopts')} [ -D -E -F -K -M ] [ -a array ] [ -A assoc ] [ - ] spec ...
+    _ZPARSEOPTS = f"""{h2('zparseopts')} [ -D -E -F -K -M ] [ -a array ] [ -A assoc ] [ - ] spec ...
     {c('https://xpmo.gitlab.io/post/using-zparseopts/')}
     {c('man zshmodules')}
     
     {h4('Flags')}
       -D    {c('Remove matches from $@')}
-      -E    {c("Don't stop at first string that doesn't match specj")}
+      -E    {c("Extraction. Don't stop at first string that doesn't match spec")}
+      -F    {c("Stop immediately at first unmatched opt and return 1")}
+      -K    {c("Keep -a array unchanged (default is to overwrite or empty if no opts)")}
+
+    {h4('Options')}
+      -a array  {c('Where to store options')}
+      -A assoc  {c('Where to store options and their values')}
+      
+    {h4('Syntax')}
+      name      {c('Takes no arg (flag)')}
+      name+     {c('Option appended to array each time its found')}
+      name:     {c('Mandatory. Added as a separate element')}
+      name:-    {c('Mandatory. Added to the same element')}
+      name+:    {c('Appended and mandatory?')}
+      name::    {c('Optional')}
       
     {h4('Examples')}
       %bash
+      # Example 0
+      set -- -a -bx -c y -cz baz -cend
+      zparseopts a=foo b:=bar c+:=bar
+        # Results in:
+        foo=(-a)
+        bar=(-b x -c y -c z)
+
+      # Example 0.5
+      set -- -a x -b y -c z arg1 arg2
+      zparseopts -E -D b:=bar
+        # Results in:
+        bar=(-b y)
+        set -- -a x -c z arg1 arg2
+        
       # Example 1
       zmodload zsh/zutil
       zparseopts -D -E -F - a:=arg_val -arg:=arg_val f=flag -flag=flag {backslash}
@@ -9821,33 +9850,36 @@ def zsh(subject=None):
     {h3('More zle functions')}  {c('zle <FN>')}
       .kill-buffer    {c('dirhistory plugin')}
       .accept-line    
+  
+    {h3('bindkey')}
+      %bash
+      hexdump
+      # OR:
+      showkey -a
+      # Press F1. Prints:
+      # [OP'
+      
+      # Examples:
+      bindkey "\e[3A" <function> # alt+up
+      bindkey "\e"man <function>
+      /%bash
     """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
         return rf"""{h1('zsh')}
-  http://zsh.sourceforge.net/Guide/zshguide04.html
+  {c('http://zsh.sourceforge.net/Guide/zshguide04.html')}
   autoload -U add-zsh-hook
   autoload -Uz compinit
   add-zsh-hook chpwd chpwd_dirhistory    {c('dirhistory plugin')}
   emulate -L zsh
   emulate -RL zsh
-  {_COMMANDS}
+  {_MISC}
   
   {_ZLE}
 
   {_KEYS}
-  {h2('bindkey')}
-    %bash
-    hexdump
-    # OR:
-    showkey -a
-    # Press F1. Prints:
-    # [OP'
-    
-    # Examples:
-    bindkey "\e[3A" <function> # alt+up
-    bindkey "\e"man <function>
-    /%bash
+  
+  {_ZPARSEOPTS}
   """
