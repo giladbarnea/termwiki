@@ -1743,6 +1743,9 @@ def bash(subject=None):
       
       {h4('Remounting with read-write permissions:')}
         sudo mount -o remount,rw /dev/sda1
+
+      {h4('Backing up partition list:')}
+        sudo sfdisk -d /dev/nvme0n1 > partition_bak.dmp
   
       {h4('Listing devices')}
         lsblk [--fs]    {c('good')}
@@ -1913,7 +1916,7 @@ def bash(subject=None):
       -h, --host=HOST
       -i, --login         {c('read e.g .profile, .bash_profile or .login')}
       -P, --preserve-groups
-      -s, --shell         {c('honor SHELL env var')}
+      -s, --shell         {c('honor SHELL env var. Incompat with --login')}
     
     {h3('su')}
       -c, --command=CMD
