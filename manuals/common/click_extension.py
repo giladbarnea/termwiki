@@ -3,7 +3,7 @@ import typing
 
 
 # import functools as ft
-
+_missing = object()
 
 def option(*param_decls, **attrs):
     """`show_default = True`.
@@ -22,10 +22,10 @@ def option(*param_decls, **attrs):
      - `click.typing.<Foo>` (which includes click.Choice(...))
     """
     attrs['show_default'] = True
-    default = attrs.get('default', click.core._missing)
-    default_is_missing = default is click.core._missing
-    typeattr = attrs.get('type', click.core._missing)
-    type_is_missing = typeattr is click.core._missing
+    default = attrs.get('default', _missing)
+    default_is_missing = default is _missing
+    typeattr = attrs.get('type', _missing)
+    type_is_missing = typeattr is _missing
     if not type_is_missing:
         if typing.get_origin(typeattr) is typing.Literal:
             # type=typing.Literal['foo']. build a click.Choice from it
@@ -48,8 +48,8 @@ def option(*param_decls, **attrs):
             attrs['type'] = type(default)
         # otherwise, type and default both missing. not sure if this works
     
-    if attrs.get('metavar', click.core._missing) is click.core._missing \
-            and attrs.get('type', click.core._missing) is not click.core._missing:
+    if attrs.get('metavar', _missing) is _missing \
+            and attrs.get('type', _missing) is not _missing:
         try:
             # changes click's default "BOOLEAN" to "BOOL", "INTEGER" → "INT"
             attrs['metavar'] = attrs['type'].__name__.upper()
