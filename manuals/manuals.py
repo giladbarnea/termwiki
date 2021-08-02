@@ -9066,37 +9066,51 @@ def vim(subject=None):
     _MOVEMENT = f"""{h2('Movement')}
     Keeps you in normal mode.
     {h3('Character   Motion         Units')}
-    h . . . . . left . . . . . characters
+    h . . . . . ← . . . characters
+    l . . . . . → . . . characters
+    j . . . . . ↓ . . . lines
+    k . . . . . ↑ . . . lines
 
-    l . . . . . right. . . . . characters
-    j . . . . . down . . . . . lines
-    k . . . . . up . . . . . . lines
-    $ . . . . . forward  . . . lines {c('(move to end of line)')}
-    ^ . . . . . forward  . . . lines {c('(first non-blank char of line)')}
-    0 . . . . . backward . . . lines {c('(first char of line)')}
+    $ . . . . . → . . . lines {c('(move to end of line)')}
+    ^ . . . . . → . . . lines {c('(first non-blank char of line)')}
+    g_  . . . . → . . . lines {c('(last non-blank)')}
+    0 . . . . . ← . . . lines {c('(first char of line)')}
 
-    b[count]. . backward . . . words
-    B[count]. . backward . . . words
-    w[count]  . forward  . . . words
-    W[count]  . forward  . . . WORDS
-    e . . . . . forward  . . . Forward to the end of word [count] inclusive
-    E . . . . . forward  . . . Forward to the end of WORD [count] inclusive
+    b . . . . . ← . . . words
+    B . . . . . ← . . . words
+    w . . .   . → . . . words
+    W . . .   . → . . . WORDS
+    e . . . . . → . . . Forward to the end of word inclusive
+    E . . . . . → . . . Forward to the end of WORD inclusive
 
-    t<char> . . forward  . . . Till before [count]'th occurrence of <char> to the right
-    T<char> . . backward . . . Till before [count]'th occurrence of <char> to the left
-    f<char> . . forward  . . . To [count]'th occurrence of <char> to the right
-    F<char> . . backward . . . To [count]'th occurrence of <char> to the left
+    t<char> . . → . . . Till before <char> to the right
+    T<char> . . ← . . . Till before <char> to the left
+    f<char> . . → . . . Until <char> to the right
+    F<char> . . ← . . . Until <char> to the left
 
-    ;  . . . . . . . . . . . . Repeat latest f, t, F or T [count] times
-    ,  . . . . . . . . . . . . Repeat latest f, t, F or T [count] times in opposite direction
+    ; . . . . . → . . . Repeat latest f, t, F or T times foward
+    , . . . . . ← . . . Repeat latest f, t, F or T times backward
 
-    < . . . . . backward . . . paragraphs
-    > . . . . . forward  . . . paragraphs
+    < . . . . . ← . . . paragraphs
+    > . . . . . → . . . paragraphs
     
-    ctrl-d . .  down . . . . . 1/2 screen
-    ctrl-u . .  up . . . . . . 1/2 screen
-    ctrl-b . .  backward . . . 1/2 screen
-    ctrl-f . .  forward  . . . 1/2 screen
+    H . . . . . ↑ . . . Top of screen
+    M . . . . . . . . . Middle of screen
+    L . . . . . ↓ . . . Bottom of screen
+    
+    ctrl-d . .  ↓ . . . 1/2 screen
+    ctrl-u . .  ↑ . . . 1/2 screen
+    ctrl-b . .  ← . . . 1/2 screen
+    ctrl-f . .  → . . . 1/2 screen
+    ctrl-o . . .  . . . jump to last (older) cursor position
+    ctrl-i . . .  . . . jump the next cursor position (after Ctrl-O)
+    ctrl-y . .  ↑ . . . Scroll up
+    ctrl-e . .  ↓ . . . Scroll down
+
+    zz  scroll the line with the cursor to the center of the screen
+    zt  scroll the line with the cursor to the top
+    zb  scroll the line with the cursor to the bottom
+
     """
     _MOVEMENT = re.sub(r'(?<=[^.])(\. )+',lambda match:black(match.group()), _MOVEMENT)
     if subject:
