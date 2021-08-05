@@ -2433,18 +2433,17 @@ def curl(subject=None):
 
 
 @syntax
-def delta(subject=None):
-    return f"""{h1('delta')} [FLAGS] [OPTIONS] [ARGS]
-  www.github.com/dandavison/delta
-
-  delta file_1 file_2
-  diff -u file_1 file_2 | delta
-
-  {h2('Flags')}
-     -n, --line-numbers
-     -s, --side-by-side
-     --show-config
-    
+def desktop(subject=None):
+    return f"""{h1('.desktop files')}
+  StartupWMClass=jetbrains-pycharm
+  Exec="/path/to/exec" %u  
+  Terminal=false
+  StartupNotify=true
+  MimeType=x-scheme-handler/jetbrains
+  X-GNOME-Autostart-enabled=true
+  X-GNOME-Autostart-Delay=10
+  X-MATE-Autostart-Delay=10
+  X-KDE-autostart-after=panel
     """
 
 
