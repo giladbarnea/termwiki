@@ -3344,19 +3344,20 @@ def flask(subject=None):
                                   {c('Multiple paths are separated by ":".')}
   
   {h2('app.run() options')}
-    host     {c('the hostname to listen on.')}
-    port     {c('the port of the web server.')}
-    debug    {c('if given, enable or disable debug mode.')}
+    host     {c('the hostname to listen on. Default 127.0.0.1')}
+    port     {c('the port of the web server. Default 5000')}
+    debug    {c('Enable / disable debug mode. Dictates use_reloader and use_debugger if unspecified')}
     load_dotenv     {c('load the nearest .env and .flaskenv files to set environment variables.')}
     use_reloader    {c('should the server automatically restart the python process if modules were changed?')}
     use_debugger    {c('should the werkzeug debugging system be used?')}
     use_evalex      {c('should the exception evaluation feature be enabled?')}
     extra_files     {c('a list of files the reloader should watch additionally to the modules.')}
     reloader_interval     {c('the interval for the reloader in seconds.')}
-    reloader_type         {c('the type of reloader to use.')}
+    reloader_type         {c('the type of reloader to use. default "auto"')}
+    request_handler       {c('Default "BaseHTTPServer.BaseHTTPRequestHandler". Can be subclass of')}
     threaded       {c('should the process handle each request in a separate thread?')}
     processes      {c('if greater than 1 then handle each request in a new process up to this maximum number of concurrent processes.')}
-    passthrough_errors    {c('set this to True to disable the error catching.')}
+    passthrough_errors    {c('set this to True to disable the error catching and die on errors.')}
     ssl_context    {c('an SSL context for the connection.')}
   """
 
@@ -7119,8 +7120,24 @@ def python(subject=None):
   {h4('See also')}
     mm python cmd
     """
+    _FORMAT = f"""{h2('str.format')}
+    {c('https://docs.python.org/3/library/string.html#format-specification-mini-language')}
 
-    __FORMATTER = f"""{h3('Formatter(')}
+    format_spec      [[fill]align][sign][#][0][width][grouping_option][.precision][type]
+    fill             <any character>
+    align            "<" | ">" | "=" | "^"
+    sign             "+" | "-" | " "
+    width            digit+
+    grouping_option  "_" | ","
+    precision        digit+
+    type             "b" | "c" | "d" | "e" | "E" | "f" | "F" | "g" | "G" | "n" | "o" | "s" | "x" | "X" | "%"
+
+    1000:,           {c('1,000')}
+    0.12345:.2f      {c('0.12')}
+    10:<03d          {c('100')}
+    10:>03d          {c('010')}
+    """
+    __LOGGING_FORMATTER = f"""{h3('Formatter(')}
         %python
         fmt : str = None,
         datefmt: str = None,
@@ -7133,13 +7150,13 @@ def python(subject=None):
         formatter.formatMessage(record)
         formatter.format(record)
     """
-    __HANDLER = f"""{h3('Handler(level=NOTSET)')}
+    __LOGGING_HANDLER = f"""{h3('Handler(level=NOTSET)')}
         handler.name    {c('Getter / setter to lock and release')}
         handler.format(record)
         handler.setFormatter(formatter : Formatter)
         handler.handlerError(record)
     """
-    __LOGRECORD = f"""{h3('LogRecord(')}
+    __LOGGING_LOGRECORD = f"""{h3('LogRecord(')}
         %python
         name : str, 
         
@@ -7192,9 +7209,9 @@ def python(subject=None):
       Returns global logging._logRecordFactory
     """
     _LOGGING = f"""{h2(f'logging')}
-  {__HANDLER}
-  {__LOGRECORD}
-  {__FORMATTER}
+  {__LOGGING_HANDLER}
+  {__LOGGING_LOGRECORD}
+  {__LOGGING_FORMATTER}
   
   {h3('_loggerClass : Logger')}
     {c('Used by Logger.manager in Manager.getLogger(name)')}
@@ -7455,6 +7472,8 @@ def python(subject=None):
   {_DECORATORS}
 
   {_DIFFLIB}
+  
+  {_FORMAT}
   
   {_ARGPARSE}
 
@@ -9388,6 +9407,7 @@ def xdotool(subject=None):
         xdotool behave_screen_edge bottom-left search --class google-chrome windowactivate
 
     {h3('Keyboard')}
+      {c('https://gitlab.com/cunidev/gestures/-/wikis/xdotool-list-of-key-codes')}
       {h4('key')} {c(f'[--window WID]')} {c(f'[--delay ms=12]')} {c(f'[--clearmodifiers]')}
         {c('"alt+r", "Control_L+J", "ctrl+alt+n", BackSpace, XF86Forward, Return')}
         xdt key F2
