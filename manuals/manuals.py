@@ -1,15 +1,15 @@
 import inspect
+import logging
 import re
-
 from functools import wraps
 from typing import Literal, Dict, Type, Union, Any
 
 from manuals.common.types import ManFn
 from manuals.formatting import h1, h2, h3, h4, h5, b, c, i, black, bg
-from pygments.lexer import Lexer
 from pygments import highlight as pyglight
 # noinspection PyUnresolvedReferences
 from pygments.formatters import TerminalTrueColorFormatter
+from pygments.lexer import Lexer
 # noinspection PyUnresolvedReferences
 from pygments.lexers import (get_lexer_by_name,
                              AutohotkeyLexer,
@@ -24,7 +24,7 @@ from pygments.lexers import (get_lexer_by_name,
                              SassLexer,
                              TypeScriptLexer
                              )
-import logging
+
 linebreak = r'\n'
 backslash = '\\'
 # color = '\x1b['
@@ -111,6 +111,7 @@ def _highlight(text: str, lang: Language, style: Style = None) -> str:
     highlighted = pyglight(text, lexer, formatter)
     return highlighted
 
+
 # *** Decorators
 def alias(_alias: str):
     def wrap(fn):
@@ -145,7 +146,7 @@ def syntax(_fn_or_style: Union[ManFn, Style] = None, **default_styles):
             except TypeError as te:
                 if te.args and re.search(r'takes \d+ positional arguments but \d+ was given', te.args[0]):
                     ret = fn()
-                    
+
                     logging.warning('syntax() | ignored TypeError not enough pos arguments given')
                 else:
                     raise
@@ -232,10 +233,11 @@ def syntax(_fn_or_style: Union[ManFn, Style] = None, **default_styles):
     # e.g. `@syntax(python='friendly')` → **default_styles has value
     return wrap
 
+
 def rich(_manualfn_or_whatever: Union[ManFn, Any] = None, *dec_args, **dec_kwargs):
-    def wrap(fn:ManFn, *args, **kwargs):
+    def wrap(fn: ManFn, *args, **kwargs):
         return fn(*args, **kwargs)
-    
+
     if _manualfn_or_whatever is not None:
         if callable(_manualfn_or_whatever):
             # e.g. naked `@rich`
@@ -247,6 +249,7 @@ def rich(_manualfn_or_whatever: Union[ManFn, Any] = None, *dec_args, **dec_kwarg
     raise NotImplementedError("manuals.py rich decorator was called with parens (). only bare @rich supported")
     # e.g. `@rich(python='friendly')` → **dec_kwargs has value
     return wrap
+
 
 # *** Manuals
 
@@ -383,6 +386,7 @@ def altair(subject=None):
     {_MISC}
     """
 
+
 def anxiety(subject=None):
     return f"""{h1('Anxiety')}
     {h2('Mark Manson: 5 Quick Ways to Get Rid of Anxiety')}
@@ -393,6 +397,7 @@ def anxiety(subject=None):
       {h3('3. Talk to someone')}: repeated thoughts in head amplify. Sharing stops repetition.  
       {h3('4. Negative Visualization')} (worst case + imagine how I'd handle, prob ok. stoicism?)  
     """
+
 
 @syntax
 def apt(subject=None):
@@ -594,6 +599,7 @@ def asyncio(subject=None):
   {_LOOP}
     """
 
+
 @syntax
 @alias('ahk')
 def autohotkey(subject=None):
@@ -619,6 +625,7 @@ def autohotkey(subject=None):
   {c('Parse web page:')}
   https://www.autohotkey.com/boards/viewtopic.php?t=66376
   """
+
 
 @syntax(bash='friendly')
 def bash(subject=None):
@@ -965,7 +972,7 @@ def bash(subject=None):
     echo $result2   # 'some value'
     /%bash
     """
-    
+
     __SET = f"""{h3('set')} {c('[-abefhkmnptuvxBCHP] [-o [OPTION]] [--] [arg ...]')}
     Using + rather than - causes these flags to be turned off.
     The current set of flags may be found in $-.
@@ -1412,7 +1419,6 @@ def bash(subject=None):
       IFS="$si"
       /%bash
     """
-
 
     _CP = f"""{h2('cp')}
     {h4('Examples')}
@@ -2985,6 +2991,7 @@ def docker(subject=None):
   {_CLI}
   """
 
+
 @syntax
 def dpkg(subject=None):
     if subject:
@@ -3015,6 +3022,7 @@ def dpkg(subject=None):
       If online it says a file is in pool/main/g/gcc-10/, then this works:
       http://ftp.fr.debian.org/debian/pool/main/g/gcc-10/
     """
+
 
 def fasd(subject=None):
     return f"""{h1('fasd')}
@@ -3321,9 +3329,10 @@ def firestore(subject=None):
   {_BATCH}
     """
 
+
 @syntax
 def flask(subject=None):
-  return f"""{h1('flask')}
+    return f"""{h1('flask')}
   {h2('cmd args')}
   -h, --host TEXT                 {c('The interface to bind to.')}
   -p, --port INTEGER              {c('The port to bind to.')}
@@ -3360,6 +3369,7 @@ def flask(subject=None):
     passthrough_errors    {c('set this to True to disable the error catching and die on errors.')}
     ssl_context    {c('an SSL context for the connection.')}
   """
+
 
 @syntax
 def fzf(subject=None):
@@ -3408,6 +3418,7 @@ def fzf(subject=None):
     FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY'" fzf --bind "change:reload:$RG_PREFIX {{q}} || true" --ansi --phony --query "$INITIAL_QUERY" --layout=reverse
   /%bash
   """
+
 
 def gcloud(subject=None):
     _APP = f"""{h2('app')}
@@ -4091,6 +4102,7 @@ def githubcli(subject=None):
   {h2('help')}          {c('Help about any command ')}
   """
 
+
 @syntax
 def gunicorn(subject=None):
     _APP = f"""{h2('app')}"""
@@ -4101,7 +4113,7 @@ def gunicorn(subject=None):
         return f"""{h1('gunicorn')}
   {h2('Signals')}
   """
-  
+
 
 @syntax
 def kitty(subject=None):
@@ -4168,6 +4180,7 @@ def kitty(subject=None):
   {_LAUNCH}
   {_HINTS}
   """
+
 
 @syntax('friendly')
 def heroku(subject=None):
@@ -4390,7 +4403,9 @@ def inspect_(subject=None):
     {_FRAME_SUMMARY}
     """
 
+
 traceback = inspect_
+
 
 @syntax
 def ipython(subject=None):
@@ -4933,14 +4948,15 @@ def javascript(subject=None):
   {_CALL}
   """
 
+
 @syntax
 def jira(subject=None):
-    _JQL=f"""{h2('JQL')}
+    _JQL = f"""{h2('JQL')}
     assignee = currentUser() AND resolution = Unresolved AND issueLinkType != "Child of"
     issue not in childIssuesOf("ASM-5277")
     """
-    
-    _REST=f"""{h2('REST v2')}
+
+    _REST = f"""{h2('REST v2')}
     %bash
     curl --request GET -s --user $JIRA_USER:$JIRA_PASS --header 'Accept: application/json' --header 'Content-Type: application/json' --data '{"fields":"parent"}' https://jira.allot.com/rest/api/2/issue/$ISSUE
     /%bash
@@ -4953,14 +4969,14 @@ def jira(subject=None):
         started {c('h.000+m.000')}
         comment
     """
-    
-    _CLI=f"""{h2('jira-cli')}  
+
+    _CLI = f"""{h2('jira-cli')}  
     {h3('view')}
       jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com'
       jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com AND parent=ASM-5293 ORDER BY status'
       jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com AND resolution = Unresolved AND issueLinkType not in ("Child of","is blocked by") ORDER BY status ASC'
     """
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -5214,7 +5230,6 @@ def loguru(subject=None):
   """
 
 
-
 @syntax
 @alias('md')
 def markdown(subject=None):
@@ -5395,6 +5410,7 @@ def moment(subject=None):
     M.replace({i("year=1980")})  {c(f"→ Moment (inplace)")}
         """
 
+
 @syntax
 def mongo(subject=None):
     _SHELL = f"""{h2('shell')}
@@ -5533,6 +5549,8 @@ def mongo(subject=None):
   {_CURSOR}
   {_OPERATOR}
   """
+
+
 @syntax
 def mysql(subject=None):
     _CLI = f"""{h2('cli')}
@@ -6562,11 +6580,12 @@ def pip(subject=None):
   {_DOWNLOAD}
     """
 
+
 @alias('poe')
 @syntax
 # @rich
-def poetry(subject=None):  
-  _NEW = f"""{h2('new project')}
+def poetry(subject=None):
+    _NEW = f"""{h2('new project')}
     %bash
     # install:
     pip38 install --user poetry
@@ -6583,10 +6602,10 @@ def poetry(subject=None):
     cd myproject && git init && gh repo create
     /%bash
   """
-  _ADD = f"""{h2('add')} [-D] [-E <...>] [--optional] [--python <...>] [--platform <...>] [--source <...>] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
+    _ADD = f"""{h2('add')} [-D] [-E <...>] [--optional] [--python <...>] [--platform <...>] [--source <...>] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
   """
-  
-  _BUILD = f"""{h2('build')} [-f wheel|sdist]
+
+    _BUILD = f"""{h2('build')} [-f wheel|sdist]
     %bash
     poetry build
     # creates a ./dist/ dir with PROJECT-0.1.0.tar.gz and -py3-none-any.whl
@@ -6594,8 +6613,8 @@ def poetry(subject=None):
     # or pip install -e setup.py extracted from the .tar.gz
     /%bash
   """
-  
-  _ENV = f"""{h2('env')}
+
+    _ENV = f"""{h2('env')}
     %bash
     poetry env info [-p]
     poetry env list [--full-path]
@@ -6607,8 +6626,8 @@ def poetry(subject=None):
     . "$(poetry env info -p)"/bin/activate     [c]activates venv[/c]
     /%bash
   """
-  
-  _INSTALL = f"""{h2('install')} [--no-dev] [--no-root] [--dry-run] [--remove-untracked] [-E <...>]
+
+    _INSTALL = f"""{h2('install')} [--no-dev] [--no-root] [--dry-run] [--remove-untracked] [-E <...>]
     Reads poetry.lock file from current dir, installs libs and deps from that file.
     Uses pyproject.toml if poetry.lock doesn't exist.
     --no-dev              {c("don't install dev dependencies")}
@@ -6616,19 +6635,19 @@ def poetry(subject=None):
     --remove-untracked    {c("remove pkgs not in lock file")}
   """
 
-  _PUBLISH = f"""{h2('publish')}
+    _PUBLISH = f"""{h2('publish')}
     %bash
     poetry publish -u giladbarnea --build --dry-run
     /%bash
   """
-  _UPDATE = f"""{h2('update')} [--no-dev] [--dry-run] [--lock] [package...]
+    _UPDATE = f"""{h2('update')} [--no-dev] [--dry-run] [--lock] [package...]
   Resolve latest versions of deps and write exact versions to poetry.lock.
   """
-  if subject:
-      frame = inspect.currentframe()
-      return frame.f_locals[subject]
-  else:
-      return f"""{h1('poetry')}
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('poetry')}
   {_NEW}
   {_ADD}
   {_ENV}
@@ -6637,6 +6656,7 @@ def poetry(subject=None):
   {_PUBLISH}
   {_UPDATE}
       """
+
 
 @syntax
 @alias('psql')
@@ -7788,6 +7808,7 @@ def ripgrep(subject=None):
       --sort[r] <none | path | modified | accessed | created>   {c('"none" is multithreaded')}
       """
 
+
 @syntax
 def rsync(subject=None):
     if subject:
@@ -7860,6 +7881,8 @@ def rsync(subject=None):
         "${{exclude[@]}}" --recursive ./allotsecure root@10.111.242.38:/tmp/allotsecure
       /%bash
         """
+
+
 def s3(subject=None):
     _BUCKET = f"""{h2('Bucket')}    {c(f"b = s3.Bucket('bucket')")}
 
@@ -8221,7 +8244,7 @@ def ssh(subject=None):
 
 @syntax
 def sshfs(subject=None):
-  return f"""{h1('sshfs')}
+    return f"""{h1('sshfs')}
   http://manpages.ubuntu.com/manpages/precise/man8/mount.fuse.8.html
   sudo sshfs -o allow_other,default_permissions admin@10.110.100.90:/ /mnt/u20_56
   
@@ -8255,7 +8278,8 @@ def sshfs(subject=None):
     sudo sshfs -o "$opts" admin@10.110.100.90:/ /mnt/u20_56
     /%bash
   """
-  
+
+
 @syntax
 def snap(subject=None):
     if subject:
@@ -8464,6 +8488,7 @@ def sqlalchemy(subject=None):
   {_COLUMN}
     """
 
+
 @syntax
 def sphinx(subject=None):
     if subject:
@@ -8539,6 +8564,65 @@ def sphinx(subject=None):
       .. _PEP 484:
           https://www.python.org/dev/peps/pep-0484/         
         """
+
+@syntax
+def sxhkd(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('sxhkd')}
+  {h2('Behavior')}
+    sxhkd -c CONFIG_FILE
+  
+    SIGUSR1   {c('reloads config')}
+    SIGUSR2   {c('toggles bindings')}
+  
+  {h2('Configuration')}
+    HOTKEY
+       [;]COMMAND     {c("';' means running sync and not async")}
+
+    HOTKEY      := CHORD_1{c("[ ; CHORD_2 ; ... ; CHORD_n]    Separate with ':' to not abort chord chain when reaches end")}
+    CHORD_i     := {c("[MODIFIERS_i +] [~][@]")}KEYSYM_i         {c("'@' runs command on keyup, not keydown; '~' replays the captured event for the other clients.")}
+    MODIFIERS_i := MODIFIER_i1{c("[ + MODIFIER_i2 + ... + MODIFIER_ik]")}
+  
+    {h3('Modifiers and keys')}
+                 ?      
+      Modifiers: super, hyper, meta, alt, control, ctrl, shift, mode_switch, lock, mod1, mod2, mod3, mod4, mod5, any
+      Keyboard:  xev -event keyboard. '_' is an empty sequence event.
+      Mouse: button1, button2, button3, ..., button24
+  
+  {h2('Examples')}
+    super + alt + {{0-9}}
+  	  mpc -q seek {{0-9}}0%
+  	  
+    super + {{h,j,k,l}}
+	  bspc node -f {{west,south,north,east}}
+	  
+              {c('1    2      3')}
+    super + {{alt,ctrl,alt + ctrl}} + XF86Eject
+	  sudo systemctl {{suspend,reboot,poweroff}}
+	                     {c('1       2       3')}
+    
+             {c('1      2    3 4 5 6')}
+    super + {{_,shift + }}{{h,j,k,l}}
+	  bspc node -{{f,s}} {{west,south,north,east}}
+                      {c('1 2    3     4     5    6')}
+
+    super + alt + p
+	  bspc config focus_follows_pointer {{true,false}} {c('?')}
+
+                           {c('1    2   3    4')}
+    super + ctrl + alt + {{Left,Down,Up,Right}}
+      n=10; {backslash}
+      {{ d1=left;   d2=right;  dx=-$n; dy=0;   {backslash}  {c('1')}
+      , d1=bottom; d2=top;    dx=0;   dy=$n;  {backslash}  {c('2')}
+      , d1=top;    d2=bottom; dx=0;   dy=-$n; {backslash}  {c('3')}
+      , d1=right;  d2=left;   dx=$n;  dy=0;   {backslash}  {c('4')}
+      }} {backslash}
+      bspc node --resize $d1 $dx $dy || bspc node --resize $d2 $dx $dy                    
+  """
+
 def tar(subject=None):
     return f"""{h1('tar')}
   -x        {c('extract')}
@@ -8547,6 +8631,7 @@ def tar(subject=None):
   -v        {c('verbose')}
   -C <PATH> {c('different destination')}
     """
+
 
 @syntax
 def tree(subject=None):
@@ -8578,6 +8663,8 @@ def tree(subject=None):
     --dirsfirst
     --sort <name|version|size|mtime|ctime>
   """
+
+
 @syntax
 @alias('ts')
 def typescript(subject=None):
@@ -9130,7 +9217,7 @@ def vim(subject=None):
     zb  scroll the line with the cursor to the bottom
 
     """
-    _MOVEMENT = re.sub(r'(?<=[^.])(\. )+',lambda match:black(match.group()), _MOVEMENT)
+    _MOVEMENT = re.sub(r'(?<=[^.])(\. )+', lambda match: black(match.group()), _MOVEMENT)
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -9194,6 +9281,7 @@ def vim(subject=None):
     "*              {c('system clipboard; so `"*y$` copies to line end to sys clpbrd, `"*p` pastes')}
   """
 
+
 @syntax
 def vipe(subject=None):
     if subject:
@@ -9228,6 +9316,8 @@ def vipe(subject=None):
     cmd=$(echo -n "$line" | vipe)
     eval "$cmd"
     """
+
+
 @alias('wmc')
 def wmctrl(subject=None):
     if subject:
@@ -9777,7 +9867,7 @@ def zsh(subject=None):
     {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
     print -z print -z print This is a line    {c('Put in buffer')}
     """
-    
+
     _ZPARSEOPTS = f"""{h2('zparseopts')} [ -D -E -F -K -M ] [ -a array ] [ -A assoc ] [ - ] spec ...
     {c('https://xpmo.gitlab.io/post/using-zparseopts/')}
     {c('man zshmodules')}
@@ -9833,7 +9923,7 @@ def zsh(subject=None):
       (( verbosity = $#flag_v - $#flag_q ))
       /%bash
     """
-    
+
     _KEYS = f"""{h2('Keyboard Shortcuts')}
     {c('show all with just `bindkey`')}
     {h3('Glossary')}
