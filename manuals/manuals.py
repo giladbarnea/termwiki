@@ -893,23 +893,9 @@ def bash(subject=None):
     """
     __IF = f"""{h3('if')}
     %bash
-    # substring
-    if [[ ${{var}} == *"My long"* ]]
-  
-    # newline exists?
-    if [[ ${{var}} =~ $'{linebreak}' ]]
-    
-    if {{ [[ "$1" = ".*" * | | "$1" = *".*"]]; }}; then
-    
-    if [[ "$processes" != *"winactivate"*"$1"* ]] && ! bool "$last_proc"; then
-    
-    if ! is_num $2 || [ $2 -lt 1 ]; then
-    
-    if ! is_num "$1" || ! is_num "$2"; then
-    
-    # not sure it works?
-    if [[ "$1" == d || "$1" == diff ]] && [[ -z $(gd) ]]; then
-    
+    [:alnum:], [:alpha:], [:blank:], [:cntrl:], [:digit:], 
+    [:graph:], [:lower:], [:print:], [:punct:], [:space:], 
+    [:upper:], and [:xdigit:]
     /%bash
     """
     __TEST = __FILES = f"""{h3('test')}
@@ -1395,6 +1381,8 @@ def bash(subject=None):
     """
     _COMPDEF = _COMPCTL = f"""{h3('compdef, compctl')}
       %bash
+      compdef _git git.my-commits=git-log
+      
       compadd -- $(COMP_CWORD=$((CURRENT-1)) \\
                    COMP_LINE=$BUFFER \\
                    COMP_POINT=0 \\
@@ -2445,11 +2433,15 @@ def desktop(subject=None):
   Exec="/path/to/exec" %u  
   Terminal=false
   StartupNotify=true
+  Name=JetBrains Toolbox
   MimeType=x-scheme-handler/jetbrains
   X-GNOME-Autostart-enabled=true
   X-GNOME-Autostart-Delay=10
   X-MATE-Autostart-Delay=10
   X-KDE-autostart-after=panel
+  Categories=Qt;KDE;Utility;
+  Type=Application
+  GenericName=Clipboard Manager
     """
 
 
