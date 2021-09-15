@@ -11,7 +11,7 @@ from pygments import highlight as pyglight
 from pygments.formatters import TerminalTrueColorFormatter
 from pygments.lexer import Lexer
 # noinspection PyUnresolvedReferences
-from pygments.lexers import (get_lexer_by_name,
+from pygments.lexers import (
                              AutohotkeyLexer,
                              BashLexer,
                              CssLexer,
@@ -52,7 +52,8 @@ def _get_lexer_ctor(lang: Language) -> Type[Lexer]:
     if lang == 'ini':
         return IniLexer
     if lang == 'ipython':
-        return lambda o=lang: get_lexer_by_name('ipython')
+        from manuals.ipython_lexer import IPython3Lexer
+        return IPython3Lexer
     if lang == 'js':
         return JavascriptLexer
     if lang == 'json':
@@ -101,11 +102,9 @@ def _get_color_formatter(style: Style = None):
 def _highlight(text: str, lang: Language, style: Style = None) -> str:
     lexer = _get_lexer(lang)
     if style is None:
-        if lang == 'ipython':
-            style = 'friendly'
-        elif lang == 'js' or lang == 'json':
+        if lang == 'js' or lang == 'json':
             style = 'default'
-        elif lang == 'ts' or lang == 'bash':
+        elif lang in ('ts', 'bash', 'ipython'):
             style = 'monokai'
     formatter = _get_color_formatter(style)
     highlighted = pyglight(text, lexer, formatter)
@@ -915,6 +914,7 @@ def bash(subject=None):
       -t  {c('True if FD is opened on a terminal.')}
           {c('when not piped, -t 1 is True (?)')}
       -u  {c('its set-user-ID bit is set')}
+      -v  {c("variable is set, e.g '[ -v myvar ]' (true even for myvar= and myvar='')")}
       -w  {c('write permission is granted')}
       -x  {c('execute (or search) permission is granted')}
     """
@@ -1239,7 +1239,7 @@ def bash(subject=None):
 
 
         # Load stdin into a variable
-        stdin=$(cat<&0)
+        stdin=$(cat<&0)  # or stdin="$(cat /dev/stdin)"
 
         # Send stdin from a pipe
         echo script.sh | sh /dev/stdin dest=/some/other/location
@@ -1809,14 +1809,20 @@ def bash(subject=None):
     """
 
     _SED = f"""{h2('sed')}
-  {h3('delete line from file')}
+  {h3('Replace match')}
+    sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/g' ~/.zshrc
+
+  {h3('Append after match')}
+    sed -i '/# HIST_STAMPS="mm\/dd\/yyyy"/ a HISTSIZE=1000000' ~/.zshrc
+  
+  {h3('Delete line from file')}
     sed 'Nd' file         {c("sed '1d' file | sed '1,3d' file")}
     sed '$d' file         {c('last line')}
     sed '2,4!d' file      {c('all except lines 2 to 4')}
     sed '2;4d' file       {c('only 2 and 4')}
     sed '/^$/d' file      {c('empty lines')}
-    '/fedora/,$d'         {c('starting from a pattern till last line')}
-    '${{/ubuntu/d;}}'     {c('last line only if it contains the pattern')}
+    sed '/fedora/,$d'         {c('starting from a pattern till last line')}
+    sed '${{/ubuntu/d;}}'     {c('last line only if it contains the pattern')}
     """
 
     _SYMLINK = _LN = _LINK = f"""{h2('ln - make links between files')}
@@ -3064,11 +3070,21 @@ def ffmpeg(subject=None):
     {h3('mp4 to gif')}
     ffmpeg -i vid.mp4 -f gif -s 960x540 -r 10 vid.gif
     ffmpeg -i vid.mp4 -filter_complex '[0:v] fps=30,scale=480:-1,split [a][b];[a] palettegen [p];[b][p] paletteuse' vid.gif
+
+    {h3('video to audio')}
+    ffmpeg -i input-video.avi -vn -acodec copy output-audio.aac
+
+    {h3('video to images')}
+    ffmpeg -i video.flv image%d.jpg
+
+    {h3('images to video')}
+    ffmpeg -f image2 -i image%d.jpg imagestovideo.mpg
     """
     _SRT = _SUBS = f"""{h2('SRT')}
     {h3('embed srt')}
     ffmpeg -i vid.mp4 -c copy -filter:v subtitles=vid.srt vid_with_subs.mp4
     ffmpeg -i vid.mp4 -i vid.srt -map 0 -map 1 -c copy -metadata:s:s:0 language=eng -metadata:s:s:1 language=ipk vid_with_subs.mkv
+    ffmpeg -i input.mp4 -i subtitles.srt -c copy -c:s mov_text output.mp4
 
     {h3('extract srt from mkv')}
     ffmpeg -i vid.mkv-map 0:s:0 vid.srt
@@ -3079,6 +3095,11 @@ def ffmpeg(subject=None):
 
     {h3('compress')}
     ffmpeg -i input.mp3 -filter_complex 'compand=attacks=0:points=3/1' output.mp3
+    compand=attacks=0:points=-30/-900|-20/-20|0/0|20/20
+    compand=attacks=0:points=-80/-900|-45/-15|-27/-9|-5/-5|20/20
+    compand=attacks=0:points=-80/-900|-45/-15|-27/-9|0/-7|20/-7:gain=5
+
+    attacks, decays, soft-knees, gain, volume, delay, release
 
     {h3('remove audio track')}
     ffmpeg -i vid.mp4 -c:v copy -an vid-no-audio.mp4
@@ -8174,21 +8195,20 @@ def ssh(subject=None):
       %u    {c("The local username.")}
   
     {h3('Network Information')}
-      %bash
-      # Public IP:
+      {h4('Public IP:')}
+        %bash
         # Windows:
-        nslookup myip.opendns.com. resolver1.opendns.com
-        # or: (PS)
+          nslookup myip.opendns.com. resolver1.opendns.com
+          # or: (PS)
           $wc = new-object System.Net.WebClient
           $wc.DownloadString("http://myexternalip.com/raw")
         
         # Linux:
-        dig +short myip.opendns.com @resolver1.opendns.com
-        # or:
+          dig +short myip.opendns.com @resolver1.opendns.com
+          # or:
           curl "http://myexternalip.com/raw"
-
-      # Cool colors:
-      ip -s -c -h a
+          # or (different result from curl)
+          ip -s[tatistics] -c[olor] -[human-readable] -a
       
       # Get originating IP inside remote:
       sudo netstat -taepn | grep -Po "\\b(\d|\.)+:22(?= .*ssh)"
