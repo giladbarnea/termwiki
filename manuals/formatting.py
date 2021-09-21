@@ -32,12 +32,10 @@ def i(text, **kwargs):
 def b(text, **kwargs):
     return colors.bold(text, **kwargs)
 
+
 def bg(text):
     return f'\x1b[38;2;130;130;130;48;2;15;15;15m{text}\x1b[0m'
+
+
 def black(text, **kwargs):
     return colors.black(text, **kwargs)
-
-
-
-
-
