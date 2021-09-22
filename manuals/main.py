@@ -7,6 +7,7 @@ import logging
 import re
 import sys
 # from functools import wraps
+from collections import defaultdict
 from typing import Callable, Union, Any, Collection
 
 import click
@@ -30,11 +31,11 @@ def get_unused_subtopics(undecorated_main_topic_fn):
     except StopIteration:
         # no else: clause, just return (like click)
         last_else_idx = -next(i for i, line in enumerate(reversed(lines)) if line.strip().startswith('return ')) - 1
-    before_else = [line.strip().partition('=')[0].strip() for line in lines[:last_else_idx] if
-                   line and SUB_TOPIC_RE.search(line) and not '__' in line]
-    after_else = [line.strip()[1:-1] for line in lines[last_else_idx:] if
-                  (stripped := line.strip()).startswith('{_') and stripped.endswith('}')]
-    if diff := set(before_else).difference(set(after_else)):
+    before_else = {line.strip().partition('=')[0].strip() for line in lines[:last_else_idx] if
+                    line and SUB_TOPIC_RE.search(line) and not '__' in line}
+    after_else = {line.strip()[1:-1] for line in lines[last_else_idx:] if
+                   (stripped := line.strip()).startswith('{_') and stripped.endswith('}')}
+    if diff := before_else - after_else:
         logging.warning(f'{undecorated_main_topic_fn.__name__}() doesnt print: {diff}')
 
 
@@ -53,8 +54,8 @@ def populate_main_topics() -> dict[str, ManFn]:
     for main_topic in dir(manuals):
         if main_topic in manuals.EXCLUDE:
             continue
-        fn: Callable = getattr(manuals, main_topic)
-        if not inspect.isfunction(fn):
+        manual: ManFn = getattr(manuals, main_topic)
+        if not inspect.isfunction(manual):
             continue
         
         if main_topic.endswith('_'):  # inspect_()
@@ -63,9 +64,9 @@ def populate_main_topics() -> dict[str, ManFn]:
             name = main_topic
         
         ## dont draw_out_wrapped_fn because then syntax() isn't called
-        main_topics[name] = fn
-        if alias := getattr(fn, 'alias', None):
-            main_topics[alias] = fn
+        main_topics[name] = manual
+        if alias := getattr(manual, 'alias', None):
+            main_topics[alias] = manual
     
     return main_topics
 
@@ -77,20 +78,14 @@ def get_sub_topic_var_names(fn: ManFn) -> list[str]:
     return [n for n in fn.__code__.co_varnames if n.isupper()]
 
 
-TSubTopics = dict[str, Union[set[ManFn], ManFn]]
+TSubTopics = dict[str, set[ManFn]]
 
 
 def populate_sub_topics(*, print_unused_subtopics=False) -> TSubTopics:
     """Sets bash.sub_topics = [ "cut" , "for" ] for each MAIN_TOPICS.
     Removes (d)underscore and lowers _CUT and __FOR.
     Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
-    # var_reg = r'_[A-Z0-9_]*'
-    # matches `_SUBTOPIC = fr"""..."""` and `_ST = _SUBTOPIC`
-    # sub_topic_reg = re.compile(fr'\s*{var_reg}\s?=\s?(r?fr?""".*|{var_reg})\n')
-    # subject_sig_re = re.compile(r'subject\s?=\s?None')
-    
-    all_sub_topics = dict()
-    # for main_topic_fn in list(MAIN_TOPICS.values()):
+    all_sub_topics: TSubTopics = defaultdict(set)
     for name, main_topic in MAIN_TOPICS.items():
         
         # sub_topic_var_names = [n for n in draw_out_decorated_fn(main_topic_fn).__code__.co_varnames if n.isupper()]
@@ -100,42 +95,20 @@ def populate_sub_topics(*, print_unused_subtopics=False) -> TSubTopics:
         sub_topic_var_names = get_sub_topic_var_names(undecorated_main_topic_fn)
         if not sub_topic_var_names:
             continue
-        # lines, _ = inspect.getsourcelines(main_topic_fn)
-        # if not re.search(subject_sig_re, lines[0]) and not re.search(subject_sig_re, lines[1]):
-        # lines[1]: decorated functions' first line is the @decorator
-        # if not 'subject' in inspect.getfullargspec(main_topic).args:
-        #     continue
         
-        # lines = [l.strip() for l in lines if re.fullmatch(sub_topic_reg, l)]
-        # if not lines:  # has subject=None in sig but no actual sub topic vars
-        #     continue
         
         if print_unused_subtopics:
             print(get_unused_subtopics(undecorated_main_topic_fn))
         
         for sub_topic_var_name in sub_topic_var_names:
-            # DONT account for dunder __ARGUMENTS, it's being handled by get_sub_topic().
-            # If handled here, eventually bash('_ARGUMENTS') is called which errors.
-            
-            ## Deprecated
-            # if (stripped := sub_topic_var_name.strip()).startswith('__'):
-            #     sub_topic_var_name = stripped.lower()[2:]
-            # else:  # starts with single '_'
-            #     sub_topic_var_name = stripped.lower()[1:]
+            ## DONT account for dunder __ARGUMENTS, it's being handled by get_sub_topic().
+            #   If handled here, eventually bash('_ARGUMENTS') is called which errors.
+            #   likewise: if f'_{sub_topic}' in manual.sub_topics:
             
             sub_topic_var_name = sub_topic_var_name.strip().lower()[1:]
             main_topic.sub_topics.add(sub_topic_var_name)
-            if sub_topic_var_name in all_sub_topics:
-                # this means duplicate subtopic, for different main topics
-                # in that case, the value is set to be a list of subtopics
-                if isinstance(all_sub_topics[sub_topic_var_name], set):
-                    all_sub_topics[sub_topic_var_name].add(main_topic)
-                else:
-                    # create a new list
-                    all_sub_topics[sub_topic_var_name] = {all_sub_topics[sub_topic_var_name], main_topic}
-            else:
-                # no duplicate sub topics; value is set to be simply the function
-                all_sub_topics[sub_topic_var_name] = main_topic
+            all_sub_topics[sub_topic_var_name].add(main_topic)
+            
     
     return all_sub_topics
 
@@ -143,7 +116,11 @@ def populate_sub_topics(*, print_unused_subtopics=False) -> TSubTopics:
 SUB_TOPICS: TSubTopics = populate_sub_topics()
 
 
-def fuzzy_find_topic(topic: str, collection: Collection, *extra_opts, raise_if_exhausted=False, **extra_kw_opts) -> tuple:
+def fuzzy_find_topic(topic: str,
+                     collection: Collection,
+                     *extra_opts,
+                     raise_if_exhausted=False,
+                     **extra_kw_opts) -> tuple:
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
     # not even a subtopic, could be gibberish
     # try assuming it's a substring
@@ -152,35 +129,38 @@ def fuzzy_find_topic(topic: str, collection: Collection, *extra_opts, raise_if_e
         if not maybes:
             continue
         
-        kwargs = dict(Ep='Edit manuals.py with pycharm', Ec='Edit manuals.py with vscode',
+        kwargs = dict(Ep='Edit manuals.py with pycharm',
+                      Ec='Edit manuals.py with vscode',
                       Em='Edit manuals.py with micro')
         
         if is_last and raise_if_exhausted:
-            kwargs.update(dict(flowopts='quit'))
+            kwargs.update(flowopts='quit')
         else:
-            kwargs.update(dict(flowopts='quit', no='continue'))
+            kwargs.update(flowopts='quit', no='continue')
         # TODO: if a match is a subtopic, present maintopic.subtopic in choose
-        key, choice = prompt.choose(f"Did you mean any of these?", *extra_opts, *maybes, **kwargs,
+        key, choice = prompt.choose(f"Did you mean any of these?",
+                                    *extra_opts,
+                                    *maybes,
+                                    **kwargs,
                                     **extra_kw_opts)
         if choice == prompt.Flow.CONTINUE:
             continue
         if isinstance(key, str) and key.startswith('E'):
             import os
-            manualsfile = os.path.join(os.path.dirname(__file__), 'manuals.py')
             if key == 'Ep':
-                os.system(f'pycharm "{manualsfile}"')
-            if key == 'Ec':
-                os.system(f'code "{manualsfile}"')
-            if key == 'Em':
-                os.system(f'micro "{manualsfile}"')
-            sys.exit()
+                status = os.system(f'pycharm "{__file__}"')
+            elif key == 'Ec':
+                status = os.system(f'code "{__file__}"')
+            elif key == 'Em':
+                status = os.system(f'micro "{__file__}"')
+            sys.exit(status)
         return key, choice.value
     if raise_if_exhausted:
-        raise KeyError(f"{topic!r} isn't in collection")
+        raise KeyError(f"{topic = !r} isn't in collection")
     return None, None
 
 
-def get_sub_topic(main_topic: str, sub_topic: str):
+def get_sub_topic(main_topic: str, sub_topic: str) -> str:
     """
     MAIN EXISTS?
      |      \
@@ -210,50 +190,50 @@ def get_sub_topic(main_topic: str, sub_topic: str):
                                           |         \
                                         [return]   KeyError!
     """
-    logging.debug(f"get_sub_topic({main_topic = }, {sub_topic = })")
+    logging.debug(f"get_sub_topic({main_topic = !r}, {sub_topic = !r})")
     if main_topic not in MAIN_TOPICS:
-        print(f"[info] Unknown main topic: '{main_topic}'. Searching among MAIN_TOPICS...[/]")
-        # brightprint(f"Unknown main topic: '{main_topic}'. Searching among MAIN_TOPICS...")
+        print(f"[info] Unknown main topic: {main_topic!r}. Fuzzy finding among MAIN_TOPICS...")
         main_topic = fuzzy_find_topic(main_topic, MAIN_TOPICS, raise_if_exhausted=True)
     
-    main_topic_fn: ManFn = MAIN_TOPICS[main_topic]
-    if sub_topic in main_topic_fn.sub_topics:
-        return main_topic_fn(f'_{sub_topic.upper()}')
-    if f'_{sub_topic}' in main_topic_fn.sub_topics:
-        # mm bash syntax → main_topic_fn.sub_topics has '_syntax' → pass '__SYNTAX'
-        return main_topic_fn(f'__{sub_topic.upper()}')
+    manual: ManFn = MAIN_TOPICS[main_topic]
+    if sub_topic in manual.sub_topics:
+        return manual(f'_{sub_topic.upper()}')
+    
+    if f'_{sub_topic}' in manual.sub_topics:
+        # mm bash syntax → manual.sub_topics has '_syntax' → pass '__SYNTAX'
+        return manual(f'__{sub_topic.upper()}')
     
     try:
         # sometimes functions have alias logic under 'if subject:' clause, for example bash
         # has 'subject.startswith('<')'. so maybe sub_topic works
-        return main_topic_fn(sub_topic)
+        return manual(sub_topic)
     except KeyError:
         print((f"[info] sub topic '{sub_topic}' isn't a sub topic of '{main_topic}'. "
-               f"Searching among '{main_topic}'s sub topics...[/]"))
+               f"Searching among '{main_topic}'s sub topics..."))
         key, chosen_sub_topic = fuzzy_find_topic(sub_topic,
-                                                 main_topic_fn.sub_topics,
+                                                 manual.sub_topics,
                                                  raise_if_exhausted=False,
                                                  # keep uppercase P so doesn't collide with topics
                                                  P=f"print '{main_topic}' w/o subtopic")
         if key == 'P':
-            return main_topic_fn()
+            return manual()
         
         if chosen_sub_topic is not None:
-            return main_topic_fn(f'_{chosen_sub_topic.upper()}')
+            return manual(f'_{chosen_sub_topic.upper()}')
         
         if sub_topic in SUB_TOPICS:
-            print(f"[info] '{sub_topic}' isn't a sub topic of '{main_topic}', but it belongs to these topics:[/]")
+            print(f"[info] '{sub_topic}' isn't a sub topic of '{main_topic}', but it belongs to these topics:")
             return print_manual(sub_topic)
         
-        print(f"[info] '{sub_topic}' doesn't belong to any topic. Searching among all SUB_TOPICS...[/]")
+        print(f"[info] '{sub_topic}' doesn't belong to any topic. Searching among all SUB_TOPICS...")
         key, sub_topic = fuzzy_find_topic(sub_topic,
                                           SUB_TOPICS,
                                           raise_if_exhausted=True,
                                           P=f"print '{main_topic}' w/o subtopic")
         if key == 'P':
-            return main_topic_fn()
+            return manual()
         
-        return main_topic_fn(f'_{sub_topic.upper()}')
+        return manual(f'_{sub_topic.upper()}')
 
 
 def print_manual(topic: str, sub_topic=None):
@@ -273,16 +253,16 @@ def print_manual(topic: str, sub_topic=None):
         # return console.print(sub_topic_str)
         return print(sub_topic_str)
     
-    # ** Passed only one arg; could be main or sub
+    # ** Passed only one arg; could be main or sub. Maybe main?
     if topic in MAIN_TOPICS:
         return print(MAIN_TOPICS[topic]())
     
-    # ** Maybe it's a precise sub topic, i.e. "diff"
+    # ** Not a main topic. Maybe it's a precise sub topic, i.e. "diff"
     if topic in SUB_TOPICS:
         # * Indeed a precise subtopic
         ## Maybe multiple manuals have it
-        if isinstance(SUB_TOPICS[topic], set):
-            import prompt
+        if len(SUB_TOPICS[topic]) > 1:
+            from manuals import prompt
             manuals: list[ManFn] = list(SUB_TOPICS[topic]) # for index
     
             # TODO (bugs):
@@ -298,7 +278,8 @@ def print_manual(topic: str, sub_topic=None):
             return print(manuals[idx](f'_{topic.upper()}'))
         
         ## Unique subtopic
-        return print(SUB_TOPICS[topic](f'_{topic.upper()}'))
+        manual, *_ = SUB_TOPICS[topic]
+        return print(manual(f'_{topic.upper()}'))
     
     # ** Not a precise subtopic. find something precise, either a main or sub topic
     key, topic = fuzzy_find_topic(topic,

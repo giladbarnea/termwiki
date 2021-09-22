@@ -86,7 +86,7 @@ def _create_is_maybe_predicate(criterion: SearchCriteria) -> Callable[[str, str]
 	elif criterion == 'endswith':
 		is_maybe = str.endswith
 	else:
-		raise ValueError(f'Expected criterion: {SearchCriteria.__args__}, got "{criterion}"')
+		raise ValueError(f'Expected criterion: {SearchCriteria.__args__}, got {criterion!r}')
 
 	return is_maybe
 
@@ -156,18 +156,21 @@ def fuzzy(keyword: str, collection: Collection[T], cutoff=2) -> Matches[T]:
 	return far_matches
 
 
-def iter_maybes(keyword: str, collection: Collection[T], *extra_options, criterion: SearchCriteria = 'substring') -> Generator[Tuple[List[T], bool], None, None]:
+def iter_maybes(keyword: str,
+                collection: Collection[T],
+                *extra_options,
+                criterion: SearchCriteria = 'substring') -> Generator[Tuple[List[T], bool], None, None]:
 	"""Doesn't prompt. Yields three `[matches...], is_last` tuples.
 	1st: str method by `criterion`
 	2nd: re.search ignoring word separators
 	3rd: fuzzy search (what `nearest()` uses directly)"""
 	is_maybe = _create_is_maybe_predicate(criterion)
 
-	logging.debug(f'iter_maybes({repr(keyword)}, collection ({len(collection)}), extra_options: ({len(extra_options)}), criterion: {repr(criterion)}), is_maybe: {is_maybe.__name__}')
+	logging.debug(f'iter_maybes({keyword = !r}, collection ({len(collection)}), extra_options: ({len(extra_options)}), {criterion = !r}, is_maybe: {is_maybe.__name__}')
 	if extra_options:
-		logging.warning(f'got extra_options, ignored because not developed:', extra_options)
+		logging.warning(f'Got extra_options, ignored because not developed: %r', extra_options)
 	maybes = [item for item in collection if is_maybe(item, keyword)]
-	logging.debug(f'yielding {len(maybes)} maybes that True for `is_maybe(item, keyword)`')
+	logging.debug(f'Yielding {len(maybes)} maybes that are True for `is_maybe(item, {keyword = })`')
 	yield maybes, False
 
 	regexp = None
@@ -191,8 +194,8 @@ def iter_maybes(keyword: str, collection: Collection[T], *extra_options, criteri
 
 	near_matches = fuzzy(keyword, collection)
 	if near_matches:
-		logging.debug(f"last stop: yielding `(near_matches.best(), True)`. near_matches: {repr(near_matches)}")
+		logging.debug(f"Last stop: yielding `(near_matches.best(), True)`. {near_matches = !r}")
 		yield near_matches.best(), True
 	else:
-		logging.warning(f"near_matches is None for fuzzy({repr(keyword)}, collection ({len(collection)})). Will throw AttributeError")
+		logging.warning(f"near_matches is None for fuzzy({keyword = !r}, collection ({len(collection)})). Will throw AttributeError")
 		yield None, True

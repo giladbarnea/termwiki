@@ -7197,6 +7197,7 @@ def python(subject=None):
       "{{players[0]}}"    {c("First element of keyword argument 'players'.")}
       "{{0!s}}"
       f"{{myvar!r}}"
+      f"{{myvar = !r}}"
       1000:,            {c('1,000')}
       0.12345:.2f       {c('0.12')}
       12345.6789:,.2f   {c('12,345.68')}
