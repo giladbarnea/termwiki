@@ -117,7 +117,7 @@ def _highlight(text: str, lang: Language, style: Style = None) -> str:
 def alias(_alias: str):
     """Sets `fn.alias = _alias` to decorated function.
     Used when populating MAIN_TOPICS as an additional key to function."""
-    def wrap(fn):
+    def wrap(fn: ManFn):
         fn.alias = _alias
         return fn
     
@@ -140,7 +140,7 @@ def syntax(_fn_or_style: Union[ManFn, Style] = None, **default_styles):
     """
     default_style = None
     
-    def wrap(fn):
+    def wrap(fn: ManFn):
         @wraps(fn)  # necessary for str() to display wrapped fn and not syntax()
         def morewrap(subject=None):
             

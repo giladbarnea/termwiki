@@ -2,23 +2,22 @@
 """
 get_main_topics() is called to popuplate MAIN_TOPICS.
 """
-import click
 import inspect
 import logging
 import re
 import sys
 # from functools import wraps
-from typing import Callable, Union, Any
+from typing import Callable, Union, Any, Collection
+
+import click
 
 # import search
 # import prompt
 from manuals.common.click_extension import unrequired_opt
-
-# from more_termcolor import cprint
-
-
 # brightprint = lambda s, *colors: cprint(s, 'bright white', *colors)
 from manuals.common.types import ManFn
+# from more_termcolor import cprint
+from manuals.formatting import h2
 
 SUB_TOPIC_RE = re.compile(r'_[A-Z]*\s?=\s?(rf|fr|f)"""')
 
@@ -78,7 +77,10 @@ def get_sub_topic_var_names(fn: ManFn) -> list[str]:
     return [n for n in fn.__code__.co_varnames if n.isupper()]
 
 
-def populate_sub_topics(*, print_unused_subtopics=False) -> dict[str, Union[list[ManFn], ManFn]]:
+TSubTopics = dict[str, Union[set[ManFn], ManFn]]
+
+
+def populate_sub_topics(*, print_unused_subtopics=False) -> TSubTopics:
     """Sets bash.sub_topics = [ "cut" , "for" ] for each MAIN_TOPICS.
     Removes (d)underscore and lowers _CUT and __FOR.
     Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
@@ -87,13 +89,13 @@ def populate_sub_topics(*, print_unused_subtopics=False) -> dict[str, Union[list
     # sub_topic_reg = re.compile(fr'\s*{var_reg}\s?=\s?(r?fr?""".*|{var_reg})\n')
     # subject_sig_re = re.compile(r'subject\s?=\s?None')
     
-    sub_topics = dict()
+    all_sub_topics = dict()
     # for main_topic_fn in list(MAIN_TOPICS.values()):
     for name, main_topic in MAIN_TOPICS.items():
         
         # sub_topic_var_names = [n for n in draw_out_decorated_fn(main_topic_fn).__code__.co_varnames if n.isupper()]
         # draw_out_decorated_fn is necessary because MAIN_TOPICS has to store the fns in the wrapped form (to call them later)
-        setattr(main_topic, 'sub_topics', [])
+        setattr(main_topic, 'sub_topics', set())
         undecorated_main_topic_fn = draw_out_decorated_fn(main_topic)
         sub_topic_var_names = get_sub_topic_var_names(undecorated_main_topic_fn)
         if not sub_topic_var_names:
@@ -122,26 +124,26 @@ def populate_sub_topics(*, print_unused_subtopics=False) -> dict[str, Union[list
             #     sub_topic_var_name = stripped.lower()[1:]
             
             sub_topic_var_name = sub_topic_var_name.strip().lower()[1:]
-            main_topic.sub_topics.append(sub_topic_var_name)
-            if sub_topic_var_name in sub_topics:
+            main_topic.sub_topics.add(sub_topic_var_name)
+            if sub_topic_var_name in all_sub_topics:
                 # this means duplicate subtopic, for different main topics
                 # in that case, the value is set to be a list of subtopics
-                if isinstance(sub_topics[sub_topic_var_name], list):
-                    sub_topics[sub_topic_var_name].append(main_topic)
+                if isinstance(all_sub_topics[sub_topic_var_name], set):
+                    all_sub_topics[sub_topic_var_name].add(main_topic)
                 else:
                     # create a new list
-                    sub_topics[sub_topic_var_name] = [sub_topics[sub_topic_var_name], main_topic]
+                    all_sub_topics[sub_topic_var_name] = {all_sub_topics[sub_topic_var_name], main_topic}
             else:
                 # no duplicate sub topics; value is set to be simply the function
-                sub_topics[sub_topic_var_name] = main_topic
+                all_sub_topics[sub_topic_var_name] = main_topic
     
-    return sub_topics
+    return all_sub_topics
 
 
-SUB_TOPICS: dict[str, Union[list[ManFn], ManFn]] = populate_sub_topics()
+SUB_TOPICS: TSubTopics = populate_sub_topics()
 
 
-def fuzzy_find_topic(topic, collection, *extra_opts, raise_if_exhausted=False, **extra_kw_opts) -> tuple:
+def fuzzy_find_topic(topic: str, collection: Collection, *extra_opts, raise_if_exhausted=False, **extra_kw_opts) -> tuple:
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
     # not even a subtopic, could be gibberish
     # try assuming it's a substring
@@ -174,7 +176,7 @@ def fuzzy_find_topic(topic, collection, *extra_opts, raise_if_exhausted=False, *
             sys.exit()
         return key, choice.value
     if raise_if_exhausted:
-        raise KeyError(f"'{topic}' isn't in collection")
+        raise KeyError(f"{topic!r} isn't in collection")
     return None, None
 
 
@@ -208,7 +210,7 @@ def get_sub_topic(main_topic: str, sub_topic: str):
                                           |         \
                                         [return]   KeyError!
     """
-    logging.debug(f"get_sub_topic({repr(main_topic)}, {repr(sub_topic)})")
+    logging.debug(f"get_sub_topic({main_topic = }, {sub_topic = })")
     if main_topic not in MAIN_TOPICS:
         print(f"[info] Unknown main topic: '{main_topic}'. Searching among MAIN_TOPICS...[/]")
         # brightprint(f"Unknown main topic: '{main_topic}'. Searching among MAIN_TOPICS...")
@@ -227,7 +229,7 @@ def get_sub_topic(main_topic: str, sub_topic: str):
         return main_topic_fn(sub_topic)
     except KeyError:
         print((f"[info] sub topic '{sub_topic}' isn't a sub topic of '{main_topic}'. "
-                     f"Searching among '{main_topic}'s sub topics...[/]"))
+               f"Searching among '{main_topic}'s sub topics...[/]"))
         key, chosen_sub_topic = fuzzy_find_topic(sub_topic,
                                                  main_topic_fn.sub_topics,
                                                  raise_if_exhausted=False,
@@ -254,14 +256,14 @@ def get_sub_topic(main_topic: str, sub_topic: str):
         return main_topic_fn(f'_{sub_topic.upper()}')
 
 
-def print_manual(main_topic: str, sub_topic=None):
+def print_manual(topic: str, sub_topic=None):
     """If passed correct topic(s), prints.
     If not correct, finds the correct with fuzzy search and calls itself."""
-    logging.debug(f"print_manual({repr(main_topic)}, {repr(sub_topic)})")
+    logging.debug(f"print_manual({repr(topic)}, {repr(sub_topic)})")
     if sub_topic:
-        # * passed both main, sub
-        sub_topic_str = get_sub_topic(main_topic, sub_topic)
-        # sub_topic_str = get_sub_topic(main_topic, sub_topic) \
+        # ** Passed both topic and sub_topic
+        sub_topic_str = get_sub_topic(topic, sub_topic)
+        # sub_topic_str = get_sub_topic(topic, sub_topic) \
         #     .replace('[h1]', '[bold underline reverse bright_white]') \
         #     .replace('[h2]', '[bold underline bright_white]') \
         #     .replace('[h3]', '[bold bright_white]') \
@@ -270,41 +272,39 @@ def print_manual(main_topic: str, sub_topic=None):
         #     .replace('[c]', '[dim]')
         # return console.print(sub_topic_str)
         return print(sub_topic_str)
-    # ** passed only one arg, could be main or sub
-    try:
-        # * assume precise main topic, i.e. "git"
-        return print(MAIN_TOPICS[main_topic]())
-    except KeyError as not_main_topic:
-        # * so maybe it's a precise sub topic, i.e. "diff"
-        topic = main_topic
-        try:
-            fn: Callable[[str], Any] = SUB_TOPICS[topic]
-        except KeyError as not_sub_topic_not_main_topic:
-            # * not a precise subtopic. find something precise, either a main or sub topic
-            key, topic = fuzzy_find_topic(topic,
-                                          list(MAIN_TOPICS.keys()) + list(SUB_TOPICS.keys()),
-                                          raise_if_exhausted=True)
-            return print_manual(topic)
-        else:
-            # * indeed a precise subtopic, call the main topic's fn and pass subtopic param
-            try:
-                return print(fn(f'_{topic.upper()}'))
-            except TypeError as duplicate_sub_topic:
-                # * error: "'list' object is not callable". some topics share same subtopic. choose main topic
-                import prompt
-                fn: list[Callable[[str], Any]]
-                
-                # TODO (bugs): 
-                #  (1) If an ALIAS of a subtopic is the same as a SUBTOPIC of another main topic,
-                #    this is called (shouldn't). Aliases aren't subtopics. (uncomment asyncio # _SUBPROCESS = _SUBPROCESSES)
-                #  (2) main topics with both @alias and @syntax decors, that have the issue above ("(1)"), raise
-                #    a ValueError in igit prompt, because the same main topic function is passed here for each subtopic and subtopic alias.
-                #  ValueError: ('NumOptions | __init__(opts) duplicate opts: ', ('<function asyncio at 0x7f5dab684ca0>', '<function asyncio at 0x7f5dab684ca0>', '<function python at 0x7f5dab669a60>'))
-                idx, choice = prompt.choose(f"'{topic}' exists in several topics, which one did you mean?",
-                                            *[f.__qualname__ for f in fn],
-                                            flowopts='quit'
-                                            )
-                return print(fn[idx](f'_{topic.upper()}'))
+    
+    # ** Passed only one arg; could be main or sub
+    if topic in MAIN_TOPICS:
+        return print(MAIN_TOPICS[topic]())
+    
+    # ** Maybe it's a precise sub topic, i.e. "diff"
+    if topic in SUB_TOPICS:
+        # * Indeed a precise subtopic
+        ## Maybe multiple manuals have it
+        if isinstance(SUB_TOPICS[topic], set):
+            import prompt
+            manuals: list[ManFn] = list(SUB_TOPICS[topic]) # for index
+    
+            # TODO (bugs):
+            #  (1) If an ALIAS of a subtopic is the same as a SUBTOPIC of another main topic,
+            #    this is called (shouldn't). Aliases aren't subtopics. (uncomment asyncio # _SUBPROCESS = _SUBPROCESSES)
+            #  (2) main topics with both @alias and @syntax decors, that have the issue above ("(1)"), raise
+            #    a ValueError in igit prompt, because the same main topic function is passed here for each subtopic and subtopic alias.
+            #  ValueError: ('NumOptions | __init__(opts) duplicate opts: ', ('<function asyncio at 0x7f5dab684ca0>', '<function asyncio at 0x7f5dab684ca0>', '<function python at 0x7f5dab669a60>'))
+            idx, choice = prompt.choose(f"{topic!r} exists in several topics, which one did you mean?",
+                                        *[man.__qualname__ for man in manuals],
+                                        flowopts='quit'
+                                        )
+            return print(manuals[idx](f'_{topic.upper()}'))
+        
+        ## Unique subtopic
+        return print(SUB_TOPICS[topic](f'_{topic.upper()}'))
+    
+    # ** Not a precise subtopic. find something precise, either a main or sub topic
+    key, topic = fuzzy_find_topic(topic,
+                                  set(MAIN_TOPICS.keys()) | set(SUB_TOPICS.keys()),
+                                  raise_if_exhausted=True)
+    return print_manual(topic)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
@@ -318,7 +318,7 @@ def get_topic(main_topic, sub_topic, list_subtopics, print_unused_subtopics):
         populate_sub_topics(print_unused_subtopics=True)
         return
     if list_subtopics:
-        print(f"[bright_white bold underline]{main_topic}[/]\n")
+        print(f"{h2(main_topic)}\n")
         [print(f'{st}') for st in sorted(MAIN_TOPICS[main_topic].sub_topics)]
         return
     

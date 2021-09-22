@@ -1,7 +1,14 @@
-from typing import Callable, Union
+from typing import Protocol, overload
+
+
+class ManFn(Protocol):
+    sub_topics: set[str]
+    alias: str
+    
+    def __call__(self, subject: str = None) -> str: ...
 
 # Representing subject=None with Optional[str] doesn't work.
-ManFn = Union[Callable[[str], str], Callable[[], str]]
+# ManFn = Union[Callable[[str], str], Callable[[], str]]
 # from typing import runtime_checkable
 
 
