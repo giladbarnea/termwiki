@@ -33,8 +33,10 @@ Style = Literal['default', 'fruity', 'friendly', 'native', 'algol_nu', 'solarize
 Language = Literal['mysql', 'python', 'bash', 'ipython', 'ini', 'json', 'js', 'ts', 'css', 'sass', 'docker', 'ahk']
 # noinspection PyUnresolvedReferences
 langs = Language.__args__
+# noinspection PyUnresolvedReferences
 HIGHLIGHT_START_RE = re.compile(fr'%({"|".join(langs)}) ?(\d|{"|".join(Style.__args__)})?')
 HIGHLIGHT_END_RE = re.compile(fr'/%({"|".join(langs)})')
+# noinspection PyUnresolvedReferences
 formatters: Dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__)
 lexers: Dict[Language, Lexer] = dict.fromkeys(langs)
 
@@ -1413,6 +1415,9 @@ def bash(subject=None):
                          2>/dev/null)) || return $?
       IFS="$si"
       /%bash
+    
+    {h3('See also')}
+      complete, compgen
     """
     
     _CP = f"""{h2('cp')}
@@ -2091,6 +2096,7 @@ def bash(subject=None):
   {_BASENAME}
   {_CHMOD}
   {_COMPLETE}
+  {_COMPDEF}
   {_CUT}
   {_DIFF}
   {_DU}
@@ -2641,7 +2647,7 @@ def django(subject=None):
         return f"""{h1('Django 3')}
   {c('https://cloud.google.com/python/django/appengine')}
   {_ADMIN}
-  
+
   {_MODELS}
   
   {_TEMPLATES}
@@ -2650,7 +2656,9 @@ def django(subject=None):
 
   {_MISC}
   
-  {_MANAGEPY}
+  {_DJANGO_EXTENSIONS}
+  
+  {_MANAGE}
 """
 
 
@@ -4126,12 +4134,14 @@ def githubcli(subject=None):
 @syntax
 def gunicorn(subject=None):
     _APP = f"""{h2('app')}"""
+    _SIGNALS = f"""{h2('Signals')}"""
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
         return f"""{h1('gunicorn')}
-  {h2('Signals')}
+  {_APP}
+  {_SIGNALS}
   """
 
 
@@ -4393,10 +4403,6 @@ def inspect_(subject=None):
     inspect.signature(function{c(': function')}) {c('→ Signature')}
     inspect.stack() {c('→ List[FrameInfo]')}
     """
-    _TRACEBACK = f"""{h1('traceback')}
-    {c('https://docs.python.org/3/library/traceback.html')}
-    traceback.extract_stack(f=None, limit=None) {c('→ StackSummary')}
-    """
     _STACK_SUMMARY = f"""{h2('StackSummary')} {c(': List[FrameSummary]    # traceback.extract_stack()')}
     ss.extract(frame_gen, *, limit=None, lookup_lines=True, capture_locals=False) {c('Create a StackSummary from a traceback or stack object.')}
     ss.format() {c('Format the stack ready for printing')}
@@ -4426,16 +4432,10 @@ def inspect_(subject=None):
     {_ARGUMENTS}
     {_ARG_INFO}
     {_MODULE}
-    
-    {_TRACEBACK}
     {_STACK_SUMMARY}
     {_FRAME_SUMMARY}
     """
-
-
-traceback = inspect_
-
-
+    
 @syntax
 def ipython(subject=None):
     _AUTORELOAD = f"""{h2('%autoreload')}       {c(f'{i("%load_ext")} first')}
@@ -5088,75 +5088,152 @@ def jupyter(subject=None):
   """
 
 
-@syntax
+@syntax('monokai')
 def loguru(subject=None):
     _RECORD = f"""{h2('record dict')}
-    elapsed 
-    exception 
-    extra 
-    file 
-    function 
-    level       
+    elapsed{c(': datetime.timedelta')}
+    exception{c(': None | { type, value, traceback }')}
+    extra{c(': dict populated by bind()')}
+    file{c(': { name (defalut), path }')}
+    function
+    level{c(': { name (default), no, icon }')}
     line        
-    message 
+    message     {c('Not yet formatted')}
     module 
-    name        {c('default: __name__')}
-    process 
-    thread 
-    time        {c('datetime (record["time"].timestamp())')}
+    name        {c('__name__')}
+    process{c(': { name, id (default) }')}
+    thread {c(': { name, id (default) }')}
+    time{c(': datetime.datetime')}
     """
-    _ADD = fr"""{h2('add')}(sink,
+    
+    _ADD = f"""{h2('.add')}(                      {c('https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.add')}
     %python
-      level="DEBUG",      # file-like object, str, pathlib.Path, callable, coroutine function or logging.Handler
-      format=FORMAT,      # '<green>{{time:YYYY-MM-DD HH:mm:ss.SSS}}</green> | <level>{{level: <8}}</level> | {{message}}'
-      filter=None,        # lambda rec: rec["extra"]["task"] == "A"
+      sink: str | {{ write(message) -> None }} | Path | (message) -> None | coroutine | logging.Handler = ?,
+      level: str | int = "DEBUG",
+      format: str | (rec) -> str = '<green>{{time:YYYY-MM-DD HH:mm:ss.SSS}}</green> | {backslash}
+                                    <level>{{level: <8}}</level> | {backslash}
+                                    <cyan>{{name}}</cyan>:<cyan>{{function}}</cyan>:<cyan>{{line}}</cyan> - {backslash}
+                                    <level>{{message}}</level>'
+      filter: str | dict | (rec) -> bool = None,
       colorize=None,      # default True if tty
       serialize=False,    # Convert record to JSON
-      backtrace=True,     # Use better-exceptions 
+      backtrace=True,     # Use better-exceptions
       diagnose=True,      # Use variable values
-      enqueue=False, 
-      catch=True, 
+      enqueue=False,
+      catch=True,
       **kwargs            # Populate extra dict
-      ) -> int (handler id to use with remove(hid))
+      ) -> int            # handler id to use with remove(hid)
     
       # Example 1: Formatting Traceback
       import stackprinter
       
       def format(record):
-          format_ = "{{time}} {{message}}\n"
+          format_ = "[{{file.name}}] {{time}} {{message}}{linebreak}"
       
           if record["exception"] is not None:
               record["extra"]["stack"] = stackprinter.format(record["exception"])
-              format_ += "{{extra[stack]}}\n"
+              format_ += "{{extra[stack]}}{linebreak}"
       
           return format_
       
       logger.add(sys.stderr, format=format)
-      
-      # Example 2: Syntax Highlighting
-      from pygments.formatters import TerminalTrueColorFormatter
-      from pygments.lexers import PythonLexer
-      from pygments import highlight
-      
-      def format(record):
-          record["message"] = highlight(record["message"], PythonLexer(), TerminalTrueColorFormatter(style="monokai"))
-          fmt = '[<level>{{level: <7}}</level>]\n{{message}}\n'
-          return fmt
-      
-      logger.add(sys.stderr, format=format)    
     /%python
-    
     """
-    _FORMAT = rf"""{h2('Formatting')}
-    format can be function that takes a 'record' dict and returns a str e.g
-    "{{level}} | {{extra[foo]}} - {{message}}\n{{exception}}"
+    
+    _FORMAT = f"""{h2('Formatting')} {c('str | (record) -> str')}
+    %python 2
+    format="{{level.icon}} {{level}} | {{extra[foo]}} - {{message}}{linebreak}{{exception}}"
+    format=lambda record: ...
+    
+    {h3('Time')} {c('format="{time:HH:mm:ss[!UTC]}"')}
+      YY[YY]
+      Q             {c('Quarter')}
+      M[M[M[M]]]    {c('Month')}
+      D[D[D[D]]]    {c('Day of Year')}
+      d[dd[d]]      {c('Day of Week. 0-6')}
+      E             {c('Days of ISO Week. 1-7')}
+      H[H]          {c('24')}
+      h[h]          {c('12')}
+      m[m]          {c('minute')}
+      s[s]          {c('second')}
+      S{{1-4,6}}      {c('Fractional Second')}
+      A             {c('AM, PM')}
+      Z[Z]          {c('-07:00 ... +07:00')}
+      zz            {c('EST, ...')}
+      X             {c('1234567890[.123]')}
+      x             {c('1234567890123')}
+      
+    {h3('Colors / Markup')}
+      <level> / <lvl>   <hide> / <h>
+      <black> / <k>     <bold> / <b>
+      <blue> / <e>      <dim> / <d>
+      <cyan> / <c>      <normal> / <n>
+      <green> / <g>     <italic> / <i>
+      <magenta> / <m>   <underline> / <u>
+      <red> / <r>       <strike> / <s>
+      <white> / <w>     <reverse> / <v>
+      <yellow> / <y>    <blink> / <l>
+      <light-red> / <lr>
+      <GREEN> / <G>     {c('Background')}
+      <bg 42>           <bg 72,119,65>
+      <fg 255>          <fg 0,95,0>
+      <fg #00005f>      <fg #fff>
+      
     
     {h3('Padding')}
+      %python
       {{level: <8}}
       {{line: >3}}
       {{name: ^15}}
+      /%python
     """
-    _PATCH = f"""{h2('patch')}(callable)
+    
+    _SINK = f"""{h2('Sink')} {c('str | { write(message) -> None } | Path | (message) -> None | coroutine | logging.Handler')}
+    %python
+    logger.add(sys.stdout)
+    logger.add("file_{{time}}.log"
+    logger.add(lambda m: print(m, end=""))
+    logger.add(logging.StreamHandler(sys.stderr))
+    
+    def update_db_sink(message):
+        record = message.record
+        update_db(message, time=record["time"], level=record["level"])
+    logger.add(update_db_sink)
+    
+    async def publish(message):
+        await api.post(message)
+    logger.add(publish, serialize=True)
+    /%python
+    """
+    
+    _FILTER = f"""{h2('Filter')} {c('str | dict | (rec) -> bool')}
+    %python
+    # str: only records with same `name`
+    filter="sub.module"
+    
+    # (rec) -> bool
+    filter=lambda rec:rec['name'] == 'sub.module'
+
+    # dict: map module names to minimum level or to boolean
+    fliter={{ 'sub.module' : level_int | 'level_name' | True | False }}
+    /%python
+    """
+    
+    _ENV = f"""{h2('Environment Variables')}
+    Each `add()` param can be controlled e.g LOGURU_[PARAM]:
+      LOGURU_FORMAT="{{time}} - {{message}}"
+      LOGURU_DIAGNOSE=NO
+
+    Levels' attrs e.g LOGURU_[LEVEL]_[ATTR]:
+      LOGURU_DEBUG_COLOR="<blue>"
+      LOGURU_TRACE_ICON="🚀"
+
+    Disable pre-configured sink:
+      LOGURU_AUTOINIT=False
+    """
+    _PATCH = f"""{h2('.patch')}( (record) -> None ) -> Logger
+    {c('Modify record dict before propagated to handlers')}
+    %python 2
     logger.patch(lambda rec: rec["extra"].update(utc=datetime.utcnow())
     logger.patch(lambda rec: rec.update(function=func.__name__))
     
@@ -5180,26 +5257,38 @@ def loguru(subject=None):
       
       /%python
     """
-    _BIND = f"""{h2('bind')}(**extra_kv)
-    Sets record['extra'][key] = value.
+    
+    _BIND = f"""{h2('.bind')}(**extra_kv) -> Logger
+    {c("Sets record['extra'] attributes.")}
+    %python
+    # Example 1
+    logger.add(sys.stderr, format="{{extra[user]}} - {{message}}")
+    logger = logger.bind(user='gilad')
+    /%python
     """
     
-    _OPT = rf"""{h2('opt')}(*,
+    _OPT = f"""{h2('.opt')}(*,    {c('Modify config')}
     %python
-      exception=None,  # bool | tuple | Exception
-      record=False,    # Use record dict e.g "Current line is: {{record[line]}}"
-      lazy=False,      # .info("If sink <= DEBUG: {{x}}", x=lambda: math.factorial(2**5))
-      colors=False,    # .info("We got a <red>BIG</red> problem")
-      raw=False,       # Don't format sink e.g .info("No formatting\n")
-      capture=True,    # If False, don't populate extra with **kwargs
-      depth=0 
-      )
-      
+      exception=None,    # bool | tuple | Exception
+      record=False,      # Use record dict
+      lazy=False,        #
+      colors=False,      # Enable color tags
+      raw=False,         # Don't format sink
+      capture=True,      # If False, don't populate extra with **kwargs
+      depth=0            # frame offset
+      ) -> Logger
+    
+    logger.opt(exception=True).debug("Exception logged with debug level:")
+    logger.opt(record=True).info("Current line is: {{record[line]}}")
+    logger.opt(lazy=True).debug("If sink <= DEBUG: {{x}}", x=lambda: math.factorial(2**5))
+    logger.opt(raw=True).info("No formatting{linebreak}")
+    logger.opt(capture=False).info("Displayed but not captured: {{value}}", value=123)
+
     # To persist (because resets every call):
     logger.opt = partial(logger.opt, colors=True)
     /%python
     """
-    _CONFIGURE = f"""{h2('configure')}(*,
+    _CONFIGURE = f"""{h2('.configure')}(*,
     %python
       handlers=None,     # list[dict] (list of add() params) 
       levels=None,       # list[dict] (list of level() params)
@@ -5209,11 +5298,15 @@ def loguru(subject=None):
       )
     /%python
     """
-    _LEVEL = f"""{h2('level')}(name,
+    
+    _REMOVE = f"""{h2('.remove')}(handler_id=0)
+    """
+    
+    _LEVEL = f"""{h2('.level')}(name,
     %python
-        no=None,     # int (severity)
-        color=None,  # str, markup
-        icon=None,   # str
+        no: int = None,     # number (severity)
+        color: str = None,  # markup
+        icon: str = None,   
         ) -> Level (namedtuple)
     /%python
     
@@ -5221,12 +5314,11 @@ def loguru(subject=None):
       %python
       logger.level("custom", no=15, color="<blue><bold>", icon="❌")
       logger.log("custom", "Logging...")
-      
-      # Convenience:
       logger.__class__.custom = partialmethod(logger.__class__.log, "custom")
       logger.custom("Logging...")
       /%python
     """
+    
     _SNIPPETS = f"""{h2('Snippets')}
     %python
     # Monkeypatch all warnings
@@ -5240,6 +5332,18 @@ def loguru(subject=None):
         showwarning_(message, *args, **kwargs)
     
     warnings.showwarning = showwarning
+    
+    # Example 2: Syntax Highlighting
+    from pygments.formatters import TerminalTrueColorFormatter
+    from pygments.lexers import PythonLexer
+    from pygments import highlight
+    
+    def format(record):
+        record["message"] = highlight(record["message"], PythonLexer(), TerminalTrueColorFormatter(style="monokai"))
+        fmt = '[<level>{{level: <7}}</level>]{linebreak}{{message}}{linebreak}'
+        return fmt
+    
+    logger.add(sys.stderr, format=format)
     /%python
     """
     if subject:
@@ -5247,14 +5351,18 @@ def loguru(subject=None):
         return frame.f_locals[subject]
     else:
         return f"""{h1('loguru')}
-  {_CONFIGURE}  
-  {_RECORD}  
-  {_FORMAT}  
-  {_ADD}  
-  {_BIND}  
-  {_PATCH}  
-  {_OPT}  
-  {_LEVEL}  
+  {_ADD}
+  {_CONFIGURE}
+  {_RECORD}
+  {_FORMAT}
+  {_FILTER}
+  {_SINK}
+  {_ENV}
+  {_BIND}
+  {_PATCH}
+  {_OPT}
+  {_REMOVE}
+  {_LEVEL}
   {_SNIPPETS}  
   """
 
@@ -7203,6 +7311,17 @@ def python(subject=None):
       12345.6789:,.2f   {c('12,345.68')}
       10:<03d           {c('100')}
       10:>03d           {c('010')}
+      f"{{mystr: >5}}"  {c('Like mystr.rjust(5)')}
+    """
+    _IMPORT = _MODULES = f"""{h2('Import System')}
+    {c("https://docs.python.org/3/reference/import.html")}
+    __name__
+    __loader__
+    __package__
+    __spec__
+    __path__
+    __file__
+    __cached__
     """
     
     __LOGGING_FORMATTER = f"""{h3('Formatter(')}
@@ -7542,6 +7661,8 @@ def python(subject=None):
   {_DIFFLIB}
   
   {_FORMAT}
+  
+  {_IMPORT}
   
   {_ARGPARSE}
 
@@ -8683,6 +8804,13 @@ def tar(subject=None):
   -C <PATH> {c('different destination')}
     """
 
+
+@syntax
+def traceback(subject=None):
+    return f"""{h1('traceback')}
+    {c('https://docs.python.org/3/library/traceback.html')}
+    traceback.extract_stack(f=None, limit=None) {c('→ StackSummary')}
+    """
 
 @syntax
 def tree(subject=None):

@@ -8,7 +8,7 @@ import re
 import sys
 # from functools import wraps
 from collections import defaultdict
-from typing import Callable, Union, Any, Collection
+from typing import Callable, Collection
 
 import click
 
@@ -20,23 +20,25 @@ from manuals.common.types import ManFn
 # from more_termcolor import cprint
 from manuals.formatting import h2
 
-SUB_TOPIC_RE = re.compile(r'_[A-Z]*\s?=\s?(rf|fr|f)"""')
+SUB_TOPIC_RE = re.compile(r'_[A-Z0-9_]*\s*=\s*(rf|fr|f)["\']{3}')
 
 
-def get_unused_subtopics(undecorated_main_topic_fn):
-    """python -m manuals <MAIN TOPIC> --doctor calls this"""
+def get_unused_subtopics(undecorated_main_topic_fn) -> list[str]:
+    """python -m manuals --doctor calls this"""
+    # TODO (bug): Doesn't check if __LOGGING_FORMATTER in _LOGGING
+    # TODO (bug): If _MANAGE = _MANAGEPY = f"""... and _MANAGEPY in last block, says _MANAGE is unused
     lines = inspect.getsource(undecorated_main_topic_fn).splitlines()
     try:
-        last_else_idx = -next(i for i, line in enumerate(reversed(lines)) if line.strip() == 'else:') - 1
+        last_block_linenum = -next(i for i, line in enumerate(reversed(lines)) if line.strip() == 'else:') - 1
     except StopIteration:
-        # no else: clause, just return (like click)
-        last_else_idx = -next(i for i, line in enumerate(reversed(lines)) if line.strip().startswith('return ')) - 1
-    before_else = {line.strip().partition('=')[0].strip() for line in lines[:last_else_idx] if
-                    line and SUB_TOPIC_RE.search(line) and not '__' in line}
-    after_else = {line.strip()[1:-1] for line in lines[last_else_idx:] if
-                   (stripped := line.strip()).startswith('{_') and stripped.endswith('}')}
-    if diff := before_else - after_else:
-        logging.warning(f'{undecorated_main_topic_fn.__name__}() doesnt print: {diff}')
+        # no else: clause, just `return """...`
+        last_block_linenum = -next(i for i, line in enumerate(reversed(lines)) if line.strip().startswith('return')) - 1
+    lines_before_last_block = {line.strip().partition('=')[0].strip() for line in lines[:last_block_linenum] if
+                               line and SUB_TOPIC_RE.search(line) and '__' not in line}
+    line_inside_last_block = {line.strip()[1:-1] for line in lines[last_block_linenum:] if
+                              (stripped := line.strip()).startswith('{_') and stripped.endswith('}')}
+    if lines_missing_inside_last_block := lines_before_last_block - line_inside_last_block:
+        return sorted(list(lines_missing_inside_last_block))
 
 
 def draw_out_decorated_fn(fn: ManFn) -> Callable:
@@ -96,9 +98,11 @@ def populate_sub_topics(*, print_unused_subtopics=False) -> TSubTopics:
         if not sub_topic_var_names:
             continue
         
-        
         if print_unused_subtopics:
-            print(get_unused_subtopics(undecorated_main_topic_fn))
+            unused_subtopics = get_unused_subtopics(undecorated_main_topic_fn)
+            if unused_subtopics:
+                spaces = ' ' * (max(map(len, MAIN_TOPICS.keys())) - len(name))
+                print(f"{name!r} doesn't print:{spaces}{', '.join(unused_subtopics)}")
         
         for sub_topic_var_name in sub_topic_var_names:
             ## DONT account for dunder __ARGUMENTS, it's being handled by get_sub_topic().
@@ -108,7 +112,6 @@ def populate_sub_topics(*, print_unused_subtopics=False) -> TSubTopics:
             sub_topic_var_name = sub_topic_var_name.strip().lower()[1:]
             main_topic.sub_topics.add(sub_topic_var_name)
             all_sub_topics[sub_topic_var_name].add(main_topic)
-            
     
     return all_sub_topics
 
@@ -263,8 +266,8 @@ def print_manual(topic: str, sub_topic=None):
         ## Maybe multiple manuals have it
         if len(SUB_TOPICS[topic]) > 1:
             from manuals import prompt
-            manuals: list[ManFn] = list(SUB_TOPICS[topic]) # for index
-    
+            manuals: list[ManFn] = list(SUB_TOPICS[topic])  # for index
+            
             # TODO (bugs):
             #  (1) If an ALIAS of a subtopic is the same as a SUBTOPIC of another main topic,
             #    this is called (shouldn't). Aliases aren't subtopics. (uncomment asyncio # _SUBPROCESS = _SUBPROCESSES)
@@ -289,18 +292,29 @@ def print_manual(topic: str, sub_topic=None):
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.argument('main_topic')
+@click.argument('main_topic', required=False)
 @click.argument('sub_topic', required=False)
-@unrequired_opt('-l', '--list', 'list_subtopics', is_flag=True, help='list sub topics')
-@unrequired_opt('--doctor', 'print_unused_subtopics', is_flag=True, help="prints any subtopics that are skipped erroneously in a main topic's else clause")
-def get_topic(main_topic, sub_topic, list_subtopics, print_unused_subtopics):
-    logging.debug(f'myman.get_topic({main_topic = }, {sub_topic = }, {list_subtopics = })')
+@unrequired_opt('-l', '--list', 'list_topics_or_subtopics', is_flag=True, help="List main topic's sub topics if MAIN_TOPIC is provided, else list all main topics")
+@unrequired_opt('--doctor', 'print_unused_subtopics', is_flag=True, help="Print any subtopics that are skipped erroneously in a main topic's else clause")
+def get_topic(main_topic, sub_topic, list_topics_or_subtopics, print_unused_subtopics):
+    logging.debug(f'manuals.get_topic({main_topic = }, {sub_topic = }, {list_topics_or_subtopics = })')
     if print_unused_subtopics:
         populate_sub_topics(print_unused_subtopics=True)
         return
-    if list_subtopics:
-        print(f"{h2(main_topic)}\n")
-        [print(f'{st}') for st in sorted(MAIN_TOPICS[main_topic].sub_topics)]
+    if list_topics_or_subtopics:
+        if main_topic:
+            print(f"{h2(main_topic)}")
+            [print(f' · {sub}') for sub in sorted(MAIN_TOPICS[main_topic].sub_topics)]
+        else:
+            for main_name, main_function in sorted(MAIN_TOPICS.items()):
+                alias = getattr(main_function, 'alias', None)
+                if alias and alias == main_name:
+                    continue
+                title = f"\n{h2(main_name)}"
+                if alias:
+                    title += f" ({main_function.alias})"
+                print(title)
+                [print(f' · {sub}') for sub in sorted(MAIN_TOPICS[main_name].sub_topics)]
         return
     
     print_manual(main_topic, sub_topic)
