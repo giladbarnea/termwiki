@@ -971,21 +971,43 @@ def bash(subject=None):
     __SET = f"""{h3('set')} {c('[-abefhkmnptuvxBCHP] [-o [OPTION]] [--] [arg ...]')}
     Using + rather than - causes these flags to be turned off.
     The current set of flags may be found in $-.
-
-    -o                        {c('bare "o" displays a list of all options and their values')}
-    -a, -o allexport          {c('Mark variables which are modified or created for export.')}
-    -e, -o errexit            {c('Exit immediately if a command exits with a non-zero status.')}
-    -n, -o noexec             {c('Read commands but do not execute them.')}
-    -u                        {c('Treat unset variables as an error when substituting.')}
-    -v, -o verbose            {c('Print shell input lines as they are read.')}
-    -x, -o xtrace             {c('Print commands and their arguments as they are executed.')}
-    -o interactive-comments   {c('allow comments to appear in interactive commands')}
-    -T, -o functrace          {c('DEBUG and RETURN traps are inherited by shell functions.')}
-    -E, -o errtrace           {c('ERR trap is inherited by shell functions.')}
-    --                        {c('Assign any remaining arguments to the positional parameters.')}
-                              {c('  If there are no remaining arguments, the positional parameters are unset.')}
-    -                         {c('Assign any remaining arguments to the positional parameters.')}
-                              {c('  The -x and -v options are turned off.')}
+    
+    | -o <CMD>             | -? | description
+    | --------             | -- | -----------
+    | -o                   |    | bare "o" displays a list of all options and their values
+    | allexport            | -a | Mark variables which are modified or created for export.
+    | braceexpand          | -B | Notify of job termination immediately.
+    | emacs                |    | Use emacs style editing
+    | errexit              | -e | Exit immediately if a command exits with a non-zero status.
+    | errtrace             | -E | ERR trap is inherited by shell functions.
+    | functrace            | -T | DEBUG and RETURN traps are inherited by shell functions.
+    | hashall              | -h | Remember the location of commands as they are looked up.
+    | histexpand           | -H | Enable ! style history substitution. On by default in interactive shells
+    | history              |    | Enable command history
+    | ignoreeof            |    | The shell will not exit upon reading EOF
+    | interactive-comments | -o | allow comments to appear in interactive commands
+    | keyword              | -k | All assignment arguments are placed in the environment for a
+    |                               command, not just those that precede the command name.
+    | monitor              | -m | Job control is enabled.
+    | noclobber            | -C | disallow existing regular files to be overwritten by output redirection
+    | noexec               | -n | Read commands but do not execute them.
+    | noglob               | -f | Disable file name generation (globbing).
+    | nolog                |    | ignored
+    | notify               | -b | Notify of job termination immediately.
+    | nounset              | -u | Treat unset variables as an error when substituting.
+    | onecmd               | -t | Exit after reading and executing one command.
+    | physical             | -P | Don't resolve symlinks in commands such as cd
+    | pipefail             |    | Return val of pipeline is status of last non-zero, or 0 if all good
+    | posix                |    |
+    | privileged           | -p | Turned on whenever the real and effective user ids do not match.
+    |                               Something with $ENV file and importing shell functions
+    | verbose              | -v | Print shell input lines as they are read.
+    | vi                   |    | Use vi-style editing
+    | xtrace               | -x | Print commands and their arguments as they are executed.
+    | --                   |    | Assign any remaining arguments to the positional parameters.
+    |                      |    |   If there are no remaining arguments, the positional parameters are unset.
+    | -                    |    | Assign any remaining arguments to the positional parameters.
+    |                      |    |   The -x and -v options are turned off.
 
       """
     __STRING = rf"""{h3('strings')}
@@ -5304,10 +5326,10 @@ def loguru(subject=None):
     
     _LEVEL = f"""{h2('.level')}(name,
     %python
-        no: int = None,     # number (severity)
-        color: str = None,  # markup
-        icon: str = None,   
-        ) -> Level (namedtuple)
+       no: int = None,     # number (severity)
+       color: str = None,  # markup
+       icon: str = None,   
+       ) -> Level (namedtuple)
     /%python
     
     {h3('Examples')}
@@ -6646,7 +6668,7 @@ def pip(subject=None):
       pip install -e "git+ssh://git@bitbucket.org/cashdash/reconciliation_services.git@recon-services-v2.4.0#egg=reconciliation_services"
       pip install -e "git+ssh://git@github.com/giladbarnea/more_termcolor.git#egg=more_termcolor"
       pip install -e "git+https://git@github.com/ipython/ipython.git#egg=ipython"
-      pip install -e "git+https://github.com/giladbarnea/pdbpp.git#egg=pdbpp
+      pip install -e "git+https://github.com/giladbarnea/pdbpp.git#egg=pdbpp"
 
     {h3('From local dir')}
       {c('sudo chmod 777 target dir, and make sure no prompts in target setup.py')}
@@ -6779,7 +6801,7 @@ def poetry(subject=None):
     /%bash
   """
     _UPDATE = f"""{h2('update')} [--no-dev] [--dry-run] [--lock] [package...]
-  Resolve latest versions of deps and write exact versions to poetry.lock.
+    Resolve latest versions of deps and write exact versions to poetry.lock.
   """
     if subject:
         frame = inspect.currentframe()
