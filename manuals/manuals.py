@@ -1318,7 +1318,8 @@ def bash(subject=None):
     
     _COMPLETE = _COMPGEN = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
     {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
-    {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
+    {c('https://wiki.bash-hackers.org/syntax/shellvars?s[]=completion')}
+
     {h3('Flags')}
       -a      {c('alias')}
       -b      {c('shell builtins')}
@@ -1368,8 +1369,11 @@ def bash(subject=None):
       COMP_CWORD{c(': int (1-index of current word in COMP_WORDS)')}
       COMP_LINE{c(': str (the whole buffer)')}
       COMP_POINT{c(': int (1-index of current char)')}
-      COMP_TYPE
-      COMP_KEY
+      COMP_TYPE{c(': int (type of triggered completion: normal, menu, successive...)')}
+      COMP_KEY{c(': str (key that invoked current completion)')}
+      COMP_WORDBREAKS {c('chars that mean word separators when completing')}
+      READLINE_LINE {c('Contents of readline line buffer, for use with bind -x')}
+      READLINE_POINT {c('Position of insertion point in readline line buffer, for use with bind -x')}
       BASH_REMATCH
       CURSOR
       COMPREPLY
@@ -1848,6 +1852,9 @@ def bash(subject=None):
 
   {h3('Append after match')}
     sed -i '/# HIST_STAMPS="mm\/dd\/yyyy"/ a HISTSIZE=1000000' ~/.zshrc
+
+  {h3('Print specific line')}
+    sed -n 10p /path/to/file
   
   {h3('Delete line from file')}
     sed 'Nd' file         {c("sed '1d' file | sed '1,3d' file")}
@@ -1855,8 +1862,10 @@ def bash(subject=None):
     sed '2,4!d' file      {c('all except lines 2 to 4')}
     sed '2;4d' file       {c('only 2 and 4')}
     sed '/^$/d' file      {c('empty lines')}
+    sed '/fedora/,+4d' <file> {c('from pattern +4 next lines')}
     sed '/fedora/,$d'         {c('starting from a pattern till last line')}
     sed '${{/ubuntu/d;}}'     {c('last line only if it contains the pattern')}
+    sed -i <file> -re '<start>,<end>d'    {c('Remove range of lines')}
     """
     
     _SYMLINK = _LN = _LINK = f"""{h2('ln - make links between files')}
@@ -8300,16 +8309,41 @@ def ssh(subject=None):
       %U    {c('The numeric user ID of the target user.')}
       %u    {c('The username.')}
     """
-    _TUNNEL = f"""{h2('Tunneling')}
+    _TUNNEL = _FORWARDING = f"""{h2('Tunneling / Forwarding')}
     https://www.youtube.com/watch?v=N8f5zv9UUMI
     https://www.youtube.com/watch?v=aOmIqUs0fbY
     
-    %bash
-    # Tunnel IRC session from client to IRC server at “server.example.com”, 
-    # join channel “#users”, nickname “pinky”, using the standard IRC port 6667
-    ssh -f -L 6667:localhost:6667 server.example.com sleep 10
-    irc -c '#users' pinky IRC/127.0.0.1
-    /%bash
+    {h3('Local port forwarding')}
+      %bash
+      # Tunnel IRC session from client to IRC server at “server.example.com”, 
+      ❯ ssh -f -L 6667:localhost:6667 server.example.com sleep 10
+      # join channel “#users”, nickname “pinky”, using the standard IRC port 6667
+      ❯ irc -c '#users' pinky IRC/127.0.0.1
+
+
+      # Forwarding our local 2250 port to nmap.org:443 from localhost through localhost
+      ❯ ssh -L 2250:nmap.org:443 localhost
+      # Connect to the service:
+      ❯ curl -Iks --location -X GET https://localhost:2250
+
+
+      # Forwarding our local 9051 port to db.d.x:5432 from localhost through node.d.y
+      # -n - redirects stdin from /dev/null
+      # -N - do not execute a remote command
+      # -T - disable pseudo-terminal allocation      
+      ❯ ssh -nNT -L 9051:db.d.x:5432 node.d.y
+      # Connect to the service:
+      ❯ psql -U db_user -d db_dev -p 9051 -h localhost
+      /%bash
+
+    {h3('Remote port forwarding')}
+      %bash
+      # Forwarding our local 9051 port to db.d.x:5432 from host2 through node.d.y
+      ❯ ssh -nNT -R 9051:db.d.x:5432 node.d.y
+      # Connect to the service:
+      ❯ psql -U postgres -d postgres -p 8000 -h localhost
+      /%bash
+    
     """
     if subject:
         frame = inspect.currentframe()

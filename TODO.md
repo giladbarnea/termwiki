@@ -27,5 +27,6 @@
 # Bugs
 - [ ] `mm bash --list` prints `_args` and `_arguments` as separate. should display `_args, _arguments`
 
-# Thoughts
-- [ ] separate man files: support `.md`, maybe `.rst`?
+# Separate man files
+- support a python / markdown hybrid? https://github.com/lark-parser/lark
+- [Scanner class](https://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/)
