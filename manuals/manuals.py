@@ -1857,14 +1857,14 @@ def bash(subject=None):
     sed -n 10p /path/to/file
   
   {h3('Delete line from file')}
-    sed 'Nd' file         {c("sed '1d' file | sed '1,3d' file")}
-    sed '$d' file         {c('last line')}
-    sed '2,4!d' file      {c('all except lines 2 to 4')}
-    sed '2;4d' file       {c('only 2 and 4')}
-    sed '/^$/d' file      {c('empty lines')}
-    sed '/fedora/,+4d' <file> {c('from pattern +4 next lines')}
-    sed '/fedora/,$d'         {c('starting from a pattern till last line')}
-    sed '${{/ubuntu/d;}}'     {c('last line only if it contains the pattern')}
+    sed 'Nd' file              {c("sed '1d' file | sed '1,3d' file")}
+    sed '$d' file              {c('last line')}
+    sed '2,4!d' file           {c('all except lines 2 to 4')}
+    sed '2;4d' file            {c('only 2 and 4')}
+    sed '/^$/d' file           {c('empty lines')}
+    sed '/fedora/,+4d' <file>  {c('from pattern +4 next lines')}
+    sed '/fedora/,$d'          {c('starting from a pattern till last line')}
+    sed '${{/ubuntu/d;}}'        {c('last line only if it contains the pattern')}
     sed -i <file> -re '<start>,<end>d'    {c('Remove range of lines')}
     """
     
@@ -7713,6 +7713,33 @@ def python(subject=None):
   
   {_VERSIONS}
         """
+
+
+def redis(subject=None):
+    _CLUSTER = f"""{h2('RedisCluster')}
+    acl_list()
+    acl_cat()
+    acl_users()
+    acl_whoami()
+    bitcount()
+    client()
+    client_getname() -> {{ 172.24.24.2:6379 : 'foo' }}
+    client_id() -> {{ 172.24.24.2:6379 : 25 }}
+    client_list() -> {{ 172.24.24.2:6379 : [ {{ ... }} ] }}
+    cluster_info() -> {{ 172.24.24.2:6379 : {{ ... }} }}
+    cluster_slots()
+    config_get() -> {{ 172.24.24.2:6379 : {{ ... }} }}
+    dbsize() -> {{ 172.24.24.2:6379 : 1 }}
+    info() -> {{ 172.24.24.2:6379 : {{ ... }} }}
+    keys() -> [ 'sm:rsevents:367cacba9a4c444ea9220bee5b29ae7b' ]
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('Redis')}
+  {_CLUSTER}
+    """
 
 
 @alias('rst')
