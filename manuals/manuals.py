@@ -2068,8 +2068,20 @@ def bash(subject=None):
   
   {h3('Examples')}
     %bash
+    # Trivial trap
     set -o errtrace
     trap 'function_name' ERR
+
+    # Call a function before every statement
+    preexec () {{ echo "running something..." ; }}
+    preexec_invoke_exec () {{
+        [ -n "$COMP_LINE" ] && return  # do nothing if completing
+        [ "$BASH_COMMAND" = "$PROMPT_COMMAND" ] && return # don't cause a preexec for $PROMPT_COMMAND
+        local this_command=`HISTTIMEFORMAT= history 1 | sed -e "s/^[ ]*[0-9]*[ ]*//"`;
+        preexec "$this_command"
+    }}
+    set -T
+    trap 'preexec_invoke_exec' DEBUG
     /%bash
   
   {h3('See also')}
