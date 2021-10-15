@@ -92,7 +92,7 @@ def _get_color_formatter(style: Style = None):
     # monokai (good for ts)
     # fruity
     if style is None:
-        style = 'native'
+        style = 'monokai'
     global formatters
     formatter = formatters.get(style)
     if formatter is None:
@@ -103,11 +103,12 @@ def _get_color_formatter(style: Style = None):
 
 
 def _highlight(text: str, lang: Language, style: Style = None) -> str:
+    print(f'{lang = !r} | {style = !r}')
     lexer = _get_lexer(lang)
     if style is None:
-        if lang == 'js' or lang == 'json':
+        if lang == 'js':
             style = 'default'
-        elif lang in ('ts', 'bash', 'ipython'):
+        elif lang in ('ts', 'bash', 'ipython', 'json'):
             style = 'monokai'
     formatter = _get_color_formatter(style)
     highlighted = pyglight(text, lexer, formatter)
@@ -635,7 +636,8 @@ def autohotkey(subject=None):
   """
 
 
-@syntax(bash='friendly')
+
+@syntax
 def bash(subject=None):
     # 	_strings(){
     # 		printf "$(_h1 'Strings')
@@ -899,8 +901,9 @@ def bash(subject=None):
     if ! $(git checkout "$@"); then     # executes what's inside $()
     if ! git checkout "$@"; then        # doesn't execute
     """
-    __IF = f"""{h3('if')}
+    __REGEX = f"""{h3("[[ ... =~ REGEX ]]")}
     %bash
+    if [[ "defhi_" =~ '[[:space:]_]' ]]; then ... fi
     [:alnum:], [:alpha:], [:blank:], [:cntrl:], [:digit:], 
     [:graph:], [:lower:], [:print:], [:punct:], [:space:], 
     [:upper:], and [:xdigit:]
@@ -1415,6 +1418,9 @@ def bash(subject=None):
       compdef, compctl
     """
     _COMPDEF = _COMPCTL = f"""{h3('compdef, compctl')}
+      {h4('#compdef name ... [ -{p|P} pattern ... [ -N name ... ] ]')}
+      {h4('compdef [ -ane ] function name ... [ -{p|P} pattern ... [ -N name ...]]')}
+      {c('https://zsh.sourceforge.io/Doc/Release/Completion-System.html')}
       %bash
       compdef _git git.my-commits=git-log
       
@@ -1483,6 +1489,7 @@ def bash(subject=None):
                     bar.txt
     ''')}
     """
+
     _CUT = f"""{h2('cut')}
     -b, -c and -f are mutually exclusive
   
@@ -1506,43 +1513,47 @@ def bash(subject=None):
     _DIFF = f"""{h2('diff')}
     {c('diff [OPTION]... FILES')}
 
-    {h3('behavior')}
-      -r, --recursive         {c('for subdirectories')}
-      -d,  --minimal          {c('Try harder for smaller changes')}
-      --suppress-common-lines
-      -N,  --new-file         {c('Treat absent files as empty')}
-      -s,  --report-identical-files
-      -a, --text              {c('treat all files as text')}
+    {h3('Behavior')}
+      -r, --recursive        {c('for subdirectories')}
+      -d, --minimal          {c('Try harder for smaller changes')}
+          --suppress-common-lines
+      -N, --new-file         {c('Treat absent files as empty')}
+      -s, --report-identical-files
+      -a, --text             {c('treat all files as text')}
+          --speed-large-files
+                  {c('assume large files and many scattered small changes')}
 
-    {h3('ignoring')}
-      -w,  --ignore-all-space
-      -i, --ignore-case       {c('for content')}
-      --ignore-file-name-case
-      -E,  --ignore-tab-expansion
-      -b,  --ignore-space-change
-      -B,  --ignore-blank-lines
-      -I {i('RE')},  --ignore-matching-lines={i('RE')}
-      --strip-trailing-cr
-      -x {i('PATTERN')},  --exclude={i('PATTERN')}   {c('Exclude files matching PATTERN')}
-      -X {i('FILE')},  --exclude-from={i('FILE')}
+    {h3('Ignoring')}
+      -w, --ignore-all-space
+      -i, --ignore-case         {c('for content')}
+      -E, --ignore-tab-expansion
+      -b, --ignore-space-change
+      -B, --ignore-blank-lines
+      -I, --ignore-matching-lines={i('RE')}
+      -Z, --strip-trailing-cr
+          --ignore-file-name-case
+      -x, --exclude={i('PATTERN')}     {c('Exclude files matching PATTERN')}
+      -X, --exclude-from={i('FILE')}
 
-    {h3('output')}
-      -c,  -C {i('NUM')},  --context[={i('NUM')}] {c('lines of copied context')}
-      -u,  -u {i('NUM')},  --unified[={i('NUM')}] {c('lines of unified context')}
-      -q,  --brief
-      -n,  --rcs             {c('Output an RCS format diff')}
-      -y,  --side-by-side
-      -l,  --paginate       {c('splits to pages, i.e. "page 1" etc')}
-      -W {i('NUM')},  --width={i('NUM')}     {c('default 130')}
+    {h3('Output')}
+      -c, -C, --context[={i('NUM')}]  {c('lines of copied context')}
+      -u, -u, --unified[={i('NUM')}]  {c('lines of unified context')}
+      -q, --brief
+      -n, --rcs                {c('Output an RCS format diff')}
+      -y, --side-by-side
+      -l, --paginate           {c('splits to pages, i.e. "page 1" etc')}
+      -W, --width={i('NUM')}          {c('default 130')}
     
     {h3('Examples')}
+      %bash
       diff config_dev.json ../reconciliation_engine/config.json -wBy --suppress-common-lines
       
-      {h4('Comparing content of binary files')}
+      # Comparing content of binary files
       diff <(xxd profile-icecream.JPG) <(xxd profile-icecream2.JPG)
 
-      {h4('Comparing strings')}
+      # Comparing strings
       diff <(echo "foo") <(echo "fo0")
+      /%bash
       """
     
     _DU = f"""{h2('du')} [options] [path]
@@ -1680,6 +1691,7 @@ def bash(subject=None):
       grep --exclude-dir "*home/gilad/Downloads/ANGRYsearch*" --exclude "file.zip" -riPa "angrysearch"
       grep -nIrEH -C 1 --exclude="*.log" --exclude-dir="src" "[^def ]loadDataFromS3" .
         """
+
     _HEAD = _TAIL = f"""{h2('head, tail')} [OPTION]... [FILE]...
     -z      {c('zero terminated')}
     head -n, --lines=NUM      {c('[:NUM]    until NUM')}
@@ -1704,6 +1716,7 @@ def bash(subject=None):
       head -n +20 FILE
       /%bash
     """
+
     _LESS = f"""{h2('less')}
     {h3('args')}
       -N          line numbers
@@ -1729,6 +1742,7 @@ def bash(subject=None):
       ! {i('shell-command')}
       s {i('filename')}     saves to file. works only if input is a pipe
     """
+
     _MAN = f"""{h2('man')}
   {h3('Usage')}
     man [man options] [[section] page ...] ...
@@ -1796,31 +1810,58 @@ def bash(subject=None):
     http://linuxcommand.org/lc3_man_pages/readh.html
     read [-ers] [-a array] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]
     -a array	    {c(f'assign words read to {i("ARRAY")} indices (0-indexed)')}
-    -d {i('DELIM')}	    {c(f'continue until first char of {i("DELIM")} is read (not newline)')}
+    -d DELIM	    {c(f'continue until first char of DELIM is read (not newline)')}
     -e              {c(f'use Readline to obtain the line in an interactive shell')}
-    -i {i('TEXT')}	        {c(f'Use {i("TEXT")} as the initial text for Readline')}
-    -n {i('NCHARS')}	    {c(f'return after reading {i("NCHARS")} (honors delimiter)')}
-    -N {i('NCHARS')}	    {c(f'return after reading {i("NCHARS")} (ignores delimiter)')}
-    -p {i('PROMPT')}	    {c(f'output {i("PROMPT")} without a trailing newline before reading')}
+    -i TEXT	        {c(f'Use TEXT as the initial text for Readline')}
+    -n NCHARS	    {c(f'return after reading NCHARS (honors delimiter)')}
+    -N NCHARS	    {c(f'return after reading NCHARS (ignores delimiter)')}
+    -p PROMPT	    {c(f'output PROMPT without a trailing newline before reading')}
     -r              {c(f'do not allow backslashes to escape any characters')}
     -s              {c(f'do not echo input coming from a terminal')}
-    -t {i('TIMEOUT')}      {c(f'fail if a line is not read within {i("TIMEOUT")} seconds. "0" means no timeout.')}
+    -t TIMEOUT      {c(f'fail if a line is not read within TIMEOUT seconds. "0" means no timeout.')}
 
     {h4('Examples')}
       %bash
-      # first example
+      # Example 1
       foo=$(/bin/bash -c 'read bar; echo $bar');
       
-      # second example
+      # Example 2 (bad)
       find . -type f -regex ".*/.*\.pdf" | while read file; do
         if pdftotext -layout "$file" - | grep -on "foo"; then
-            echo "$file";
-        fi;
+            echo "$file"
+        fi
       done 
+
+      # Example 3 (correct)
+      while read -r gid gdescription; do; :; done < <(ghg-get-line sxhkd.cfg)      
+
+      # Example 4
+      lines=$'first line\nsecond line\nthird line'
+      while read -r line; do ... done <<< "$lines"
+
+      # Example 5
+      while read -r line; do ... done <<< "hello world"
+
+      # Example 6
+      while read -r line; do ... done < <(echo -n "$words")
+      
+      # Example 7
+      IFS=$'\n' ${{#( $(while read -r _drive; do echo "$_drive"; done <<< "$(sudo fdisk -l | grep -E '^/dev')") )}}
       /%bash
     """
-    
-    _PS = _PKILL = _PGREP = _KILL = f"""{h2('Processes')}
+
+    _PRINTF = rf"""{h2('printf')}
+    $ printf %s "hello\x1b[1mworld\x1b[0m"
+    hello\x1b[1mworld\x1b[0m%
+
+    $ printf %q "hello\x1b[1mworld\x1b[0m"
+    hello\\x1b\[1mworld\\x1b\[0m%
+
+    $ printf %b "hello\x1b[1mworld\x1b[0m"
+    hello{b('world')}
+    """
+
+    _PS = _PKILL = _PGREP = _KILL = _SIGNAL = f"""{h2('Processes / Signals')}
     {h3('ps')}
       -A      All processes
       -f      Full format
@@ -1884,6 +1925,7 @@ def bash(subject=None):
   -i, --interactive   {c('prompt whether to remove destinations')}
   find . -type l ! -exec test -e {{}} \\; -print    {c('print empty symlinks')}
     """
+
     _SCP = f"""{h2('scp')} [options...] <SOURCE> ... <TARGET>
     SOURCE and TARGET may be: 
      - a local pathname (rel or abs)
@@ -1923,6 +1965,7 @@ def bash(subject=None):
 
   history | grep -o "idea.*" | sort -u
       """
+
     _SPLIT = f"""{h2('split')}
   {h4('Examples')}
   %bash
@@ -1933,6 +1976,7 @@ def bash(subject=None):
   cat my_file_* > joined.pdf
   /%bash
     """
+
     _STAT = f"""{h2('/bin/stat')} [OPTION...] FILE...
   stat -c, --format=FORMAT
   {h4('FORMAT')}
@@ -1947,7 +1991,10 @@ def bash(subject=None):
     %Y    {c('modification time, epoch')}
     %z    {c('status-change time, human')}
     %Z    {c('status-change time, epoch')}
+
+  stat -c "Group: %G (%g) | User: %U (%u) | Perms: %A (%a)" /root
     """
+
     _SUDO = _SU = f"""{h2('sudo, su')}
     {h3('sudo')}
       -u, --user=USER     {c('instead of usual default "root"')}
@@ -1969,6 +2016,7 @@ def bash(subject=None):
       -m, -p, --preserve-environment
       -w, --whitelist-environment=FOO,BAR   {c('Ignores HOME, SHELL, USER, LOGNAME, PATH')}
     """
+
     _SYNTAX = rf"""{h2('Syntax')}
   {__ARGUMENTS}
   
@@ -1998,7 +2046,7 @@ def bash(subject=None):
   
   {__VARIABLES}
       
-  {__IF}
+  {__REGEX}
   
   {__FILEDESCRIPTORS}
     """
@@ -2191,14 +2239,86 @@ def bat(subject=None):
   bat --wrap <auto|never|character>
   """
 
+@syntax
+def bats(subject=None):
+    _KEYWORDS = f"""{h2('Keywords')}
+  {c('https://bats-core.readthedocs.io/en/stable/writing-tests.html')}
+  {h3('run')} <command> <args>
+    3 globals variables: $status, $output and $lines[@]
+    
+    %bash
+    # Example
+    run cat /does/not/exist
+    [ "$status" -eq 1 ]
+    [ "$output" = "foo: no such file 'nonexistent_filename'" ]
+    [ "${{lines[0]}}" = "usage: foo <filename>" ]
+    /%bash
+    
+  {h3('load')}
+    load 'test_helper/bats-support/load'
+    
+  {h3('skip')}
+    %bash
+    # Example 1
+    skip 'The FIRST_RUN_FILE already exists'
+    
+    # Example 2
+    @test "A test I don't want to execute for now" {{
+        skip
+    }}
+    /%bash
+  
+  {h3('assert')}
+    assert function_with_exit_code
+    assert [ -e '/var/log/test.log' ]
 
+    {h4('assert_equal')}
+      assert_equal 'have' 'want'
+      
+    {h4('assert_success / assert_failure')} [expected exit-status]
+      Test $status after `run`.
+      
+      %bash
+      # Ex 1 (passes)
+      run never_fails
+      assert_success
+      
+      # Ex 2 (fails)
+      run bash -c "echo 'Error!'; exit 1"
+      assert_failure 2
+      /%bash
+
+    {h4('assert_output')} [-p, --partial / -e, --regex] [expected_output]
+      echo 'hello' | assert_output -
+      assert_output - <<< hello
+    
+    {h4('assert_line')} [-n, --index INDEX] [-p, --partial / -e, --regex] [expected_output]
+  
+  {h3('refute')}
+    refute function_with_exit_code
+  
+    {h4('refute_output')}
+    """
+    _FUNCTIONS = f"""{h2('Functions')}
+  setup() / setup_file()
+  teardown() / teardown_file()
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('bats')}
+  {_KEYWORDS}
+  {_FUNCTIONS}
+  """
+  
 def brew(subject=None):
     return f"""{h1('Brew')}
     brew update && brew upgrade
       """
 
 
-@syntax('monokai')
+@syntax
 def click_(subject=None):
     _OPTION = f"""{h2('Options')}
     %python
@@ -5131,7 +5251,7 @@ def jupyter(subject=None):
   """
 
 
-@syntax('monokai')
+@syntax
 def loguru(subject=None):
     _RECORD = f"""{h2('record dict')}
     elapsed{c(': datetime.timedelta')}
@@ -5529,10 +5649,12 @@ def micro(subject=None):
   {h2('bindings.json')}
     help defaultkeys
     %json
-    "Alt-foo" : "None",              // disables
-    "<Ctrl-x><Ctrl-c>" : "...",     // brackets for sequence
+    {{ "Alt-foo" : "None",              // disables
+    "<Ctrl-x><Ctrl-c>" : "...",        // brackets for sequence
     "Alt-foo" : "command:pwd",
-    "Mouse<Left | Middle | Right | Wheel<Up | Down | Left | Right>>": "Mouse<Press | MultiCursor>"
+    "Mouse<Left | Middle | Right | Wheel<Up | Down | Left | Right>>": "Mouse<Press | MultiCursor>",
+    "Tab": "IndentSelection|InsertTab"
+    }} 
     /%json
 
   {h2('plugins')}
@@ -5541,12 +5663,16 @@ def micro(subject=None):
     micro -plugin install PLUGIN
     {h3('filemanager')}
       {c('https://github.com/NicolaiSoeborg/filemanager-plugin')}
-      micro -plugin install filemanager
+      > tree    {c('filemanager.toggle_tree')}
+      > rm
+      > rename
+      > touch
+      > mkdir
     
     {h3('manipulator')}
       {c('https://github.com/NicolaiSoeborg/manipulator-plugin')}
       Surround selection
-      keybindings: "manipulator.lower"
+      keybindings: "command-edit:curly"
       commands: curly, square, angle, dquote, squote, upper, lower, capital
     
     {h3('bounce')}
@@ -6932,56 +7058,80 @@ def pytest(subject=None):
     %bash
     pytest --disable-warnings -k MySQLSession -l -s
     pytest tests/python -l -vv -rA --disable-warnings
-    pytest tests/python/test_Message.py -rA --maxfail=1 -l -k "create_tempo_shifted" | grep -P ".*{backslash}.py:{backslash}d*"
+    pytest tests/python/test_Message.py -rA --maxfail=1 -l -k "create_tempo_shifted"
     python -m pytest -k "gito" --pdbcls="IPython.terminal.debugger:TerminalPdb" --pdb -s
     pytest test_mod.py::TestClass::test_method
     /%bash
 
   {h2('General')}
-    -x {c('or --maxfail=1')}             stop after first failure
-    -l                            show locals
+    -x, --exitfirst {c('or --maxfail=1')}
+    -l, --showlocals
     --tb=auto|long|short|line|native|no
-    --full-trace                  longer than --tb=long
-    --rootdir=ROOTDIR             define {i('ROOTDIR')} for tests
-    --trace                       drop to pdb immediately at the start of each test
-    --pdb [options]               drop to pdb after every failure (use with -x)
-    --pdbcls=IPython.terminal.debugger:TerminalPdb  {c('must use -s')}
-    -m MARKEXPR                   -m 'mark1 and not mark2'
+    --full-trace                  {c("longer than --tb=long")}
+    --rootdir=ROOTDIR             {c("define ROOTDIR for tests")}
+    --trace                       {c("drop to pdb immediately at the start of each test")}
+    --pdb [options]               {c("drop to pdb after every failure (use with -x)")}
+    --pdbcls=modulename:classname {c('e.g IPython.terminal.debugger:TerminalPdb (must use -s)')}
+    -m MARKEXPR                   {c("-m 'mark1 and not mark2'")}
     --disable-warnings
-    -s                            disable capturing ie show prints
+    --capture=fd|sys|no|tee-sys
+    -s, --capture=no              {c('disable capturing, ie show prints')}
+    --color=yes|no|auto
+    --code-highlight=yes|no
     -c more_termcolor/tests/pytest.ini
 
   {h2('Filtering')}
-    -k KEYWORD                    only run tests matching {i('KEYWORD')}
-    -k "not send_http"
-    -k "http or quick"
-    -k "MyClass and not method"
-    -k "file_path and MyClass"    no file extension
-    --lf                          run only last failed (all if none failed)
-    --ff                          run all tests, but run the failed ones first
-    --nf                          new first
+    -k KEYWORD              {c('only run tests matching KEYWORD')}
+      -k "not send_http"
+      -k "http or quick"
+      -k "MyClass and not method"
+      -k "file_path and MyClass"
+    --lf                    {c('run only last failed (all if none failed)')}
+    --ff                    {c('run all tests, but run the failed ones first')}
+    --nf                    {c('new first')}
 
   {h2('Reporting')}
-    {h3('-r<flag>')}                      short test summary at the end of the test session
+    --durations=10          {c('time of 10 slowest tests')}
+    -v, --verbose
+    --no-header
+    --no-summary
+    --disable-warnings
+    
+    {h3('-r<flag>')}                {c('short test summary at the end of the test session')}
       {c('default: -rfE')}
-      -rA                         (show summary of) all
-      -ra                         all except passed
-      -rf                         only failed
-      -rE                         only errored
-      -rp                         only passed
-      -rP                         only passed with output
-      -rs                         only skipped
-      -rN                         nothing
+      -rA                   {c('(show summary of) all')}
+      -ra                   {c('all except passed')}
+      -rf                   {c('only failed')}
+      -rE                   {c('only errored')}
+      -rp                   {c('only passed')}
+      -rP                   {c('only passed with output')}
+      -rs                   {c('only skipped')}
+      -rN                   {c('nothing')}
 
+
+  {h2('Collection')}
+    --collect-only, --co    {c("only collect tests, don't execute them.")}
+    --ignore=path           {c("ignore path during collection (multi-allowed).")}
+    --ignore-glob=path      {c("ignore path pattern during collection (multi-allowed).")}
+    --noconftest            {c("Don't load any conftest.py files.")}
+    --import-mode={{prepend, append, importlib}}
+                            {c('applies to conftest too. default prepend')}
+    
     {h3('--doctest-')}
-      --doctest-modules           run all
-      --doctest-glob=GLOB         maybe together with --doctest-modules
-    --durations=10                time of {i('10')} slowest tests
-
+      --doctest-modules     {c('run doctests in all .py modules')}
+      --doctest-report={{none, cdiff, ndiff, udiff, only_first_failure}}
+                            {c('choose another output format for diffs on doctest failure')}
+      --doctest-glob=pat    {c('doctests file matching pattern, default: test*.txt')}
+      --doctest-ignore-import-errors
+                            {c('ignore doctest ImportErrors')}
+      --doctest-continue-on-failure
+                            {c('for a given doctest, continue to run after the first failure')}
+    
   {h2('Configuration')}
     {h3('conftest.py')}
-      {h4('Custom function arguments')}
+      {c('Possibly multiple conftest.py files under / for different directories')}
       %python
+      # Custom function arguments
       import pytest
       def pytest_addoption(parser):
           parser.addoption('--myopt', ...)
@@ -6989,28 +7139,44 @@ def pytest(subject=None):
       @pytest.fixture
       def myopt(request):
           return request.config.getoption("--myopt")
+
+
+      # Ignoring tests dynamically
+      import sys
+      
+      collect_ignore = ["setup.py"]
+      if sys.version_info[0] > 2:
+          collect_ignore.append("pkg/module_py2.py")     
+
+      # Plugins:
+      pytest_plugins = ("myapp.testsupport.myplugin",)
+
+      # Hooks:
+      https://docs.pytest.org/en/latest/reference.html#hooks
       /%python
 
     {h3('pytest.ini')}
       {c('https://docs.pytest.org/en/latest/reference.html#ini-options-ref')}
       %ini
       [pytest]
+      testpaths = <args>    # when nothing specified on commandline
       addopts =
           --pdbcls=IPython.terminal.debugger:TerminalPdb
           --capture=no  # this is required with custom pdb!
           --disable-warnings
+          --pyargs      # ❯ pytest --pyargs unittest2.test.test_skipping -q
       doctest_optionflags= ELLIPSIS
       filterwarnings =
           error
           ignore::DeprecationWarning
           ignore:.*U.*mode is deprecated:DeprecationWarning
       python_classes = Test* [a-z]*
+      python_functions = *_test
       python_files = test_*.py check_*.py example_*.py
       python_files =
         test_*.py
         check_*.py
         example_*.py
-      python_functions = *_test
       /%ini
 
   """
@@ -10126,7 +10292,7 @@ def zip_(subject=None):
     """
 
 
-@syntax('monokai')
+@syntax
 def zsh(subject=None):
     _ZLE = f"""{h2('zle')} - Z-Shell Line Editor
     {c('https://github.com/mskar/setup/blob/5d9dddd447a05e8d866b9c09b06a085f02e41bd3/.zshrc#L686')}
