@@ -13,7 +13,7 @@
   - [ ] `populator.py`
     - [ ] find a better name about playing with functions
     - [ ] move from main.py functions like `get_skipped_subtopics` to it
-  
+- [ ] [perf] Populate (sub)topic lazily, only on demand
 
 # Big
 
