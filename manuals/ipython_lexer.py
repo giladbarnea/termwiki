@@ -38,20 +38,18 @@ from pygments.lexers import (
     BashLexer, HtmlLexer, JavascriptLexer, RubyLexer, PerlLexer, PythonLexer,
     Python3Lexer, TexLexer)
 from pygments.lexer import (
-    Lexer, DelegatingLexer, RegexLexer, do_insertions, bygroups, using,
+    bygroups, using, #Lexer, DelegatingLexer, RegexLexer, do_insertions
 )
 from pygments.token import (
-    Generic, Keyword, Literal, Name, Operator, Other, Text, Error,
+    Keyword, Operator, Text, #Generic, Literal, Name, Other, Error,
 )
-from pygments.util import get_bool_opt
+#from pygments.util import get_bool_opt
 
 # Local
 
 line_re = re.compile('.*?\n')
 
-__all__ = ['build_ipy_lexer', 'IPython3Lexer', 'IPythonLexer',
-           'IPythonPartialTracebackLexer', 'IPythonTracebackLexer',
-           'IPythonConsoleLexer', 'IPyLexer']
+__all__ = ['build_ipy_lexer', 'IPython3Lexer']
 
 
 def build_ipy_lexer(python3):
@@ -67,19 +65,10 @@ def build_ipy_lexer(python3):
         If `True`, then build an IPython lexer from a Python 3 lexer.
 
     """
-    # It would be nice to have a single IPython lexer class which takes
-    # a boolean `python3`.  But since there are two Python lexer classes,
-    # we will also have two IPython lexer classes.
-    if python3:
-        PyLexer = Python3Lexer
-        name = 'IPython3'
-        aliases = ['ipython3']
-        doc = """IPython3 Lexer"""
-    else:
-        PyLexer = PythonLexer
-        name = 'IPython'
-        aliases = ['ipython2', 'ipython']
-        doc = """IPython Lexer"""
+    PyLexer = Python3Lexer
+    name = 'IPython3'
+    aliases = ['ipython3']
+    doc = """IPython3 Lexer"""
 
     ipython_tokens = [
        (r'(?s)(\s*)(%%capture)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
@@ -115,8 +104,11 @@ def build_ipy_lexer(python3):
     tokens = PyLexer.tokens.copy()
     tokens['root'] = ipython_tokens + tokens['root']
 
-    attrs = {'name': name, 'aliases': aliases, 'filenames': [],
-             '__doc__': doc, 'tokens': tokens}
+    attrs = {'name': name,
+             'aliases': aliases,
+             'filenames': [],
+             '__doc__': doc,
+             'tokens': tokens}
 
     return type(name, (PyLexer,), attrs)
 

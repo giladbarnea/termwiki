@@ -1,2 +1,3 @@
 # manuals
-Interactive cheat sheets
+
+Interactive cheat sheets for the cmdline with support for rich markdown

@@ -4,8 +4,8 @@ from functools import wraps
 from pathlib import Path
 import os
 from typing import Literal, Dict, Type, Union, Any
-from textwrap import indent
-from pygments import highlight as pyglight
+from textwrap import indent,dedent
+from pygments import highlight as pygments_highlight
 # noinspection PyUnresolvedReferences
 from pygments.formatters import TerminalTrueColorFormatter
 from pygments.lexer import Lexer
@@ -43,11 +43,12 @@ HIGHLIGHT_END_RE = re.compile(fr'/%({"|".join(langs)})')
 # noinspection PyUnresolvedReferences
 formatters: Dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__)
 lexers: Dict[Language, Lexer] = dict.fromkeys(langs)
+console = None
 
 
 # *** Helper Functions
 
-def _get_lexer_ctor(lang: Language) -> Type[Lexer]:
+def __get_lexer_ctor(lang: Language) -> Type[Lexer]:
     if lang == 'ahk':
         return AutohotkeyLexer
     if lang == 'bash':
@@ -75,20 +76,20 @@ def _get_lexer_ctor(lang: Language) -> Type[Lexer]:
         return TOMLLexer
     if lang == 'ts':
         return TypeScriptLexer
-    raise ValueError(f"_get_lexer_ctor({lang = !r})")
+    raise ValueError(f"__get_lexer_ctor({lang = !r})")
 
 
 def _get_lexer(lang: Language):
     global lexers
     lexer = lexers.get(lang)
     if lexer is None:
-        ctor = _get_lexer_ctor(lang)
+        ctor = __get_lexer_ctor(lang)
         lexer = ctor()
         lexers[lang] = lexer
     return lexers[lang]
 
 
-def _get_color_formatter(style: Style = None):
+def __get_color_formatter(style: Style = None):
     # default
     # friendly (less bright than native. ipython default)
     # native (like defualt with dark bg)
@@ -109,15 +110,15 @@ def _get_color_formatter(style: Style = None):
 
 
 def _highlight(text: str, lang: Language, style: Style = None) -> str:
-    print(f'{lang = !r} | {style = !r}')
+    # print(f'{lang = !r} | {style = !r}')
     lexer = _get_lexer(lang)
     if style is None:
         if lang == 'js':
             style = 'default'
         elif lang in ('ts', 'bash', 'ipython', 'json'):
             style = 'monokai'
-    formatter = _get_color_formatter(style)
-    highlighted = pyglight(text, lexer, formatter)
+    formatter = __get_color_formatter(style)
+    highlighted = pygments_highlight(text, lexer, formatter)
     return highlighted
 
 
@@ -246,20 +247,23 @@ def syntax(_fn_or_style: Union[ManFn, Style] = None, **default_styles):
     return wrap
 
 
-def rich(_manualfn_or_whatever: Union[ManFn, Any] = None, *dec_args, **dec_kwargs):
-    def wrap(fn: ManFn, *args, **kwargs):
-        return fn(*args, **kwargs)
-    
-    if _manualfn_or_whatever is not None:
-        if callable(_manualfn_or_whatever):
-            # e.g. naked `@rich`
-            return wrap(_manualfn_or_whatever)
-        # e.g. `@rich(python='friendly')`
-        raise NotImplementedError("manuals.py rich decorator was called with parens (). only bare @rich supported")
-        default_style = _manualfn_or_whatever
-        return wrap
-    raise NotImplementedError("manuals.py rich decorator was called with parens (). only bare @rich supported")
-    # e.g. `@rich(python='friendly')` → **dec_kwargs has value
+def rich(manual: ManFn):
+    @wraps(manual)
+    def wrap(subject=None):
+        string = manual(subject)
+        from rich.markdown import Markdown
+        global console
+        if console is None:
+            from rich.console import Console
+            import io
+            console = Console(file=io.StringIO(), force_terminal=True)
+        # Todo - Problem: inline code is detected by indentation by builtin commonmark
+        #  should build custom parser?
+        md = Markdown(string, justify="left")
+        console.print(md)
+        marked_down = console.file.getvalue()
+        return marked_down
+
     return wrap
 
 
@@ -267,6 +271,23 @@ EXCLUDE = set(locals()) | {'EXCLUDE'}
 
 
 # *** Manuals
+
+@rich
+def wow(subject=None):
+    _ADD = f"""{h2('add')} [-D, --dev] [-e, --editable] [-E, --extras EXTRAS...] [-G, --group GROUP ("defalut")] [--optional]
+      [--python PYTHON] [--platform PLATFORM] [--source SOURCE] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
+
+    Adds required packages to your pyproject.toml and installs them.
+
+    --lock      {c('Do not perform operations (only update the lockfile).')}
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""# r
+    {_ADD}
+    """
 
 @syntax(python='friendly')
 def altair(subject=None):
@@ -6846,23 +6867,23 @@ def pip(subject=None):
       -I, --ignore-installed                        {c('Overwrite installed')}
       --exists-action <action>                      {c('action when a path already exists: (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort.')}
 
-    {h3('From VCS')} Must have '-e'
+    {h3('From VCS')}
       {c('bzr+http, bzr+https, bzr+ssh, bzr+sftp, bzr+ftp, bzr+lp, bzr+file, git+http, git+https, git+ssh, git+git,')}
       {c('git+file, hg+file, hg+http, hg+https, hg+ssh, hg+static-http, svn+ssh, svn+http, svn+https, svn+svn, svn+file')}
-      pip install -e "git+ssh://git@bitbucket.org/cashdash/reconciliation_services.git@recon-services-v2.4.0#egg=reconciliation_services"
-      pip install -e "git+ssh://git@github.com/giladbarnea/more_termcolor.git#egg=more_termcolor"
-      pip install -e "git+https://git@github.com/ipython/ipython.git#egg=ipython"
-      pip install -e "git+https://github.com/giladbarnea/pdbpp.git#egg=pdbpp"
+      pip install [-e] "git+ssh://git@bitbucket.org/cashdash/reconciliation_services.git@recon-services-v2.4.0#egg=reconciliation_services"
+      pip install [-e] "git+ssh://git@github.com/giladbarnea/more_termcolor.git#egg=more_termcolor"
+      pip install [-e] "git+https://github.com/giladbarnea/pdbpp.git#egg=pdbpp"
+      pip install -e 'git+https://github.com/willmcgugan/rich.git#egg=rich' --src src
 
     {h3('From local dir')}
       {c('sudo chmod 777 target dir, and make sure no prompts in target setup.py')}
       (env) pip install --log ./PIP.log -v -e /home/gilad/Code/IGit
 
-    --src {i('<dir>')}     {c('virenv default is "<venv path>/src", global default is "<current dir>/src"')}
-    --root {i('<dir>')}    {c('Install everything relative to this alternate root directory')}
-    --user                 {c('install to user dir (~/.local/ or %APPDATA%/Python)')}
-    -t, --target {i('<dir>')}
-    -e, --editable {i('<path/url>')}    {c('implies setuptool "develop" mode')}
+    --src <dir>                  {c('Check out editables into <dir>. Default is "<venv path>/src", global default is "<current dir>/src"')}
+    --root <dir>                 {c('Install everything relative to this alternate root directory')}
+    --user                       {c('Install to user dir (~/.local/ or %APPDATA%/Python)')}
+    -t, --target <dir>           {c('Install into <dir>')}
+    -e, --editable <path/url>    {c('Implies setuptool "develop" mode')}
 
     pip3 freeze | grep -v "^-e" | xargs pip3 uninstall -y    {c('uninstall all packages')}
 

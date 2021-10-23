@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "manuals"
+version = "0.1.0"
+description = "Interactive cheat sheets for the cmdline with support for rich markdown"
+authors = ["Gilad Barnea <giladbrn@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.0.3"
+fuzzysearch = "^0.7.3"
+Pygments = "^2.10.0"
+rich = {path = "src/rich", develop = true}
+more-termcolor = "^1.1.3"
+
+[tool.poetry.scripts]
+mm = 'manuals.main:get_topic'
+
+[tool.poetry.build]
+generate-setup-file = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
