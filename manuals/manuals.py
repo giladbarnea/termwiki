@@ -1,8 +1,10 @@
 import inspect
 import re
 from functools import wraps
+from pathlib import Path
+import os
 from typing import Literal, Dict, Type, Union, Any
-
+from textwrap import indent
 from pygments import highlight as pyglight
 # noinspection PyUnresolvedReferences
 from pygments.formatters import TerminalTrueColorFormatter
@@ -21,16 +23,18 @@ from pygments.lexers import (
     SassLexer,
     TypeScriptLexer
     )
-
+from pygments.lexers.configs import TOMLLexer
 from manuals.common.types import ManFn
 from manuals.formatting import h1, h2, h3, h4, h5, b, c, i, black, bg
 
-linebreak = r'\n'
-backslash = '\\'
+literal_linebreak = r'\n'
+linebreak = '\n'
+literal_backslash = '\\'
+tab = '\t'
 # color = '\x1b['
 # https://help.farbox.com/pygments.html     ← previews of all styles
 Style = Literal['default', 'fruity', 'friendly', 'native', 'algol_nu', 'solarized-dark', 'inkpot', 'monokai']
-Language = Literal['mysql', 'python', 'bash', 'ipython', 'ini', 'json', 'js', 'ts', 'css', 'sass', 'docker', 'ahk']
+Language = Literal['mysql', 'python', 'bash', 'ipython', 'ini', 'json', 'js', 'ts', 'css', 'sass', 'docker', 'ahk', 'toml']
 # noinspection PyUnresolvedReferences
 langs = Language.__args__
 # noinspection PyUnresolvedReferences
@@ -67,9 +71,11 @@ def _get_lexer_ctor(lang: Language) -> Type[Lexer]:
         return PythonLexer
     if lang == 'sass':
         return SassLexer
+    if lang == 'toml':
+        return TOMLLexer
     if lang == 'ts':
         return TypeScriptLexer
-    raise ValueError(f"_get_lexer_ctor({repr(lang)})")
+    raise ValueError(f"_get_lexer_ctor({lang = !r})")
 
 
 def _get_lexer(lang: Language):
@@ -767,11 +773,11 @@ def bash(subject=None):
       
       {h4('Example:')}
         %bash
-        function star() {{ printf "args: '%s'{linebreak}" "${{*}}" }}  # $* same
+        function star() {{ printf "args: '%s'{literal_linebreak}" "${{*}}" }}  # $* same
         $ star hello world    
         # args: 'hello world'
     
-        function at() {{ printf "args: '%s'{linebreak}" "$@" }}  # ${{@}} same
+        function at() {{ printf "args: '%s'{literal_linebreak}" "$@" }}  # ${{@}} same
         $ at hello world
         # args: 'hello'
         # args: 'world'
@@ -1322,6 +1328,7 @@ def bash(subject=None):
     _COMPLETE = _COMPGEN = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
     {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
     {c('https://wiki.bash-hackers.org/syntax/shellvars?s[]=completion')}
+    {c('https://github.com/zsh-users/zsh-completions/blob/master/zsh-completions-howto.org')} <- very friendly markdown
 
     {h3('Flags')}
       -a      {c('alias')}
@@ -1415,15 +1422,23 @@ def bash(subject=None):
       /%bash
     
     {h3('See also')}
-      compdef, compctl
+      compdef, compctl, compadd
     """
-    _COMPDEF = _COMPCTL = f"""{h3('compdef, compctl')}
-      {h4('#compdef name ... [ -{p|P} pattern ... [ -N name ... ] ]')}
+    _COMPDEF = _COMPCTL = _COMPADD = f"""{h2('compdef')}
+      {h4('#compdef name ... [ -{p|P} pattern ... [ -N name ... ] ]')} # at start of file
       {h4('compdef [ -ane ] function name ... [ -{p|P} pattern ... [ -N name ...]]')}
       {c('https://zsh.sourceforge.io/Doc/Release/Completion-System.html')}
       %bash
+      # Single line
       compdef _git git.my-commits=git-log
+      compdef _git=git (?)
       
+      # Full Example
+      {linebreak + indent((os.getenv('MANPROJ') / Path('manuals/man/bash')).open().read(), '      ')}
+      /%bash
+      
+    {h3('compadd')}
+      %bash
       compadd -- $(COMP_CWORD=$((CURRENT-1)) \\
                    COMP_LINE=$BUFFER \\
                    COMP_POINT=0 \\
@@ -1440,10 +1455,10 @@ def bash(subject=None):
       read -l line
       read -ln point
       si="$IFS"
-      IFS=$'\\n' reply=($(COMP_CWORD="$cword" \\
-                         COMP_LINE="$line" \\
-                         COMP_POINT="$point" \\
-                         npm completion -- "${{words[@]}}" \\
+      IFS=$'\\n' reply=($(COMP_CWORD="$cword" \
+                         COMP_LINE="$line" \
+                         COMP_POINT="$point" \
+                         npm completion -- "${{words[@]}}" \
                          2>/dev/null)) || return $?
       IFS="$si"
       /%bash
@@ -1507,7 +1522,7 @@ def bash(subject=None):
       cut -d'=' -f1     {c('x.partition("=")[0]')}
       cut -d'=' -f1-3   {c('x.split("=")[0:2] (joined)')}
       cut -d'=' -f1,3   {c('x.split("=")[0,2] (joined)')}
-      cut -d$'{linebreak}' -f4   {c(f'x.split("{linebreak}")[4]')}
+      cut -d$'{literal_linebreak}' -f4   {c(f'x.split("{literal_linebreak}")[4]')}
     """
     
     _DIFF = f"""{h2('diff')}
@@ -1851,14 +1866,36 @@ def bash(subject=None):
     """
 
     _PRINTF = rf"""{h2('printf')}
-    $ printf %s "hello\x1b[1mworld\x1b[0m"
-    hello\x1b[1mworld\x1b[0m%
+    {h3('Escape Sequences')}
+      $ printf "hello\x1b[1mworld\x1b[0m"
+      hello{b('world')}
+      
+      $ printf %s "hello\x1b[1mworld\x1b[0m"
+      hello\x1b[1mworld\x1b[0m%
+  
+      $ printf %b "hello\x1b[1mworld\x1b[0m"
+      hello{b('world')}
+      
+      $ printf %q "hello\x1b[1mworld\x1b[0m"
+      hello\\x1b\[1mworld\\x1b\[0m%
 
-    $ printf %q "hello\x1b[1mworld\x1b[0m"
-    hello\\x1b\[1mworld\\x1b\[0m%
 
-    $ printf %b "hello\x1b[1mworld\x1b[0m"
-    hello{b('world')}
+    {h3('Whitespace')}
+      $ printf '\n'
+      $ printf $'\n'
+      $ printf %s $'\n'
+      $ printf %b '\n'
+      $ printf %b $'\n'
+      <EMPTY LINE>
+
+      $ printf %s '\n'
+      \n
+
+      $ printf %q '\n'
+      \\n
+
+      $ printf %q $'\n'
+      $'\n'
     """
 
     _PS = _PKILL = _PGREP = _KILL = _SIGNAL = f"""{h2('Processes / Signals')}
@@ -5273,9 +5310,9 @@ def loguru(subject=None):
     %python
       sink: str | {{ write(message) -> None }} | Path | (message) -> None | coroutine | logging.Handler = ?,
       level: str | int = "DEBUG",
-      format: str | (rec) -> str = '<green>{{time:YYYY-MM-DD HH:mm:ss.SSS}}</green> | {backslash}
-                                    <level>{{level: <8}}</level> | {backslash}
-                                    <cyan>{{name}}</cyan>:<cyan>{{function}}</cyan>:<cyan>{{line}}</cyan> - {backslash}
+      format: str | (rec) -> str = '<green>{{time:YYYY-MM-DD HH:mm:ss.SSS}}</green> | {literal_backslash}
+                                    <level>{{level: <8}}</level> | {literal_backslash}
+                                    <cyan>{{name}}</cyan>:<cyan>{{function}}</cyan>:<cyan>{{line}}</cyan> - {literal_backslash}
                                     <level>{{message}}</level>'
       filter: str | dict | (rec) -> bool = None,
       colorize=None,      # default True if tty
@@ -5291,11 +5328,11 @@ def loguru(subject=None):
       import stackprinter
       
       def format(record):
-          format_ = "[{{file.name}}] {{time}} {{message}}{linebreak}"
+          format_ = "[{{file.name}}] {{time}} {{message}}{literal_linebreak}"
       
           if record["exception"] is not None:
               record["extra"]["stack"] = stackprinter.format(record["exception"])
-              format_ += "{{extra[stack]}}{linebreak}"
+              format_ += "{{extra[stack]}}{literal_linebreak}"
       
           return format_
       
@@ -5305,7 +5342,7 @@ def loguru(subject=None):
     
     _FORMAT = f"""{h2('Formatting')} {c('str | (record) -> str')}
     %python 2
-    format="{{level.icon}} {{level}} | {{extra[foo]}} - {{message}}{linebreak}{{exception}}"
+    format="{{level.icon}} {{level}} | {{extra[foo]}} - {{message}}{literal_linebreak}{{exception}}"
     format=lambda record: ...
     
     {h3('Time')} {c('format="{time:HH:mm:ss[!UTC]}"')}
@@ -5408,7 +5445,7 @@ def loguru(subject=None):
       def add_traceback(record):
           extra = record["extra"]
           if extra.get("with_traceback", False):
-              extra["traceback"] = "{linebreak}" + "".join(traceback.format_stack())
+              extra["traceback"] = "{literal_linebreak}" + "".join(traceback.format_stack())
           else:
               extra["traceback"] = ""
       
@@ -5444,7 +5481,7 @@ def loguru(subject=None):
     logger.opt(exception=True).debug("Exception logged with debug level:")
     logger.opt(record=True).info("Current line is: {{record[line]}}")
     logger.opt(lazy=True).debug("If sink <= DEBUG: {{x}}", x=lambda: math.factorial(2**5))
-    logger.opt(raw=True).info("No formatting{linebreak}")
+    logger.opt(raw=True).info("No formatting{literal_linebreak}")
     logger.opt(capture=False).info("Displayed but not captured: {{value}}", value=123)
 
     # To persist (because resets every call):
@@ -5503,7 +5540,7 @@ def loguru(subject=None):
     
     def format(record):
         record["message"] = highlight(record["message"], PythonLexer(), TerminalTrueColorFormatter(style="monokai"))
-        fmt = '[<level>{{level: <7}}</level>]{linebreak}{{message}}{linebreak}'
+        fmt = '[<level>{{level: <7}}</level>]{literal_linebreak}{{message}}{literal_linebreak}'
         return fmt
     
     logger.add(sys.stderr, format=format)
@@ -6888,68 +6925,106 @@ def pip(subject=None):
     """
 
 
-@alias('poe')
 @syntax
-# @rich
+@alias('poe')
 def poetry(subject=None):
     _NEW = f"""{h2('new project')}
     %bash
-    # install:
-    pip38 install --user poetry
+    poetry new my-project
+    my-project
+    ├── pyproject.toml
+    ├── README.rst
+    ├── my_project
+    │   └── __init__.py
+    └── tests
+        ├── __init__.py
+        └── test_my_project.py
   
-    # new project (BEFORE mkdir and git init)
-    cd ~/dev
-    poetry new myproject    
-    # creates:
-    # ~/dev/myproject/
-    #                /myproject/
-    #                /tests/
-    #                /README.rst
-    #                /pyproject.toml
     cd myproject && git init && gh repo create
     /%bash
-  """
-    _ADD = f"""{h2('add')} [-D] [-E <...>] [--optional] [--python <...>] [--platform <...>] [--source <...>] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
-  """
+    """
+    
+    _ADD = f"""{h2('add')} [-D, --dev] [-e, --editable] [-E, --extras EXTRAS...] [-G, --group GROUP ("defalut")] [--optional]
+      [--python PYTHON] [--platform PLATFORM] [--source SOURCE] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
+    
+    Adds required packages to your pyproject.toml and installs them.
+    
+    --lock      {c('Do not perform operations (only update the lockfile).')}
+    """
     
     _BUILD = f"""{h2('build')} [-f wheel|sdist]
-    %bash
-    poetry build
-    # creates a ./dist/ dir with PROJECT-0.1.0.tar.gz and -py3-none-any.whl
-    # that can be pip install --user ./PROJECT-...whl
-    # or pip install -e setup.py extracted from the .tar.gz
-    /%bash
-  """
+    Creates a ./dist/ dir with PROJECT-0.1.0.tar.gz and -py3-none-any.whl
+    that can be pip install --user ./PROJECT-...whl
+    or pip install -e setup.py extracted from the .tar.gz
+    """
+    
+    _CONFIG = f"""{h2('config')} [--list] [--unset] [--local] [<key>] [<value1>] ... [<valueN>]
+    cache-dir = "/home/gilad/.cache/pypoetry"
+    experimental.new-installer = true
+    installer.parallel = true
+    virtualenvs.create = true
+    virtualenvs.in-project = true
+    virtualenvs.options.always-copy = false
+    virtualenvs.options.system-site-packages = false
+    virtualenvs.path = "{{cache-dir}}/virtualenvs"  # /home/gilad/.cache/pypoetry/virtualenvs
+    
+    {h3('Examples')}
+      poetry config pypi-token.pypi my-token    {c('or POETRY_PYPI_TOKEN_PYPI env var')}
+    """
     
     _ENV = f"""{h2('env')}
-    %bash
-    poetry env info [-p]
-    poetry env list [--full-path]
-    poetry env remove <python>
-    poetry env use <python>
+    env info [-p]              {c('Displays information about the current environment.')}
+    env list [--full-path]     {c('Lists all virtualenvs associated with the current project.')}
+    env remove <python>        {c('Removes a specific virtualenv associated with the project.')}
+    env use <python>           {c('Activates or creates a new virtualenv for the current project.')}
     
+    %bash
     # Examples
     poetry env use python3.8                [c]Creates a venv[/c]
     . "$(poetry env info -p)"/bin/activate     [c]activates venv[/c]
     /%bash
-  """
+    """
     
-    _INSTALL = f"""{h2('install')} [--no-dev] [--no-root] [--dry-run] [--remove-untracked] [-E <...>]
+    _INSTALL = f"""{h2('install')} [PACKAGE] [--with WITH...] [--without WITHOUT...] [--only ONLY...] [--default]
+      [--sync] [--dry-run] [--remove-untracked] [-E, --extras EXTRAS...]
+    
     Reads poetry.lock file from current dir, installs libs and deps from that file.
     Uses pyproject.toml if poetry.lock doesn't exist.
-    --no-dev              {c("don't install dev dependencies")}
-    --no-root             {c("don't install current package")}
-    --remove-untracked    {c("remove pkgs not in lock file")}
-  """
+    
+    --remove-untracked    {c("Remove pkgs not in lock file")}
+    --sync                {c("Synchronize env with locked pkgs and specified groups.")}
+    """
+
+    _SHOW = f"""{h2('show')} [PACKAGE] [--with WITH...] [--without WITHOUT...] [--only ONLY...] [--default]
+      [-t, --tree] [-l, --latest] [-o, --outdated] [-a, --all]
+
+    Shows information about packages.
+    """
     
     _PUBLISH = f"""{h2('publish')}
     %bash
     poetry publish -u giladbarnea --build --dry-run
     /%bash
-  """
+    """
+    _PYPROJECT = h2('pyproject.toml') + """
+    %toml
+    pdbpp = { path = "../pdbpp/", develop = true }
+    pdbpp = { git = "https://github.com/giladbarnea/pdbpp.git", optional = true }
+    requests = { git = "https://github.com/kennethreitz/requests.git", branch = "next" }
+    flask = { git = "https://github.com/pallets/flask.git", rev = "38eb5d3b" }
+    numpy = { git = "https://github.com/numpy/numpy.git", tag = "v0.13.2" }
+    
+    [tool.poetry.scripts]
+    tmr = 'too_many_repos.too_many_repos:main'
+    
+    [tool.poetry.build]
+    generate-setup-file = true
+    /%toml
+    """
+    
     _UPDATE = f"""{h2('update')} [--no-dev] [--dry-run] [--lock] [package...]
     Resolve latest versions of deps and write exact versions to poetry.lock.
-  """
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -6957,10 +7032,13 @@ def poetry(subject=None):
         return f"""{h1('poetry')}
   {_NEW}
   {_ADD}
+  {_CONFIG}
   {_ENV}
   {_INSTALL}
+  {_SHOW}
   {_BUILD}
   {_PUBLISH}
+  {_PYPROJECT}
   {_UPDATE}
       """
 
@@ -7644,7 +7722,7 @@ def python(subject=None):
     'ignore'            {c("ignore the character and continue with the next")}
     'replace'           {c("with '?' on encoding, U+FFFD on decoding")}
     'backslashreplace'  {c("backslash escape the faulty chars")}
-    'namereplace'       {c(f"Replace with {backslash}N{{...}} escape sequences (only for encoding).")}
+    'namereplace'       {c(f"Replace with {literal_backslash}N{{...}} escape sequences (only for encoding).")}
     """
     _PATHLIB = f"""{h2('pathlib')}
   p = PosixPath('mytool/git/status/status.py')
@@ -8018,7 +8096,7 @@ def rich_(subject=None):
       {h4('log(')}     {c('Prints and indents with [07.01.2021]. ~30ms')}
           %python
           *objs, 
-          sep = ' ', end = '{linebreak}', 
+          sep = ' ', end = '{literal_linebreak}', 
           highlight: bool = None,
           justify: 'default' | 'left' | 'center' | 'right' | 'full' = None, 
           log_locals = False,   # ← not in console.print()
@@ -8029,7 +8107,7 @@ def rich_(subject=None):
       {h4('print(')}   {c('Advanced form of rich.print(). ~15ms')}
           %python
           *objs, 
-          sep = ' ', end = '{linebreak}', 
+          sep = ' ', end = '{literal_linebreak}', 
           highlight = None,   # ← not in rich.print()
           justify: 'default' | 'left' | 'center' | 'right' | 'full' = None, 
           overflow = 'fold', 'crop', 'ellipsis', 'ignore' = None,   # ← not in .log()
@@ -9046,12 +9124,12 @@ def sxhkd(subject=None):
 
                            {c('1    2   3    4')}
     super + ctrl + alt + {{Left,Down,Up,Right}}
-      n=10; {backslash}
-      {{ d1=left;   d2=right;  dx=-$n; dy=0;   {backslash}  {c('1')}
-      , d1=bottom; d2=top;    dx=0;   dy=$n;  {backslash}  {c('2')}
-      , d1=top;    d2=bottom; dx=0;   dy=-$n; {backslash}  {c('3')}
-      , d1=right;  d2=left;   dx=$n;  dy=0;   {backslash}  {c('4')}
-      }} {backslash}
+      n=10; {literal_backslash}
+      {{ d1=left;   d2=right;  dx=-$n; dy=0;   {literal_backslash}  {c('1')}
+      , d1=bottom; d2=top;    dx=0;   dy=$n;  {literal_backslash}  {c('2')}
+      , d1=top;    d2=bottom; dx=0;   dy=-$n; {literal_backslash}  {c('3')}
+      , d1=right;  d2=left;   dx=$n;  dy=0;   {literal_backslash}  {c('4')}
+      }} {literal_backslash}
       bspc node --resize $d1 $dx $dy || bspc node --resize $d2 $dx $dy                    
   """
 
@@ -10026,7 +10104,7 @@ def xonsh(subject=None):
         >>> codedir = 'Code'
         >>> res = $(echo $HOME/@(codedir))
         >>> res
-        {c(f"'/home/gilad/Code/{linebreak}'")}
+        {c(f"'/home/gilad/Code/{literal_linebreak}'")}
 
       {h4('Uncaptured subprocesses')}
         >>> x = $[ls -l] {c('or ![ls -l]')}
@@ -10079,16 +10157,16 @@ def xvkbd(subject=None):
     \b - Backspace
     \e - Escape
     \d - Delete
-    \{{keysym}}           {c(f'e.g {backslash}{{Left}}. process in more primitive matter.')}
+    \{{keysym}}           {c(f'e.g {literal_backslash}{{Left}}. process in more primitive matter.')}
                           {c('Control_L, Meta_L')}
-                          {c(f'{backslash}{{+keysym}}, {backslash}{{-keysym}} for press and release')}
+                          {c(f'{literal_backslash}{{+keysym}}, {literal_backslash}{{-keysym}} for press and release')}
     \D<digit> - delay digit * 100 ms
     {h3('mouse')}
       \x<val>, \y<val> - move mouse pointer
                 -<val> +<val> for relative
       \m<digit>     mouse click
     {h3('modifiers')}
-      \S - Shift    {c(f'sometimes doesnt work e.g. "a{backslash}Cb{backslash}ScD{backslash}CE" → a, Control+b, c, Shift+D, Control+Shift+E')}
+      \S - Shift    {c(f'sometimes doesnt work e.g. "a{literal_backslash}Cb{literal_backslash}ScD{literal_backslash}CE" → a, Control+b, c, Shift+D, Control+Shift+E')}
       \C - Control
       \A - Alt
       \M - Meta
@@ -10348,7 +10426,7 @@ def zsh(subject=None):
         
       # Example 1
       zmodload zsh/zutil
-      zparseopts -D -E -F - a:=arg_val -arg:=arg_val f=flag -flag=flag {backslash}
+      zparseopts -D -E -F - a:=arg_val -arg:=arg_val f=flag -flag=flag {literal_backslash}
       	F=foobar -foo=foobar B=foobar -bar=foobar || exit 1
       
       # remove first -- or -

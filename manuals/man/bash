@@ -1,6 +1,39 @@
-Arguments
-	# check if no cmd args
-	if (( $# == 0 )) ; then
-	
-	${*:2} c|or|c ${@:2}      # 2nd and following pos params
-	${*:2:3}                # three pos params, starting from 2nd
+function _download_release_completion(){
+  _arguments -C \
+    '-r[Specify release, default "latest"]' \
+    '(-h --help)'{-h,--help}'[output usage information]' \
+    '1:cmd:->cmds' \
+    '2:generators:->generator_lists' \
+    "3: :->third_form" \
+    '*::arg:->args'
+
+  case "$state" in
+    (cmds)
+       local commands=('g:Padrinos generators')
+       _describe -t commands 'command' commands
+    ;;
+    (generator_lists)
+      local generators=(
+        'controller:creates a new controller'
+        '--mock=MOCK: The mocking library component (mocha, rr, none)'
+        'mm\:translate:Generates .yml files for I18n translations.'
+        '-r:specify the root destination path'
+      )
+      _describe "generator" generators
+    ;;
+    (third_form)
+      local btm_commands=('#')
+      _describe -t commands 'btm commands' btm_commands "$@"
+    ;;
+    (args)
+      case "${words[4]}" in
+        (mailer)
+          local mailers=(...)
+          _describe ...
+        ;;
+      esac
+    ;;
+  esac
+  return 1
+}
+compdef _download_release_completion dr
