@@ -5208,7 +5208,7 @@ def jira(subject=None):
     
     _REST = f"""{h2('REST v2')}
     %bash
-    curl --request GET -s --user $JIRA_USER:$JIRA_PASS --header 'Accept: application/json' --header 'Content-Type: application/json' --data '{"fields":"parent"}' https://jira.allot.com/rest/api/2/issue/$ISSUE
+    curl --request GET -s --user $JIRA_USER:$JIRA_PASS --header 'Accept: application/json' --header 'Content-Type: application/json' --data '{{"fields":"parent"}}' https://jira.allot.com/rest/api/2/issue/$ISSUE
     /%bash
     
     {h3('/issue/<ISSUE>')}
@@ -5220,13 +5220,35 @@ def jira(subject=None):
         comment
     """
     
-    _CLI = f"""{h2('jira-cli')}  
+    _CLI = f"""{h2('jira-cli')}
     {h3('view')}
-      jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com'
-      jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com AND parent=ASM-5293 ORDER BY status'
-      jira-cli view --search-jql='assignee=cr-gbarn-herolo\u0040allot.com AND resolution = Unresolved AND issueLinkType not in ("Child of","is blocked by") ORDER BY status ASC'
+      jira-cli view --search-jql='assignee=cr-gbarn-herolo{literal_backslash}u0040allot.com'
+      jira-cli view --search-jql='assignee=cr-gbarn-herolo{literal_backslash}u0040allot.com AND parent=ASM-5293 ORDER BY status'
+      jira-cli view --search-jql='assignee=cr-gbarn-herolo{literal_backslash}u0040allot.com AND resolution = Unresolved AND issueLinkType not in ("Child of","is blocked by") ORDER BY status ASC'
     """
     
+    _PYJIRA = f"""{h2('from jira import JIRA')}
+    jira = JIRA("https://jira.allot.com/", basic_auth=('<USER>', '<PASS>'))
+    issue = jira.issue('ASM-11480', fields=None, expand=None)
+    Issue()
+      assignee: User
+      creator: User
+      parent: Issue
+      issuetype: IssueType
+      priority: Priority
+      progress: ...
+      project: Project
+      reporter: User
+      status: Status
+      timetracking: TimeTracking
+      worklog: ...
+      ...
+      add_field_value(field, value)
+      delete(deleteSubtasks=False)
+      find(id, params=None)
+      permalink()
+      update(fields=None, update=None, async_=None, jira=None, notify=True, **fieldargs)
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -5237,6 +5259,8 @@ def jira(subject=None):
   {_CLI}
   
   {_REST}
+  
+  {_PYJIRA}
         """
 
 
@@ -5248,26 +5272,29 @@ def jupyter(subject=None):
     else:
         return f"""{h1('jupyter')} [options] [subcommand]
   {h2('subcommands')}
-    bundlerextension 
-    console 
-    kernel 
-    kernelspec 
-    migrate 
+    bundlerextension
+    dejavu
+    kernel
+    kernelspec
+    lab
+    labextension
+    labhub
+    migrate
+    nbclassic
     nbconvert
-    nbextension 
-    notebook 
-    qtconsole 
-    run 
-    serverextension 
+    nbextension
+    notebook
+    run
+    server
+    serverextension
     troubleshoot
     trust
   
   {h2('options')}
     --paths
   
-  {h2('jupyterlab')} [cmd] [options]
-    %bash
-    pip install jupyterlab [xeus-python for debugging]
+  {h2('lab')} [cmd] [options]
+    pip install jupyterlab {c('xeus-python for debugging')}
     
     {h3('cmd')}
       build
@@ -5278,34 +5305,35 @@ def jupyter(subject=None):
       workspaces
     
     {h3('Install virtualenv')}
-      %bash 2
       . env/bin/activate
       (env) python -m ipykernel install --user --name <CUSTOM_ENV_NAME>
     
     {h3('config')}
       jupyter lab --generate-config
               
-    {h3('labextension')}
-      https://jupyterlab.readthedocs.io/en/stable/user/extensions.html
-      npm search <NAME>
-      jupyter labextension list, check
-      jupyter labextension install|uninstall|update|enable|disable <NAME>
-
-    {h3('nbextension')}
-      https://jupyter-contrib-nbextensions.readthedocs.io/en/latest/nbextensions.html
-      pip install jupyter_contrib_nbextensions
-      jupyter nbextension list
-      jupyter nbextension install|uninstall|enable|disable [--py] <NAME>  {c('from a python package')}
-
     {h3('options')}
       --allow-root
       --autoreload    {c('on change in py src files or exts')}
+      --no-browser
       --core-mode
       --dev-mode
-      --log-level=[0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL']   {c('default 30')}
+      --log-level={{0,10,20,30,40,50,'DEBUG','INFO','WARN','ERROR','CRITICAL'}}   {c('default 30')}
       --port=[8888]
-      --notebook-dir=<PATH>
-      --app-dir=<PATH>
+      --notebook-dir=⟨PATH⟩
+      --app-dir=⟨PATH⟩
+  
+  {h2('labextension')}
+    {c('https://jupyterlab.readthedocs.io/en/stable/user/extensions.html')}
+    npm search ⟨NAME⟩
+    jupyter labextension list, check
+    jupyter labextension {{install,uninstall,update,enable,disable}} ⟨NAME⟩
+
+  {h2('nbextension')}
+    {c('https://jupyter-contrib-nbextensions.readthedocs.io/en/latest/nbextensions.html')}
+    pip install jupyter_contrib_nbextensions
+    jupyter nbextension list
+    jupyter nbextension {{install,uninstall,enable,disable}} [--py] ⟨NAME⟩  {c('from a python package')}
+
   """
 
 
@@ -7322,7 +7350,19 @@ def python(subject=None):
       >>> parser.parse_args(['-mr'])
       Namespace(mode='r')
       /%python
+
+    {h4('set_defaults(...)')}
+
+    {h4('add_subparsers(...)')}
+      %python friendly
+      >>> subparsers: _SubParsersAction = argument_parser.add_subparsers()
+      >>> checkout = subparsers.add_parser('checkout', aliases=['co'])
+      >>> checkout.add_argument('foo')
+      >>> argument_parser.parse_args(['co', 'bar'])
+      Namespace(foo='bar')
+      /%python
     """
+
     _BITWISE = f"""{h2('Bitwise')}
   &  |  0  1  F  T 10
   ---|---------------
