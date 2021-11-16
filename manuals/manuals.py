@@ -708,8 +708,10 @@ def bash(subject=None):
     
     {h3('getopts')}
       %bash
-      while getopts :d:no: OPT; do
-        case $OPT in
+      local opt
+      # zsh can e.g getopts "dDhLUzk" opt?
+      while getopts :d:no: opt; do
+        case $opt in
           d) day="$OPTARG" ;;
           n) DRY_RUN=1 ;;
           o) OFFSET="$OPTARG" ;;
@@ -721,7 +723,8 @@ def bash(subject=None):
       shift $(( OPTIND - 1 ))
       OPTIND=1
       /%bash
-    
+
+
     {h3('getopt')}
       %bash 1
       getopt [-u, --unquoted] --long difftool: -- "$@"    # supports --difftool=foo and --difftool foo
@@ -913,15 +916,21 @@ def bash(subject=None):
       -p	{c('Print attributes/values of each NAME')}
     
     {h4('Options which set attributes')}
-      -a	{c("Indexed arrays (if supported)")}
-      -A	{c("Associative arrays (if supported)")}
-      -i	{c("NAMEs are integers")}
-      -l	{c("Convert NAMEs to lowercase")}
+      -a	{c("Array")}
+      -A	{c("Associative array")}
+      -E	{c("Engineering floating point")}
+      -F	{c("Fixed floating point")}
+      -i	{c("Integer")}
+      -l	{c("lowercase")}
+      -L	{c("Left-justify")}
       -n	{c("NAMEs are refs to matching vars")}
-      -r	{c("NAMEs are readonly")}
-      -t	{c("NAMEs have 'trace' attribute")}
-      -u	{c("Convert NAMEs to uppercase")}
-      -x	{c("NAMEs are exported")}
+      -r	{c("Readonly")}
+      -R	{c("Right-justify")}
+      -t	{c("tag parameters and turn on execution tracing for functions")}
+      -u	{c("uppercase")}
+      -U	{c("keep array values unique and suppress alias expansion for functions")}
+      -x	{c("Export")}
+      -Z	{c("Right-justify and fill with leading zeroes")}
     """
     __EXEC = __EVAL = f"""{h3('exec, eval and $(...)')}
     %bash 2
@@ -1120,7 +1129,7 @@ def bash(subject=None):
     
     no flag       {c("print type and content of would be used.")}
                   {c("  type -f cd → cd is a function; cd () {{...}}")} 
-    -t            {c("output alias, keyword, function, builtin, file, or nothing (1)")}
+    -t            {c("(only bash?) output alias, keyword, function, builtin, file, or nothing (1)")}
     -a            {c("display all locations, including content.")}
                   {c("  type -f cd → cd is a function; cd () {{...}}; cd is a shell builtin")}  
     -f            {c("suppress custom function lookup")}
@@ -1129,6 +1138,7 @@ def bash(subject=None):
     -P            {c("search PATH, output disk file")}
                   {c("  type -P ls → /bin/ls (even if overridden or aliased)")}
     -p            {c("output disk file, restricted to -t → 'function'")}
+    -w            {c("(only zsh?) print command type. type -w syspy -> 'syspy: alias'")}
     
     see {bg('declare')}
     """
@@ -1136,6 +1146,11 @@ def bash(subject=None):
     %bash 2
     ${{var:?}}          # fail if the variable is unset (or empty)
     : "${{var:=5}}"     # initialize it to a default value (5) if uninitialized
+    ${{var-word}}         # if var is defined, use var; otherwise, "word"
+    ${{var+word}}         # if var is defined, use "word"; otherwise, nothing
+    ${{var=word}}         # if var is defined, use var; otherwise, use "word" AND...
+                        #   also assign "word" to var
+    ${{var?error}}        # if var is defined, use var; otherwise print "error" and exit
     """
     __QUOTES = f"""{h3('Quotes and var expansion')}
   {h4('simple')}
@@ -1201,7 +1216,7 @@ def bash(subject=None):
     done
     /%bash
     """
-    __PIPE = __PROCESSES = __FILEDESCRIPTORS = __BG = __FG = __REDIRECTION = __JOB = f"""{h2('Pipe, Processes, File Descriptors, Background, Foreground, Redirection, >, >>, <, <<, <<<')}
+    __PIPE = __FILEDESCRIPTOR = __BG = __FG = __REDIRECTION = __JOB = f"""{h2('Pipe, Processes, File Descriptors, Background, Foreground, Redirection, >, >>, <, <<, <<<')}
     {c('https://stackoverflow.com/questions/35116699/piping-not-working-with-echo-command')}
     {c('http://tiswww.case.edu/php/chet/bash/bashref.html#Job-Control')}
     %bash
@@ -1238,7 +1253,7 @@ def bash(subject=None):
       /%bash
     
     {h3('fg')}
-        %bash
+      %bash
       # immediately displays:
       # [1] 21415
       # [1]  + 22039 running    sleep 3
@@ -1247,7 +1262,7 @@ def bash(subject=None):
       /%bash
     
     {h3('bg, ctrl+z')}
-        %bash
+      %bash
       # ctrl+z to send a foreground process to sleep background
       # process will be paused until next signal
       # running 'bg' to resume in background
@@ -1883,6 +1898,17 @@ def bash(subject=None):
       
       # Example 7
       IFS=$'\n' ${{#( $(while read -r _drive; do echo "$_drive"; done <<< "$(sudo fdisk -l | grep -E '^/dev')") )}}
+
+      # Example 8
+      IFS=, read -ra fields <<< "a,b,"
+      declare -p fields
+      # declare -a fields='([0]="a" [1]="b")'
+
+      # Example 9
+      input="a,b,"
+      IFS=, read -ra fields <<< "$input,"
+      declare -p fields
+      # declare -a fields='([0]="a" [1]="b" [2]="")'
       /%bash
     """
 
@@ -1924,15 +1950,7 @@ def bash(subject=None):
       -A      All processes
       -f      Full format
 
-    {h3('killall')} [options] NAME
-      -e, --exact
-      -g, --process-group     {c('Kill the process group to which the process belong')}
-      -i, --interactive
-      -r, --regexp            {c('POSIX extended regular expression')}
-      -v, --verbose
-      -I, --ignore-case
-
-    {h3('pgrep')} [options] PATTERN
+    {h3('pgrep')} [options] ⟨PATTERN⟩
       PATTERN: Extended Regular Expression
       
       -f, --full         {c("Match full command line, not only proc name")}
@@ -1943,28 +1961,78 @@ def bash(subject=None):
       -a, --list-full    {c("518197 python3.8 ./file.py")}
       -n, --newest       {c('Select only most recently started')}
       -o, --oldest       {c('Select only least recently started')}
+
+    {h3('kill')} [options] ⟨PID...⟩
+      Without specifying signal, sends SIGTERM.
+      
+      {h4('options')}
+        -⟨SIGNAL⟩ / -s ⟨SIGNAL⟩ / --signal ⟨SIGNAL⟩
+        -l, --list [SIGNAL]
+        -L, --table                {c('List signals in table')}
+      
+      {h4('Examples')}
+        kill -9 -1                 {c('Kill all processes you can kill.')}
+        kill -l 11                 {c('Translate number 11 into a signal name.')}
+        kill -L                    {c('List the available signal choices in a nice table.')}
+        kill 123 543 2341 3453     {c('Send the default signal, SIGTERM, to all those processes.')}
+      
+      {h4('See also')}
+        killpg(3)                  {c('Sends a signal to all of the members of a specified process group.')}
+        mm filedescriptor
+  
+    {h3('Signals')}
+      {c('man 7 signal')}
+      {c('Useful: HUP, INT, KILL, STOP, CONT, and 0')}
+       1 HUP      2 INT      3 QUIT     4 ILL      5 TRAP     6 ABRT     7 BUS
+       8 FPE      9 KILL    10 USR1    11 SEGV    12 USR2    13 PIPE    14 ALRM
+      15 TERM    16 STKFLT  17 CHLD    18 CONT    19 STOP    20 TSTP    21 TTIN
+      22 TTOU    23 URG     24 XCPU    25 XFSZ    26 VTALRM  27 PROF    28 WINCH
+      29 POLL    30 PWR     31 SYS
+      
+    {h3('killall')} [options] ⟨NAME⟩
+      -e, --exact
+      -g, --process-group     {c('Kill the process group to which the process belong')}
+      -i, --interactive
+      -r, --regexp            {c('POSIX extended regular expression')}
+      -v, --verbose
+      -I, --ignore-case
     """
     
     _SED = f"""{h2('sed')}
   {h3('Replace match')}
+    %bash 1
     sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/g' ~/.zshrc
 
   {h3('Append after match')}
+    %bash 1
     sed -i '/# HIST_STAMPS="mm\/dd\/yyyy"/ a HISTSIZE=1000000' ~/.zshrc
 
   {h3('Print specific line')}
+    %bash 1
     sed -n 10p /path/to/file
+
+  {h3('Print line num of match')}
+    %bash 1
+    cat -n /path/to/file | sed -n '/MATCH/p' | cut -d ' ' -f 1 | head -1 | xargs | cut -d ' ' -f 1
+
+  {h3('match.group(1)')}
+    %bash 2
+    # syspy=/usr/local/bin/python3.9 -> /usr/local/bin/python3.9
+    alias | grep "syspy" | sed -n "s/syspy=\(.*\)/\1/p"
+  
   
   {h3('Delete line from file')}
-    sed 'Nd' file              {c("sed '1d' file | sed '1,3d' file")}
-    sed '$d' file              {c('last line')}
-    sed '2,4!d' file           {c('all except lines 2 to 4')}
-    sed '2;4d' file            {c('only 2 and 4')}
-    sed '/^$/d' file           {c('empty lines')}
-    sed '/fedora/,+4d' <file>  {c('from pattern +4 next lines')}
-    sed '/fedora/,$d'          {c('starting from a pattern till last line')}
-    sed '${{/ubuntu/d;}}'        {c('last line only if it contains the pattern')}
-    sed -i <file> -re '<start>,<end>d'    {c('Remove range of lines')}
+    %bash
+    sed 'Nd' file                         # sed '1d' file | sed '1,3d' file
+    sed '$d' file                         # last line
+    sed '2,4!d' file                      # all except lines 2 to 4
+    sed '2;4d' file                       # only 2 and 4
+    sed '/^$/d' file                      # empty lines
+    sed '/fedora/,+4d' <file>             # from pattern +4 next lines
+    sed '/fedora/,$d'                     # starting from a pattern till last line
+    sed '${{/ubuntu/d;}}'                   # last line only if it contains the pattern
+    sed -i <file> -re '<start>,<end>d'    # Remove range of lines
+    /%bash
     """
     
     _SYMLINK = _LN = _LINK = f"""{h2('ln - make links between files')}
@@ -2106,7 +2174,7 @@ def bash(subject=None):
       
   {__REGEX}
   
-  {__FILEDESCRIPTORS}
+  {__FILEDESCRIPTOR}
     """
     
     _TR = rf"""{h2('tr')} {c('[OPTION]... SET1 [SET2]')}
@@ -2235,7 +2303,7 @@ def bash(subject=None):
     
     if subject:
         if subject.startswith('<') or subject.startswith('>') or subject in ('!', '?', '&', '|'):
-            return __FILEDESCRIPTORS
+            return __FILEDESCRIPTOR
         
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -7179,52 +7247,114 @@ def postgres(subject=None):
 
 @syntax
 def pytest(subject=None):
-    return f"""{h1('pytest')} {c('[options] [file_or_dir] [file_or_dir...]')}
-
-  {h2('Examples')}
-    %bash
-    pytest --disable-warnings -k MySQLSession -l -s
-    pytest tests/python -l -vv -rA --disable-warnings
-    pytest tests/python/test_Message.py -rA --maxfail=1 -l -k "create_tempo_shifted"
-    python -m pytest -k "gito" --pdbcls="IPython.terminal.debugger:TerminalPdb" --pdb -s
-    pytest test_mod.py::TestClass::test_method
-    /%bash
-
-  {h2('General')}
+    _GENERAL = f"""{h2('General')}
     -x, --exitfirst {c('or --maxfail=1')}
     -l, --showlocals
-    --tb=auto|long|short|line|native|no
-    --full-trace                  {c("longer than --tb=long")}
-    --rootdir=ROOTDIR             {c("define ROOTDIR for tests")}
-    --trace                       {c("drop to pdb immediately at the start of each test")}
-    --pdb [options]               {c("drop to pdb after every failure (use with -x)")}
-    --pdbcls=modulename:classname {c('e.g IPython.terminal.debugger:TerminalPdb (must use -s)')}
-    -m MARKEXPR                   {c("-m 'mark1 and not mark2'")}
-    --disable-warnings
-    --capture=fd|sys|no|tee-sys
-    -s, --capture=no              {c('disable capturing, ie show prints')}
-    --color=yes|no|auto
-    --code-highlight=yes|no
+        --tb={{auto,long,short,line,native,no}}
+        --full-trace                    {c("longer than --tb=long")}
+        --rootdir=⟨ROOTDIR⟩             {c("define ROOTDIR for tests")}
+        --trace                         {c("drop to pdb immediately at the start of each test")}
+        --pdb [options]                 {c("drop to pdb after every failure (use with -x)")}
+        --pdbcls=⟨module:class⟩         {c('e.g IPython.terminal.debugger:TerminalPdb (must use -s)')}
+    -m ⟨MARKEXPR⟩                       {c("-m 'mark1 and not mark2'")}
+        --disable-warnings
+        --capture={{fd,sys,no,tee-sys}}
+    -s, --capture=no                    {c('disable capturing, ie show prints')}
+        --color={{yes,no,auto}}
+        --code-highlight=yes|no
     -c more_termcolor/tests/pytest.ini
+    """
+    _DOCTEST = f"""{h3('--doctest-')}
+    --doctest-modules     {c('run doctests in all .py modules')}
+    --doctest-report={{none, cdiff, ndiff, udiff, only_first_failure}}
+                          {c('choose another output format for diffs on doctest failure')}
+    --doctest-glob=pat    {c('doctests file matching pattern, default: test*.txt')}
+    --doctest-ignore-import-errors
+                          {c('ignore doctest ImportErrors')}
+    --doctest-continue-on-failure
+                          {c('for a given doctest, continue to run after the first failure')}
+    """
+    _SETUPCFG = f"""{h3('setup.cfg')}
+    [tool:pytest]
+    testpaths = testing
+    addopts = -ra --tb short -p pytester
+    """
+    _CONFTEST = f"""{h3('conftest.py')}
+    {c('Possibly multiple conftest.py files under / for different directories')}
+    %python
+    # Custom function arguments
+    import pytest
+    def pytest_addoption(parser):
+        parser.addoption('--myopt', ...)
 
-  {h2('Filtering')}
-    -k KEYWORD              {c('only run tests matching KEYWORD')}
+    @pytest.fixture
+    def myopt(request):
+        return request.config.getoption("--myopt")
+
+
+    # Ignoring tests dynamically
+    import sys
+    
+    collect_ignore = ["setup.py"]
+    if sys.version_info[0] > 2:
+        collect_ignore.append("pkg/module_py2.py")
+
+    # Plugins:
+    pytest_plugins = ("myapp.testsupport.myplugin",)
+
+    # Hooks:
+    https://docs.pytest.org/en/latest/reference.html#hooks
+    /%python
+    """
+    _PYTESTINI = f"""{h3('pytest.ini')}
+    {c('https://docs.pytest.org/en/latest/reference.html#ini-options-ref')}
+    %ini
+    [pytest]
+    testpaths = <args>    # when nothing specified on commandline
+    addopts =
+        --pdbcls=IPython.terminal.debugger:TerminalPdb
+        --capture=no  # this is required with custom pdb!
+        --disable-warnings
+        --pyargs      # ❯ pytest --pyargs unittest2.test.test_skipping -q
+    doctest_optionflags= ELLIPSIS
+    filterwarnings =
+        error
+        ignore::DeprecationWarning
+        ignore:.*U.*mode is deprecated:DeprecationWarning
+    python_classes = Test* [a-z]*
+    python_functions = *_test
+    python_files = test_*.py check_*.py example_*.py
+    python_files =
+      test_*.py
+      check_*.py
+      example_*.py
+    /%ini
+    """
+    _CONFIG = f"""{h2('Configuration')}
+    {_CONFTEST}
+    
+    {_SETUPCFG}
+
+    {_PYTESTINI}
+    """
+    _FILTERING = f"""  {h2('Filtering')}
+    -k ⟨KEYWORD⟩              {c('only run tests matching KEYWORD')}
       -k "not send_http"
       -k "http or quick"
       -k "MyClass and not method"
       -k "file_path and MyClass"
-    --lf                    {c('run only last failed (all if none failed)')}
-    --ff                    {c('run all tests, but run the failed ones first')}
-    --nf                    {c('new first')}
-
-  {h2('Reporting')}
-    --durations=10          {c('time of 10 slowest tests')}
+    --lf                      {c('run only last failed (all if none failed)')}
+    --ff                      {c('run all tests, but run the failed ones first')}
+    --nf                      {c('new first')}
+    """
+    _REPORTING = f"""  {h2('Reporting')}
+        --durations=10        {c('time of 10 slowest tests')}
     -v, --verbose
-    --no-header
-    --no-summary
-    --disable-warnings
+        --no-header
+        --no-summary
+        --disable-warnings
     
-    {h3('-r<flag>')}                {c('short test summary at the end of the test session')}
+    {h3('-r ⟨FLAG⟩')}                {c('short test summary at the end of the test session')}
       {c('default: -rfE')}
       -rA                   {c('(show summary of) all')}
       -ra                   {c('all except passed')}
@@ -7234,9 +7364,8 @@ def pytest(subject=None):
       -rP                   {c('only passed with output')}
       -rs                   {c('only skipped')}
       -rN                   {c('nothing')}
-
-
-  {h2('Collection')}
+    """
+    _COLLECTION = f"""{h2('Collection')}
     --collect-only, --co    {c("only collect tests, don't execute them.")}
     --ignore=path           {c("ignore path during collection (multi-allowed).")}
     --ignore-glob=path      {c("ignore path pattern during collection (multi-allowed).")}
@@ -7244,68 +7373,43 @@ def pytest(subject=None):
     --import-mode={{prepend, append, importlib}}
                             {c('applies to conftest too. default prepend')}
     
-    {h3('--doctest-')}
-      --doctest-modules     {c('run doctests in all .py modules')}
-      --doctest-report={{none, cdiff, ndiff, udiff, only_first_failure}}
-                            {c('choose another output format for diffs on doctest failure')}
-      --doctest-glob=pat    {c('doctests file matching pattern, default: test*.txt')}
-      --doctest-ignore-import-errors
-                            {c('ignore doctest ImportErrors')}
-      --doctest-continue-on-failure
-                            {c('for a given doctest, continue to run after the first failure')}
-    
-  {h2('Configuration')}
-    {h3('conftest.py')}
-      {c('Possibly multiple conftest.py files under / for different directories')}
-      %python
-      # Custom function arguments
-      import pytest
-      def pytest_addoption(parser):
-          parser.addoption('--myopt', ...)
+    {_DOCTEST}
+    """
+    _MARK = f"""{h2('@pytest.mark')}
+    {h3('incremental')}
+      {c('https://doc.pytest.org/en/latest/example/simple.html#incremental-testing-test-steps')}
+    """
+    _FIXTURE = f"""{h2('@pytest.fixture')}
+    @pytest.fixture(scope="session")
+    def db(): ...
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('pytest')} {c('[options] [file_or_dir] [file_or_dir...]')}
+  {_MARK}
+  
+  {_FIXTURE}
+  
+  {h2('Examples')}
+    %bash
+    pytest --disable-warnings -k MySQLSession -l -s
+    pytest tests/python -l -vv -rA --disable-warnings
+    pytest tests/python/test_Message.py -rA --maxfail=1 -l -k "create_tempo_shifted"
+    python -m pytest -k "gito" --pdbcls="IPython.terminal.debugger:TerminalPdb" --pdb -s
+    pytest test/unit/file.py::TestClass::test_method
+    /%bash
 
-      @pytest.fixture
-      def myopt(request):
-          return request.config.getoption("--myopt")
+  {_GENERAL}
 
+  {_FILTERING}
 
-      # Ignoring tests dynamically
-      import sys
-      
-      collect_ignore = ["setup.py"]
-      if sys.version_info[0] > 2:
-          collect_ignore.append("pkg/module_py2.py")     
+  {_REPORTING}
 
-      # Plugins:
-      pytest_plugins = ("myapp.testsupport.myplugin",)
-
-      # Hooks:
-      https://docs.pytest.org/en/latest/reference.html#hooks
-      /%python
-
-    {h3('pytest.ini')}
-      {c('https://docs.pytest.org/en/latest/reference.html#ini-options-ref')}
-      %ini
-      [pytest]
-      testpaths = <args>    # when nothing specified on commandline
-      addopts =
-          --pdbcls=IPython.terminal.debugger:TerminalPdb
-          --capture=no  # this is required with custom pdb!
-          --disable-warnings
-          --pyargs      # ❯ pytest --pyargs unittest2.test.test_skipping -q
-      doctest_optionflags= ELLIPSIS
-      filterwarnings =
-          error
-          ignore::DeprecationWarning
-          ignore:.*U.*mode is deprecated:DeprecationWarning
-      python_classes = Test* [a-z]*
-      python_functions = *_test
-      python_files = test_*.py check_*.py example_*.py
-      python_files =
-        test_*.py
-        check_*.py
-        example_*.py
-      /%ini
-
+  {_COLLECTION}
+  
+  {_CONFIG}
   """
 
 
@@ -7661,15 +7765,18 @@ def python(subject=None):
       10:>03d           {c('010')}
       f"{{mystr: >5}}"  {c('Like mystr.rjust(5)')}
     """
-    _IMPORT = _MODULES = f"""{h2('Import System')}
+    _IMPORT = _MODULE = f"""{h2('Import System')}
     {c("https://docs.python.org/3/reference/import.html")}
-    __name__
-    __loader__
-    __package__
-    __spec__
+    %python
+    __name__: str   # '__main__'
+    __loader__: SourceFileLoader
+    __package__: Optional[?]
+    __spec__: Optional[?]
     __path__
-    __file__
-    __cached__
+    __file__: str   # '/home/gilad/.config/JetBrains/PyCharm2021.2/scratches/scratch_32.py'
+    __cached__: Optional[?]
+    __doc__: Optional[str]
+    /%python
     """
     
     __LOGGING_FORMATTER = f"""{h3('Formatter(')}
@@ -8143,15 +8250,15 @@ def rich_(subject=None):
     )"""
     
     _CONSOLE = f"""{h3('console.Console(')}
-              %python
-              highlight = True,
-              log_time = True, 
-              log_path = True,
-              log_time_format = "[%X]", 
-              width = None,
-              height = None, 
-              ...
-              /%python
+            %python
+            highlight = True,
+            log_time = True,
+            log_path = True,
+            log_time_format = "[%X]",
+            width = None,
+            height = None,
+            ...
+            /%python
       )
       
       {h4('log(')}     {c('Prints and indents with [07.01.2021]. ~30ms')}
@@ -8228,70 +8335,39 @@ def rich_(subject=None):
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
-        return f"""{h1('rich / pyinspect')}
-  {h2('pyinspect')}
-    {h3('pi.what(')}   {c('like rich.inspect(title=str(type(hi)), methods=True) but also displays source code')}
-        %python 2
-        var=None,   # without args, shows all locals
-        **kwargs
-    )
-    
-    {h3('pi.showme(func)')}   {c('Shows source code')}
-    
-    {h3('pi.search(')}
+        return f"""{h1('rich')}
+  {_INSPECT}
+  
+  {h3('print()')}    {c('Syntax highlight; Same sig as builtin. ~15ms')}
+  
+  {_CONSOLE}
+  
+  {h3('rich.pretty')}
+    {h4('pretty_repr(')}
         %python
         obj,
-        name = "",
-        print_table = True,
-        **kwargs
         /%python
     )
-    
-    {h3('pi.install_traceback(')}   {c('Syntax highlighting, formatting, expose local vars')}
-        %python
-        keep_frames=2,        # N last frames are presented in detail
-        hide_locals=False, 
-        all_locals=False,     # Expose everything, not just the local vars
-        relevant_only=False,  # Expose only the vars that existed in the error line
-        enable_prompt=False
-        /%python
-    )
+    .pretty_repr(obj, expand_all = False, max_length:int = None, max_string:int = None, indent_guides: bool = True)
+
+    .prettyprint
+
+    .print
+
+    .install(expand_all = False, max_length:int = None, max_string:int = None)    {c('automatic pretty printing in Python REPL')}
+
+  {h3('rich.logging')}
   
-  {h2('rich')}
-    {_INSPECT}
-    
-    {h3('print()')}    {c('Syntax highlight; Same sig as builtin. ~15ms')}
-    
-    {_CONSOLE}
-    
-    {h3('rich.pretty')}
-      {h4('pretty_repr(')}
-          %python
-          obj,
-          /%python
-      )
-      .pretty_repr(obj, expand_all = False, max_length:int = None, max_string:int = None, indent_guides: bool = True)
-
-      .prettyprint
-
-      .print
-
-      .install(expand_all = False, max_length:int = None, max_string:int = None)    {c('automatic pretty printing in Python REPL')}
-
-    {h3('rich.logging')}
-    
-    {h3('rich.panel')}
-    {h3('rich.table')}
-    
-    {h3('rich.traceback')}
-      {c('https://rich.readthedocs.io/en/latest/reference/traceback.html')}
-      .install(show_locals = True, word_wrap = False, show_locals = False)
-      .Traceback(...)
-      .extract(...)
-      .from_exception(...)
-    
+  {h3('rich.panel')}
+  {h3('rich.table')}
+  
+  {h3('rich.traceback')}
+    {c('https://rich.readthedocs.io/en/latest/reference/traceback.html')}
+    .install(show_locals = True, word_wrap = False, show_locals = False)
+    .Traceback(...)
+    .extract(...)
+    .from_exception(...)
         """
-
 
 @alias('rg')
 def ripgrep(subject=None):
@@ -8572,7 +8648,11 @@ def setuppy(subject=None):
     
     }},
 
-    tests_require = [ ... ]
+    tests_require = [ ... ],
+    
+    entry_points = {{
+        "console_scripts": ["pypisearch=pypi_search.main:main"]
+    }},
     /%python
 
   {h2('Upload to pypi')}
@@ -10266,62 +10346,80 @@ def yarn(subject=None):
 
   """
 
-
+@syntax
 def youtube_dl(subject=None):
     return f"""{h1('youtube-dl')} [OPTIONS] URL [URL...]
   {h2('install')}
     sudo snap install youtube-dl
     
   {h2('options')}
-    -F                    {c('list formats')}
-    -f, --format <FORMAT>
-       'best[ext=mp4]+bestvideo[height=1080]'
-       'best[ext=mp4]+best[height=1080]'
-       '(mp4)[height=1080]'
-       '(mp4)worstvideo+bestaudio'
-       '(mp4)[height=1080]+bestaudio'
-       'bestvideo[height=1080]+bestaudio'
+    {h3('Formats')}
+      -F, --list-formats
+      -f, --format <FORMAT>
+         'best[ext=mp4]+bestvideo[height=1080]'
+         'best[ext=mp4]+best[height=1080]'
+         '(mp4)[height=1080]'
+         '(mp4)worstvideo+bestaudio'
+         '(mp4)[height=1080]+bestaudio'
+         'bestvideo[height=1080]+bestaudio'
   
     -v, --verbose
     -s, --simulate             {c('Do not download the video and do not write anything to disk')}
   
     --console-title            {c('Show progress in console title')}
     
-    --yes-playlist             {c('Download playlist even if url points to vid')}
-    --playlist-start=15        {c('Download starting from part PART')}
-    --playlist-items '1-3,7,10-13'
-    --flat-playlist            {c('only list playlist files, dont download')}
-    
     -o, --output <TEMPLATE>
       '%(playlist)s/%(playlist_index)s___%(title)s.%(ext)s'
-  
-    --ignore-config            {c('~/.config/youtube-dl/config or /etc/youtube-dl.conf')}
-    --config-location PATH
     
     --restrict-filenames       {c('remove spaces and e.g. "&" in file names')}
   
     --no-continue              {c('dont resume partial downloads; start from beginning')}
   
-    --get-<url | title | id | thumbnail | description | duration | filename | format> {c('dont dl vid')}
-  
-    --list-subs
-    --write-sub
-    --sub-langs iw
-    --write-auto-sub
-    --embed-subs
-    --convert-subs <FORMAT>    {c('srt|ass|vtt|lrc')}
-  
-    --recode-video <FORMAT>    {c('mp4|flv|ogg|webm|mkv|avi')}
+    --get-{{url,title,id,thumbnail,description,duration,filename,format}} {c('dont dl vid')}
+    
+    --recode-video <FORMAT>    {c('{mp4,flv,ogg,webm,mkv,avi}')}
   
     -x, --extract-audio        {c('only audio')}
     --audio-quality <QUALITY>  {c('VBR: 0 (better) to 9 (worse); CBR: 128K')}
-    --audio-format <FORMAT>    {c('"best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", or "wav"; "best" by default; No effect without -x')}
+    --audio-format <FORMAT>    {c('{best,aac,flac,mp3,m4a,opus,vorbis,wav}; "best" by default; Ignored without -x')}
   
     --mark-watched
-
-  {h2('examples')}
-    youtube-dl -v --yes-playlist --mark-watched --playlist-start=15 --restrict-filenames --console-title -o '%(playlist)s/%(playlist_index)s___%(title)s.%(ext)s' -f '(mp4)bestvideo' 'https://www.youtube.com/playlist?list=PLsyeobzWxl7r2ukVgTqIQcl-1T0C2mzau'
-    youtube-dl $(cat /home/gilad/.config/youtube-dl/config | tr '\n' ' ') 'PLNmW52ef0uwtUY4OFRF0eV1mlT5lKhe_j'
+    
+    {h3('Playlist')}
+      --yes-playlist             {c('Download playlist even if url points to vid')}
+      --playlist-start=15        {c('Download starting from part ⟨PART⟩')}
+      --playlist-items '1-3,7,10-13'
+      --flat-playlist            {c('only list playlist files, dont download')}
+  
+    {h3('Configuration')}
+      --ignore-config            {c('~/.config/youtube-dl/config or /etc/youtube-dl.conf')}
+      --config-location ⟨PATH⟩
+    
+    {h3('Subtitles')}
+      --list-subs
+      --write-sub
+      --write-auto-sub
+      --sub-langs iw
+      --sub-format ⟨FORMAT⟩      {c('{srt,ass,best}')}
+      --embed-subs
+      --convert-subs ⟨FORMAT⟩    {c('{srt,ass,vtt,lrc}')}
+  
+  {h2('Examples')}
+    %bash
+    youtube-dl -v {literal_backslash}
+               --yes-playlist {literal_backslash}
+               --mark-watched {literal_backslash}
+               --playlist-start=15 {literal_backslash}
+               --restrict-filenames {literal_backslash}
+               --console-title {literal_backslash}
+               -o '%(playlist)s/%(playlist_index)s___%(title)s.%(ext)s' {literal_backslash}
+               -f '(mp4)bestvideo' {literal_backslash}
+               'https://www.youtube.com/playlist?list=PLsyeobzWxl7r2ukVgTqIQcl-1T0C2mzau'
+    
+    youtube-dl {literal_backslash}
+               $(cat /home/gilad/.config/youtube-dl/config | tr $'{literal_linebreak}' ' ') {literal_backslash}
+               'PLNmW52ef0uwtUY4OFRF0eV1mlT5lKhe_j'
+    /%bash
     """
 
 
@@ -10434,6 +10532,7 @@ def zip_(subject=None):
 @syntax
 def zsh(subject=None):
     _ZLE = f"""{h2('zle')} - Z-Shell Line Editor
+    {c('https://web.cs.elte.hu/zsh-manual/zsh_14.html')}
     {c('https://github.com/mskar/setup/blob/5d9dddd447a05e8d866b9c09b06a085f02e41bd3/.zshrc#L686')}
     zle up-history
     zle push-line
@@ -10502,7 +10601,19 @@ def zsh(subject=None):
       (( verbosity = $#flag_v - $#flag_q ))
       /%bash
     """
-    
+    _BINDKEY = f"""{h3('bindkey')}
+    %bash
+    hexdump
+    # OR:
+    showkey -a
+    # Press F1. Prints:
+    # [OP'
+
+    # Examples:
+    bindkey "\e[3A" <function> # alt+up
+    bindkey "\e"man <function>
+    /%bash
+    """
     _KEYS = f"""{h2('Keyboard Shortcuts')}
     {c('show all with just `bindkey`')}
     {h3('Glossary')}
@@ -10556,24 +10667,13 @@ def zsh(subject=None):
       .kill-buffer    {c('dirhistory plugin')}
       .accept-line    
   
-    {h3('bindkey')}
-      %bash
-      hexdump
-      # OR:
-      showkey -a
-      # Press F1. Prints:
-      # [OP'
-      
-      # Examples:
-      bindkey "\e[3A" <function> # alt+up
-      bindkey "\e"man <function>
-      /%bash
     """
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
-        return rf"""{h1('zsh')}
+        return f"""{h1('zsh')}
   {c('http://zsh.sourceforge.net/Guide/zshguide04.html')}
   autoload -U add-zsh-hook
   autoload -Uz compinit
@@ -10585,6 +10685,8 @@ def zsh(subject=None):
   {_ZLE}
 
   {_KEYS}
+  
+  {_BINDKEY}
   
   {_ZPARSEOPTS}
   """
