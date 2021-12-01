@@ -1999,6 +1999,7 @@ def bash(subject=None):
     """
     
     _SED = f"""{h2('sed')}
+  {c('https://github.com/adrianscheff/useful-sed')}
   {h3('Replace match')}
     %bash 1
     sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/g' ~/.zshrc
@@ -7279,18 +7280,45 @@ def pytest(subject=None):
     testpaths = testing
     addopts = -ra --tb short -p pytester
     """
+    _HOOKS = f"""{h3('Hooks')}
+    {c('https://docs.pytest.org/en/latest/reference.html#hooks')}
+    %python
+    pytest_addoption(parser: config.argparsing.Parser): ...
+    
+    pytest_configure(config: Config): ...
+    
+    pytest_collection_modifyitems(config: Config, items):
+        if not config.getoption("--skip-slow"):
+            return
+        skip_slow = pytest.mark.skip(reason="Specified --skip-slow")
+        for item in items:
+            if "slow" in item.keywords:
+                item.add_marker(skip_slow)
+    
+    pytest_report_collectionfinish(config: Config, startdir, items: Sequence[Item]) -> str | list[str]:
+    /%python
+        First thing after e.g {h3('collected 3 items')}
+    %python
+    
+    pytest_report_teststatus(report: CollectReport | TestReport, config: Config) -> (str, str, str|Mapping[str, bool]):
+        Just before printing the test outcome
+      
+    pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:
+        After printing the final summary line
+    
+    /%python
+    """
     _CONFTEST = f"""{h3('conftest.py')}
     {c('Possibly multiple conftest.py files under / for different directories')}
     %python
     # Custom function arguments
     import pytest
     def pytest_addoption(parser):
-        parser.addoption('--myopt', ...)
+        parser.addoption("--skip-slow", action="store_true", default=False, help="Skip slow tests")
 
     @pytest.fixture
     def myopt(request):
         return request.config.getoption("--myopt")
-
 
     # Ignoring tests dynamically
     import sys
@@ -7302,9 +7330,9 @@ def pytest(subject=None):
     # Plugins:
     pytest_plugins = ("myapp.testsupport.myplugin",)
 
-    # Hooks:
-    https://docs.pytest.org/en/latest/reference.html#hooks
     /%python
+    
+    {_HOOKS}
     """
     _PYTESTINI = f"""{h3('pytest.ini')}
     {c('https://docs.pytest.org/en/latest/reference.html#ini-options-ref')}
@@ -8196,6 +8224,13 @@ def restructured_text(subject=None):
 
     example text
   
+  {h2('Links')}
+    {c('https://kevin.burke.dev/kevin/sphinx-interlinks/')}
+
+    Use :meth:`requests.Request.get` to make HTTP Get requests.
+
+    Use :meth:`the get() method <requests.Request.get>` to make HTTP Get requests.
+    
   {h2('Examples')}
     {h3('highlighted code')}
     ::
@@ -8961,12 +8996,23 @@ def snap(subject=None):
 
   {h2('info')} [--verbose] <pkg>
 
-  {h2('install')} [options] <pkg>
+  {h2('install')} [install-OPTIONS] <snap>...
+    --unaliased           {c('dont enable automatic aliases')}
+    --name=               {c('install under given instance name')}
+    --channel=<channel>   {c('one of the channels below')}
+    --edge
+    --beta
+    --candidate
+    --stable
+    --classic
 
-  {h2('list')}            {c('list installed snaps')}
+  {h2('list')} [list-OPTIONS] [<snap>...]   {c('list installed snaps')}
+    --all
 
-  {h2('refresh')} [options] <pkg>   {c('upgrades to latest ver.')}
+  {h2('refresh')} [options] <pkg>   {c('upgrades to latest ver. happens daily or more.')}
     {c('if no pkg specified, upgrades all')}
+    --time                {c('show when last and next refreshes happen')}
+    --list                {c('show next versions to be upgraded')}
     --channel=<channel>   {c('one of the channels below')}
     --edge
     --beta
@@ -9140,12 +9186,12 @@ def sqlalchemy(subject=None):
 
 
 @syntax
-def sphinx(subject=None):
+def googledoc(subject=None):
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
-        return f"""{h1('sphinx')}
+        return f"""{h1('googledoc')}
     {c('https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html')}
     {h2('Sections')}
       Args (alias of Parameters)
@@ -9276,12 +9322,19 @@ def sxhkd(subject=None):
 
 
 def tar(subject=None):
-    return f"""{h1('tar')}
+    return f"""{h1('tar')} [option...] [file...]
   -x        {c('extract')}
   -f --file={c('file')}
   -t        {c('list content of archive')}
   -v        {c('verbose')}
   -C <PATH> {c('different destination')}
+  --strip-components=<N>    {c('Skip N first dir-levels')}
+
+  {h2('Examples')}
+    %bash
+    # Extract only matching glob
+    tar --strip-components=1 -xvf ./bat-v0.18.3-x86_64-unknown-linux-gnu.tar.gz "bat*bat"
+    /%bash
     """
 
 
