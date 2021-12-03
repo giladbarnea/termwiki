@@ -1770,10 +1770,10 @@ def bash(subject=None):
 
     _LESS = f"""{h2('less')}
     {h3('args')}
-      -N          line numbers
-      --pattern=  {i('PATTERN')}
+      -N                      {c('Show line numbers')}
+      -p, --pattern PATTERN   {c('Start at PATTERN')}
       -s, --squeeze-blank-lines
-      -S, --chop-long-lines   {c("default is to wrap")}
+      -S, --chop-long-lines   {c('default is to wrap')}
       -W, --HILITE-UNREAD
 
     {h3('navigation')}
@@ -4434,6 +4434,84 @@ def gunicorn(subject=None):
   {_SIGNALS}
   """
 
+@syntax
+def kafka(subject=None):
+    _CONFLUENT = f"""{h2('confluent_kafka')}
+  {h3('admin')}    {c('module')}
+    {h4('AdminClient')}
+      %python
+      .list_groups([group=None], [timeout=-1]) -> list[GroupMetadata]
+      .list_topics([topic=None], [timeout=-1]) -> ClusterMetadata(o5gICLpaSu2GvYbnB2AW4A)
+      .describe_configs(resources, **kwargs) -> dict[ConfigResource, future]  # future.result() -> dict(<configname, ConfigEntry>)
+      .alter_configs(resources, **kwargs)
+      .delete_topics(topics, **kwargs) -> dict(<topic_name, future>)  # future.result() -> None
+      .create_topics(topics, **kwargs) -> dict(<topic_name, future>)  # future.result() -> None
+      .create_partitions(new_partitions, **kwargs) -> dict(<topic_name, future>)  # future.result() -> None
+      .poll(timeout=None) -> int
+      /%python
+  
+    {h3('GroupMetaData')}
+      %python
+      broker: BrokerMetadata(1001, kafka:9092)
+      error: Optional
+      id: str              # e.g 'rsevents'
+      members: list[GroupMember]
+      protocol: str        # e.g 'range'
+      protocol_type: str   # e.g 'consumer'
+      state: str           # e.g 'Stable'
+      /%python
+    
+    {h3('GroupMember')}
+      %python
+      assignment: bytes
+      client_host: str     # e.g '/172.24.24.24'
+      client_id: str       # e.g 'rdkafka'
+      id: str              # e.g 'rdkafka-699c8dd7-8615-4973-a8ee-20207fa4de94'
+      metadata: bytes
+      /%python
+    
+    {h3('BrokerMetadata')}
+      %python
+      host: str              # e.g 'kafka'
+      id: int                # e.g 1001
+      port: int              # e.g 9092
+      /%python
+    
+    {h3('ClusterMetadata')}
+      %python
+      # Returned by list_topics()
+      brokers = {{1001: BrokerMetadata(1001, kafka:9092)}}
+      cluster_id = 'o5gICLpaSu2GvYbnB2AW4A'
+      controller_id = 1001
+      orig_broker_id = 1001
+      orig_broker_name = 'kafka:9092/1001'
+      topics: dict[str, TopicMetadata]  # e.g 'as-profile-topic': TopicMetadata(...)
+      /%python
+    
+    {h3('TopicMetadata')}
+      %python
+      error: Optional
+      partitions: dict[int, PartitionMetadata]
+      topic: str             # e.g 'as-profile-topic'
+      /%python
+    
+    {h3('PartitionMetadata')}
+      %python
+      error: Optional
+      id: int                # e.g 0
+      isrs: list[int]        # e.g [1001]
+      leader: int            # e.g 1001
+      replicas: list[int]    # e.g [1001]
+    """
+    
+    
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('kafka')}
+  {_CONFLUENT}
+  """
 
 @syntax
 def kitty(subject=None):
@@ -4869,20 +4947,25 @@ def ipython(subject=None):
       name of an object: locate the file where it was defined and open the editor at the point where it is defined
     """
     
-    _HIST = _HISTORY = f"""{h2('%hist[ory]')} [options] <VALUE>
+    _HIST = _HISTORY = f"""{h2('%hist[ory]')} [options] ⟨VALUE⟩
     {h3("VALUE")}
-      1                 Prints line 1 of current session
-      ~2/5
-      ~2/5-~1/4
-      1-2
-      1:3
+      {c('Can be space separated for multiple values')}
+      1                 {c('Line 1 of current session')}
+      1-2               {c('Inclusive: lines 1 and 2 of current session')}
+      1:3               {c('Exclusive: lines 1 and 2 of current session')}
+      243/1-5           {c('Lines 1-5, session 243')}
+      ~2/5              {c('Line 5, session 2 before current')}
+      ~8/1-~6/5         {c('From line 1 of 8 sessions ago, to fifth line of 6 sessions ago')}
+    
     {h3("options")}
       -n                {c('Line numbers')}
       -o                {c('Output')}
       -p                {c('print ">>>" prompts before each input')}
-      -f <FILE>         {c('Write to FILE')}
-      -g <PATTERN>      {c('Search all history')}
+      -f ⟨FILE⟩         {c('Write to FILE')}
+      -g [PATTERN...]   {c('Search all history')}
+      -l [LIMIT]        {c('Last LIMIT lines from all sessions, default 10')}
       -u                {c('Unique')}
+      -t                {c('"Translated" history')}
     """
     
     _MACRO = f"""{h2('%macro')} [options] <macro_name> <history_args>
