@@ -487,6 +487,7 @@ def apt(subject=None):
 
   {h2('remove')} <REGEX, GLOB, EXACT>
     -f, --fixed-broken
+    --purge                            {c('identical to just purge')}
 
   {h2('autoremove')}                           {c('remove dependencies of removed packages')}
                                        {c(f'apt-mark deps you like')}
@@ -7634,7 +7635,39 @@ def python(subject=None):
   {h4('See also')}
     mm python env
     """
+    _CTXMGR = _CTXMANAGER = _CONTEXTMANAGER = f"""{h2('Context Manager')}
+    {h3('typing.Generator')}(Iterator[T_co], Generic[T_co, T_contra, V_co])
+      %python
+      # Generator[YieldType, SendType, ReturnType]
+      
+      def generatr() -> Generator[int, float, str]:
+          # `yield` blocks execution until `next(gen)` or `gen.send(value)` are called.
+          # Both `next(gen)` and `gen.send(value)` return whatever's on the right hand side of `yield`.
+          # Only `gen.send(value)` sets value to the var on the left hand side of `yield` (with `next` it's None).
+          # Return value is accessible via `StopIteration.value`.
+          sent = yield 0
+          round_send = round(sent)
+          sent = yield round_send
+          return sent
+      /%python
     
+    {h3('contextlib.contextmanager')}(func) -> _GeneratorContextManager
+      %python
+      # _GeneratorContextManager returns `next(gen)` on enter, and calls `next(gen)` on exit.
+      # It expects a StopIteration on exit, and raisees a RuntimeError if wasn't raised.
+      # This is why there can only be 1 `yield` statement, and return value is ignored.
+      
+      def generatr() -> Generator[str, None, int]:
+          yield "a"
+          return 42
+      
+      gen_ctx_mgr_wrapper: (...) -> _GeneratorContextManager[str] = contextmanager(generatr)
+      gen_ctx_mgr: _GeneratorContextManager[str] = gen_ctx_mgr_wrapper()
+      
+      with gen_ctx_mgr as yielded:
+          print(yielded)    # "a"
+      /%python
+    """
     _DATE = _DATETIME = _TIME = _TZ = f"""{h2('date / datetime / time / timezone')}
   {h3('strftime')}(format)
     {c('now  = datetime.datetime(2020, 9, 2, 17, 37, 29, 960461)')}
@@ -8219,7 +8252,9 @@ def python(subject=None):
   {_BITWISE}
 
   {_CMD}
-
+  
+  {_CONTEXTMANAGER}
+  
   {_DATE}
   
   {_DECORATORS}
