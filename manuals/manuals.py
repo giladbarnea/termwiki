@@ -3,7 +3,7 @@ import re
 from functools import wraps
 from pathlib import Path
 import os
-from typing import Literal, Dict, Type, Union, Any
+from typing import Literal, Type, Union
 from textwrap import indent,dedent
 from pygments import highlight as pygments_highlight
 # noinspection PyUnresolvedReferences
@@ -41,8 +41,8 @@ langs = Language.__args__
 HIGHLIGHT_START_RE = re.compile(fr'%({"|".join(langs)}) ?(\d|{"|".join(Style.__args__)})?')
 HIGHLIGHT_END_RE = re.compile(fr'/%({"|".join(langs)})')
 # noinspection PyUnresolvedReferences
-formatters: Dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__)
-lexers: Dict[Language, Lexer] = dict.fromkeys(langs)
+formatters: dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__)
+lexers: dict[Language, Lexer] = dict.fromkeys(langs)
 console = None
 
 
@@ -3674,7 +3674,7 @@ def flask(subject=None):
   {h2('app.run() options')}
     host     {c('the hostname to listen on. Default 127.0.0.1')}
     port     {c('the port of the web server. Default 5000')}
-    debug    {c('Enable / disable debug mode. Dictates use_reloader and use_debugger if unspecified')}
+    debug    {c('Enable / disable debug mode. dictates use_reloader and use_debugger if unspecified')}
     load_dotenv     {c('load the nearest .env and .flaskenv files to set environment variables.')}
     use_reloader    {c('should the server automatically restart the python process if modules were changed?')}
     use_debugger    {c('should the werkzeug debugging system be used?')}
@@ -8203,7 +8203,7 @@ def python(subject=None):
       pathlib.Path.readlink()
       str.removeprefix, str.removesuffix
       
-      {h4('PEP-584: Dict union operators')}
+      {h4('PEP-584: dict union operators')}
         %python
         d1 | d2     # {{**d1, **d2}}
         d1 |= d2    # d1.update(d2)
@@ -8302,6 +8302,10 @@ def redis(subject=None):
     dbsize() -> {{ 172.24.24.2:6379 : 1 }}
     info() -> {{ 172.24.24.2:6379 : {{ ... }} }}
     keys() -> [ 'sm:rsevents:367cacba9a4c444ea9220bee5b29ae7b' ]
+    
+    hset('sm:devices:device_id', 'Field', 'Value')
+    hmset('sm:devices:device_id', {{ 'Field': 'Value' }})
+    incr('mycounter')
     """
     if subject:
         frame = inspect.currentframe()
@@ -9205,7 +9209,7 @@ def sqlalchemy(subject=None):
     _META = _METADATA = f"""{h2('MetaData')}
     meta = sqlalchemy.schema.MetaData()
     meta.reflect(bind=engine)
-    meta.tables{c(': Dict[str, Table]')}
+    meta.tables{c(': dict[str, Table]')}
     """
     
     _TABLE = f"""{h2('Table')}
