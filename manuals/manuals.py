@@ -6292,6 +6292,30 @@ def mysql(subject=None):
 
 
 @syntax
+def netstat(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('netstat')}
+  {h2('Examples')}
+    %bash 1
+    netstat -anpoWt # Active Internet connections (servers and established)        
+      Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name     Timer
+      tcp        0      0 127.0.0.1:37527         0.0.0.0:*               LISTEN      20718/python3.9      off (0.00/0/0)  
+    
+    %bash 1
+    netstat -anpoWr # Kernel IP routing table
+      Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+      10.5.0.0        172.22.2.235    255.255.0.0     UG        0 0          0 tun0
+    
+    %bash 1
+    netstat -anpoWi # Kernel Interface table
+      Iface      MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
+      br-08441  1500     8497      0      0 0          8517      0      0      0 BMRU
+        
+        """ 
+@syntax
 def node(subject=None):
     _MODULES = f"""{h2('ES6 Modules with Typescript')}
   {h3('Node')}
