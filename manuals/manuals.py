@@ -4543,6 +4543,26 @@ def kitty(subject=None):
       --config <PATH>
       --override, -o <OPTION>	{c('-o background=gray')}
     """
+	
+    _MARKER = _MARKS = f"""{h2('Marks')}
+    {c('https://sw.kovidgoyal.net/kitty/marks/')}
+    
+    {h4('actions')}
+      toggle_marker
+      create_marker
+      remove_marker
+      scroll_to_mark {{prev,next}} [{{1,2,3}}]
+    
+    {h4('toggle_marker')} <marker-type> <specification>
+      {h5('marker type')}
+        text	  {c('Substring matching')}
+        itext	
+        regex	  {c('Python regex')}
+        iregex	
+        function  {c('.py file with def marker(text): yield i, i, 3')}
+      
+      map f1 toggle_marker iregex 1 \\bERROR\\b 2 \\bWARNING\\b
+    """
     
     _KEYBOARD = f"""{h2('Keyboard')}
     {c('https://sw.kovidgoyal.net/kitty/conf/#keyboard-shortcuts')}
@@ -4609,6 +4629,7 @@ def kitty(subject=None):
   {_MOUSE}
   {_KEYBOARD}
   {_LAUNCH}
+  {_MARKS}
   {_HINTS}
   {_PANEL}
   """
