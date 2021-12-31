@@ -4532,6 +4532,18 @@ def kitty(subject=None):
     mouse_map ctrl+alt+left triplepress ungrabbed mouse_selection line_from_point
     """
     
+    _DIFF = f"""{h2('Diff')}
+    {c('https://sw.kovidgoyal.net/kitty/kittens/diff/')}
+    kitty +kitten diff [options] <path> <path>
+    
+    {h4('diff.conf')}	{c('~/.config/kitty/diff.conf')}
+    
+    {h4('Options')}
+      --context <N>	{c('default -1 -> diff.conf')}
+      --config <PATH>
+      --override, -o <OPTION>	{c('-o background=gray')}
+    """
+    
     _KEYBOARD = f"""{h2('Keyboard')}
     {c('https://sw.kovidgoyal.net/kitty/conf/#keyboard-shortcuts')}
     
@@ -4593,6 +4605,7 @@ def kitty(subject=None):
   All actions:
   https://sw.kovidgoyal.net/kitty/actions/ 
   {_CMD}
+  {_DIFF}
   {_MOUSE}
   {_KEYBOARD}
   {_LAUNCH}
