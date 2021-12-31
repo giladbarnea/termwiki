@@ -952,25 +952,37 @@ def bash(subject=None):
     /%bash
     """
     __TEST = __FILES = f"""{h3('test')}
-    test <FLAG> <FILE>
-    FLAG:
+    {h4('Usage')}
+      test EXPRESSION
+      test
+      [ EXPRESSION ]
+      [ ]
+      [ OPTION
+      
+    {h4('File-Descriptor Flags')}
       -b  {c('block special')}
       -c  {c('character special')}
       -d  {c('directory')}
       -e  {c('exists')}
       -f  {c('regular file')}
       -g  {c('set-group-ID')}
+      -G  {c('owned by the effective group ID')}
+      -O  {c('owned by the effective user ID')}
       -h  {c('symbolic link (same as -L)')}
       -k  {c('has its sticky bit set')}
       -p  {c('a named pipe')}
       -r  {c('read permission is granted')}
       -s  {c('has a size greater than zero')}
+      -S  {c('Socket')}
       -t  {c('True if FD is opened on a terminal.')}
           {c('when not piped, -t 1 is True (?)')}
       -u  {c('its set-user-ID bit is set')}
       -v  {c("variable is set, e.g '[ -v myvar ]' (true even for myvar= and myvar='')")}
       -w  {c('write permission is granted')}
       -x  {c('execute (or search) permission is granted')}
+      
+    {h4('Variable Flags')}
+      EXPRESSION1 -a EXPRESSION2
     """
     
     __FOR = rf"""{h3('for')}
@@ -1141,7 +1153,7 @@ def bash(subject=None):
     -f            {c("suppress custom function lookup")}
                   {c("  type -f cd → cd is a shell builtin")}  
                   {c("  type -f log → not found (1)")}
-    -P            {c("search PATH, output disk file")}
+    -P            {c("(only bash?) search PATH, output disk file")}
                   {c("  type -P ls → /bin/ls (even if overridden or aliased)")}
     -p            {c("output disk file, restricted to -t → 'function'")}
     -w            {c("(only zsh?) print command type. type -w syspy -> 'syspy: alias'")}
@@ -1387,6 +1399,7 @@ def bash(subject=None):
       -v      {c('shell variables')}
           
     {h3('Options')}
+      {c('https://datacadamia.com/edition/complete#bash_-_complete_builtin_command_-_completion')}
       -A ⟨action⟩    {c('one of the following to generate a list of possible completions:')}
               {c('alias    arrayvar  binding   builtin  command    directory')}
               {c('enabled  disabled  job       keyword  running    variable')}
@@ -1394,8 +1407,8 @@ def bash(subject=None):
               {c('service  setopt    shopt     signal   stopped    user')} 
       -G globpat 
       -W wordlist 
-      -F function 
-      -C command 
+      -F function    {c('Should modify COMPREPLY, because completions will be retrieved from COMPREPLY')}
+      -C command     {c('Output will be used for completions')}
       -X filterpat 
       -P prefix 
       -S suffix
@@ -1417,7 +1430,7 @@ def bash(subject=None):
         plusdirs    {c('attempt and add dir name completion after any matches')}
     
     {h3('Globals')}
-      COMP_WORDS{c(': Numbered array (words in biffer)')}
+      COMP_WORDS{c(': Numbered array (words in buffer)')}
       COMP_CWORD{c(': int (1-index of current word in COMP_WORDS)')}
       COMP_LINE{c(': str (the whole buffer)')}
       COMP_POINT{c(': int (1-index of current char)')}
@@ -1460,6 +1473,8 @@ def bash(subject=None):
       
       complete -o nosort -W 'a b c d' ffmpeg.slice.get
       
+      complete -o bashdefault -o default -o nospace -C "_bfind(){{ echo hi; }} ; _bfind" bfind
+      
       complete -o default -C 'completion.generate ⟨INPUT_PATH⟩ ⟨OUTPUT_PATH⟩ "⟨INCREASE_FACTOR: int⟩" [ffmpeg_args...]' ffmpeg.inc-rate
       /%bash
     
@@ -1472,16 +1487,38 @@ def bash(subject=None):
       {c('https://zsh.sourceforge.io/Doc/Release/Completion-System.html')}
       %bash
       # Single line
-      compdef _git git.my-commits=git-log
-      compdef _git=git (?)
+        compdef _git git.my-commits=git-log
+        compdef _git=git (?)
+      
+      # Simple Example
+        _ffmpeg.slice.get(){{
+          local -a subcmds
+          subcmds=('c:description for c command' 'd:description for d command')
+          _describe 'ffmpeg.slice.get' subcmds
+        }}
+        compdef _ffmpeg.slice.get ffmpeg.slice.get
+      
       
       # Full Example
-      {linebreak + indent((os.getenv('MANPROJ') / Path('manuals/man/bash')).open().read(), '      ')}
+        {linebreak + indent((os.getenv('MANPROJ') / Path('manuals/man/bash')).open().read(), '        ')}
       /%bash
       
-    {h3('compadd')}
+    {h3('compadd')} [option...] [word...]
+      {c('Inside a compdef function')}
+      {h4('compadd -X explanation')}
+      {h4('compadd -x message')}        {c('Prints regardless of completions')}
+      {h4('compadd -a array')}          {c('words are names of arrays. matches are values. may contain subscripts, eg `foo[2,-1]`')}
+      {h4('compadd -k assoc_array')}    {c('words are names of assoc arrays. matches are keys. may contain subscripts, eg `foo[(R)*bar*]`')}
+      
       %bash
-      compadd -- $(COMP_CWORD=$((CURRENT-1)) \\
+      # Example 1
+        _ffmpeg.slice.get(){{
+          compadd foo bar
+        }}
+        compdef _ffmpeg.slice.get ffmpeg.slice.get
+      
+      # Example 2
+        compadd -- $(COMP_CWORD=$((CURRENT-1)) \\
                    COMP_LINE=$BUFFER \\
                    COMP_POINT=0 \\
                    npm completion -- "${{words[@]}}" \\
@@ -2077,6 +2114,8 @@ def bash(subject=None):
     {h3('scp examples')}
       %bash
       scp -i /Users/gilad/Code/rapyd/CD-COMMON.pem ./test29.json5 ubuntu@172.20.10.121:/home/rapusr/reconciliation-testing-tools/scenarios
+
+      scp -6 root@\[fd00:10:110:112:113:ef::48\]:/root/.kube/config .
       /%bash
   
     """
@@ -2453,82 +2492,110 @@ def brew(subject=None):
 
 @syntax
 def click_(subject=None):
-    _OPTION = f"""{h2('Options')}
+    _OPTION = f"""{h2('Option(Parameter)')}
+    {c('https://click.palletsprojects.com/en/8.0.x/options/')}
     %python
     @click.option('-s', '--string-to-echo', 'variable_name',
+                  help: str = None,
                   metavar=None,                # How it's displayed 
                   required=False,
-                  show_default=False,
-                  type=(str, int)
-                  # or:
-                  type=click.types.ParamType,  # Choice, INT, ...
+                  show_default: str | bool = False,     # if a str, show it instead of value
+
+                  type: type | tuple = None,   # e.g type=int, type=(str, int), 
+                                                 # type=click.Choice(...), type=click.types.INT
                   show_choices=False,          # if type is Choice
+
                   is_flag=False,
                   flag_value=False,
                   multiple=False,
                   count=False,                 # Increment and int
+
+                  prompt: bool | str = False,
+                  confirmation_prompt: bool | str = False,
+                  prompt_required: bool = False,
+                  hide_input: bool = False,
+                  
                   allow_from_autoenv=False,    # ?
                   show_envvar=False,
+
+                  hidden: bool = False,
+                  
                   ...
                   )
     /%python
+    
+    {h3('Example')}
+      {h4('Multi-value options')}         {c('Tuple')}
+        %python
+        @click.option('--pos', nargs=2)
+        def findme(pos):
+          click.echo('%s / %s' % pos)
 
-    {h3('Multi-value options')}         {c('Tuple')}
-      %python
-      @click.option('--pos', nargs=2)
-      def findme(pos):
-        click.echo('%s / %s' % pos)
+        >>> findme --pos 2.0 3.0
+        /%python
 
-      >>> findme --pos 2.0 3.0
-      /%python
+      {h4('Multiple options')}            {c('Tuple[T]')}
+        %python
+        @click.option('--message', '-m', multiple=True, type=T)
+        def commit(message):
+          click.echo('\\n'.join(message))
 
-    {h3('Multiple options')}            {c('Tuple[T]')}
-      %python
-      @click.option('--message', '-m', multiple=True, type=T)
-      def commit(message):
-        click.echo('\\n'.join(message))
+        >>> commit -m foo -m bar
+        /%python
 
-      >>> commit -m foo -m bar
-      /%python
+      {h4('Boolean Flags')}
+        %python
+        @click.option('--shout/--no-shout')
+        def info(shout):  # Pass either
 
-    {h3('Boolean Flags')}
-      %python
-      @click.option('--shout/--no-shout')
-      def info(shout):  # Pass either
+        @click.option('--shout', is_flag=True)
+        def info(shout):  # --shout → True
+        /%python
 
-      @click.option('--shout', is_flag=True)
-      def info(shout):  # --shout → True
-      /%python
+      {h4('Feature Switches')}            {c('Multiple options')}
+        %python 2
+        @click.option('--upper', 'transformation', flag_value='upper', default=True)
+        @click.option('--lower', 'transformation', flag_value='lower')
 
-    {h3('Feature Switches')}            {c('Multiple options')}
-      %python 2
-      @click.option('--upper', 'transformation', flag_value='upper', default=True)
-      @click.option('--lower', 'transformation', flag_value='lower')
+      {h4('Prompt')}
+        %python 1
+        @click.option('--name', prompt='Your name please')
 
-    {h3('Prompt')}
-      %python 1
-      @click.option('--name', prompt='Your name please')
-
-    {h3('Dynamic Defaults')}
-      %python 3
-      @click.option('--username', prompt=True,
-              default=lambda: os.environ.get('USER', ''),
-              show_default='current user')
+      {h4('Dynamic Defaults')}
+        %python 3
+        @click.option('--username', prompt=True,
+                default=lambda: os.environ.get('USER', ''),
+                show_default='current user')
+    """
+    _ARGUMENT = f"""{h2('Argument(Parameter)')}
+    {c('https://click.palletsprojects.com/en/8.0.x/api/#click.Argument')}
+    %python
+    @click.argument(param_decls: Sequence[str],
+                    required: True,
+                    **attrs)
+    /%python    
     """
     _COMMAND = f"""{h2('Command')}
+    {c('https://click.palletsprojects.com/en/8.0.x/api/#click.Command')}
     %python
-    @click.command(name,                   # Unless a group overrides
-                   help=None,              # core.Context() args
+    @click.command(name,                            # Unless a group overrides
+                   help=None,                       # core.Context() args
                    short_help=None, 
-                   epilog=None,            # shown at the end
-                   context_settings=None,  # core.Context() args
-                   callback=None,          # ?
-                   options_metavar='[OPTIONS]',
-                   ...
+                   epilog=None,                     # shown at the end
+                   add_help_option: bool = True,    # automatically support '--help'
+                   no_args_is_help: bool = False,   # show '--help' if no args are passed
+                       
+                   context_settings: dict = None,   # core.Context() args
+                   callback: callable=None,         # callback to invoke. Optional
+                   params: list[Option | Argument] = None,
+                   hidden: bool = False,
+                   deprecated: bool = False,
+                   options_metavar: str='[OPTIONS]'
                    )
     /%python
     """
     _CONTEXT = f"""{h2('Context(')}
+      {c('https://click.palletsprojects.com/en/8.0.x/api/?highlight=context#context')}
       %python
       command : Command cls,
       allow_extra_args : bool = None,
@@ -2559,21 +2626,24 @@ def click_(subject=None):
       )
       /%python
     """
+
     _GROUP = f"""{h2('Group(MultiCommand)')}
-    {c('https://click.palletsprojects.com/en/7.x/commands/')}
+    {c('https://click.palletsprojects.com/en/8.0.x/commands/')}
     
-    {h3('@click.group(')}
+    {h4('@click.group(')}
         %python
         name = None,
-        invoke_without_command : bool = False,
-        no_args_is_help : bool = not invoke_without_command,
-        subcommand_metavar : str = '', 
-        chain : bool = False
+        invoke_without_command: bool = False,
+        no_args_is_help: bool = not invoke_without_command,
+        subcommand_metavar: str = '', 
+        chain: bool = False,
+        result_callback: callable = None,
+        **attrs
         )
         /%python
           
     
-    {h3('Basic')}
+    {h4('Basic')}
       %python
       @click.group()
       @click.option('--debug/--no-debug', default=False)
@@ -2586,7 +2656,7 @@ def click_(subject=None):
       %bash 1
       $ tool.py --debug sync
         
-    {h3('No Subcommand')}
+    {h4('No Subcommand')}
       %python
       @click.group(invoke_without_command=True)
       @click.pass_context
@@ -2600,7 +2670,7 @@ def click_(subject=None):
       %bash 1
       $ tool.py
     
-    {h3('Merging Multiple Groups')}
+    {h4('Merging Multiple Groups')}
       %python
       @click.group()
       def foo(): ...
@@ -2620,7 +2690,7 @@ def click_(subject=None):
           cli()    
       /%python
 
-    {h3('Chaining Subcommands')}
+    {h4('Chaining Subcommands')}
       %python
       @click.group(chain=True)
       def main(): ...
@@ -2641,9 +2711,11 @@ def click_(subject=None):
     return f"""{h1('Click')}
   {_CONTEXT}
   
-  {_OPTION}
-    
   {_COMMAND}
+
+  {_ARGUMENT}
+  
+  {_OPTION}
   
   {_GROUP}
     """
@@ -4430,7 +4502,11 @@ def githubcli(subject=None):
 @syntax
 def gunicorn(subject=None):
     _APP = f"""{h2('app')}"""
-    _SIGNALS = f"""{h2('Signals')}"""
+    _SIGNALS = f"""{h2('Signals')}
+    {c('https://docs.gunicorn.org/en/stable/signals.html')}
+    
+    TTOU    {c('Decrement processes by 1')}
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
