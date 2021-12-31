@@ -4524,8 +4524,6 @@ def kitty(subject=None):
     _CMD = f"""{h2('Commandline Args')}
     kitty --debug-input
     kitty --debug-keyboard
-    
-    ctrl+shift+f6   {c('view current config')}
     """
     _MOUSE = f"""{h2('Mouse')}
     {c('https://sw.kovidgoyal.net/kitty/conf/#shortcut-kitty.Select-line-from-point')}
@@ -4573,10 +4571,18 @@ def kitty(subject=None):
     kitty @kitten hints [options]     {c('xdg-open choice. defaults to --type url')}
     """
     
-    _LAYOUTS = f"""{h2('Layouts')}
-    {c('https://sw.kovidgoyal.net/kitty/layouts/')}
+    _PANEL = f"""{h2('Panel')}
+    {c('https://sw.kovidgoyal.net/kitty/kittens/panel/')}
 
-    stack, tall, fat, grid, splits, horizontal, vertical
+    kitty +kitten panel --lines=5 sh -c 'printf "\n\n\nHello, world."; sleep 5s'
+    
+    --lines <LINES>			{c('default 1')}
+    --columns <LINES>			{c('default 20')}
+    --edge {{top,bottom,left,right}}	{c('default top')}
+    --config, -c <PATH>
+    --override, -o <CONFIG OPTION>	{c('-o font_size=20')}
+    --class <CLS>			{c('WM_CLASS class')}
+    --name <NAME>			{c('WM_CLASS name')}
     """
     
     if subject:
@@ -4591,7 +4597,7 @@ def kitty(subject=None):
   {_KEYBOARD}
   {_LAUNCH}
   {_HINTS}
-  {_LAYOUTS}
+  {_PANEL}
   """
 
 
