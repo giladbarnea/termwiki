@@ -716,10 +716,15 @@ def bash(subject=None):
           d) day="$OPTARG" ;;
           n) DRY_RUN=1 ;;
           o) OFFSET="$OPTARG" ;;
-          *)
+    	  -)
+      	    case "${OPTARG}" in
+              # Long options
+              quiet) quiet=true;;	  
+              *)
 	        echo "Usage: ${{0##*/}} [-n] [-d day] [-o offset] ARGS..."
-	        exit 2
-        esac
+	        exit 2;;
+	    esac;;
+        esac;;
       done
       shift $(( OPTIND - 1 ))
       OPTIND=1
