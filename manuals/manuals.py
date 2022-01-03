@@ -4505,7 +4505,17 @@ def gunicorn(subject=None):
     _SIGNALS = f"""{h2('Signals')}
     {c('https://docs.gunicorn.org/en/stable/signals.html')}
     
-    TTOU    {c('Decrement processes by 1')}
+    TTOU        {c('Decrement processes by 1')}
+    QUIT, INT   {c('Quick shutdown')}
+    TERM        {c('Graceful shutdown')}
+    HUP         {c('Reload config, start new worker with new config and gracefully shutdown older workers.')}
+                {c('  If app isnt preloaded (with the preload_app), Gunicorn will also load the new version of it.')}
+    TTIN        {c('processes++')}
+    TTOU        {c('processes--')}
+    USR2        {c('Upgrade Gunicorn on the fly. A separate TERM signal should be used to kill the old master process.')}
+                {c('  This signal can also be used to use the new versions of pre-loaded applications.')}
+                {c('  https://docs.gunicorn.org/en/stable/signals.html#binary-upgrade')}
+    WINCH       {c('Gracefully shutdown the worker processes when Gunicorn is daemonized.')}
     """
     if subject:
         frame = inspect.currentframe()
@@ -7183,7 +7193,7 @@ def pudb(subject=None):
 
   """
 
-
+@syntax
 def pip(subject=None):
     _INSTALL = f"""{h2('install')}
     {h3('options')}
@@ -7260,6 +7270,11 @@ def pip(subject=None):
       --exists-action <action>   {c('When path exists: (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort')}
       --no-cache-dir             {c('Disable cache')}
       --disable-pip-version-check
+    
+    {h3('Examples')}
+      %bash 2
+      pip download tornado==6.0.3 --no-deps --platform linux_x86_64 --no-binary=':all' && {literal_backslash}
+        pip wheel tornado-6.0.3.tar.gz
     """
     if subject:
         frame = inspect.currentframe()
