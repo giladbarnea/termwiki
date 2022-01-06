@@ -689,8 +689,6 @@ def autohotkey(subject=None):
   https://www.autohotkey.com/boards/viewtopic.php?t=66376
   """
 
-
-
 @syntax
 def bash(subject=None):
     # 	_strings(){
@@ -743,7 +741,7 @@ def bash(subject=None):
           n) DRY_RUN=1 ;;
           o) OFFSET="$OPTARG" ;;
     	  -)
-      	    case "${OPTARG}" in
+      	    case "${{OPTARG}}" in
               # Long options
               quiet) quiet=true;;	  
               *)
@@ -1260,7 +1258,7 @@ def bash(subject=None):
     done
     /%bash
     """
-    __PIPE = __FILEDESCRIPTOR = __BG = __FG = __REDIRECTION = __JOB = f"""{h2('Pipe, Processes, File Descriptors, Background, Foreground, Redirection, >, >>, <, <<, <<<')}
+    __PIPE = __FILEDESCRIPTOR = __BG = __FG = __REDIRECTION = __JOB = __HEREDOC = f"""{h2('Pipe, Processes, File Descriptors, Background, Foreground, Redirection, >, >>, <, <<, <<<')}
     {c('https://stackoverflow.com/questions/35116699/piping-not-working-with-echo-command')}
     {c('http://tiswww.case.edu/php/chet/bash/bashref.html#Job-Control')}
     %bash
@@ -5574,7 +5572,7 @@ def jira(subject=None):
         """
 
 
-@syntax(bash='friendly')
+@syntax
 def jupyter(subject=None):
     if subject:
         frame = inspect.currentframe()
@@ -5603,7 +5601,7 @@ def jupyter(subject=None):
   {h2('options')}
     --paths
   
-  {h2('lab')} [cmd] [options]
+  {c('jupyter')} {h2('lab')} [cmd] [options]
     pip install jupyterlab {c('xeus-python for debugging')}
     
     {h3('cmd')}
@@ -5614,36 +5612,39 @@ def jupyter(subject=None):
       workspace
       workspaces
     
-    {h3('Install virtualenv')}
-      . env/bin/activate
-      (env) python -m ipykernel install --user --name <CUSTOM_ENV_NAME>
-    
-    {h3('config')}
-      jupyter lab --generate-config
-              
     {h3('options')}
-      --allow-root
+      --show-config
+      --show-config-json
+      --generate-config
+      --config=⟨PATH⟩   {c('Full path to config file. Default ""')}
+      
       --autoreload    {c('on change in py src files or exts')}
       --no-browser
-      --core-mode
-      --dev-mode
       --log-level={{0,10,20,30,40,50,'DEBUG','INFO','WARN','ERROR','CRITICAL'}}   {c('default 30')}
+      --ip=[localhost]
       --port=[8888]
-      --notebook-dir=⟨PATH⟩
+      --notebook-dir=['']
       --app-dir=⟨PATH⟩
+    
+    {h3('Examples')}
+      . env/bin/activate
+      (env) python -m ipykernel install --user --name <CUSTOM_ENV_NAME>
   
-  {h2('labextension')}
+  {c('jupyter')} {h2('labextension')}
     {c('https://jupyterlab.readthedocs.io/en/stable/user/extensions.html')}
     npm search ⟨NAME⟩
     jupyter labextension list, check
     jupyter labextension {{install,uninstall,update,enable,disable}} ⟨NAME⟩
 
-  {h2('nbextension')}
+  {c('jupyter')} {h2('nbextension')}
     {c('https://jupyter-contrib-nbextensions.readthedocs.io/en/latest/nbextensions.html')}
     pip install jupyter_contrib_nbextensions
     jupyter nbextension list
     jupyter nbextension {{install,uninstall,enable,disable}} [--py] ⟨NAME⟩  {c('from a python package')}
 
+  {h2('Related python libs')}
+    %bash 1
+    pip install jupyterthemes; jt -t chesterish
   """
 
 
@@ -7418,6 +7419,7 @@ def poetry(subject=None):
         return frame.f_locals[subject]
     else:
         return f"""{h1('poetry')}
+  https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py
   {_NEW}
   {_ADD}
   {_CONFIG}
@@ -8832,16 +8834,24 @@ def rsync(subject=None):
       # Identity file:
       -e "ssh -i $HOME/.ssh/somekey"
       
-      # Whatever:
+      # Exclude:
       exclude=()
       for x in '*.apk' '*.exe' '*.gif' '*.jpg' '*.mib' '*.png' \\
-               '*.so*' '*.svg' '*.tar' '*.ttf' '*.zip' 'php' \\ 
-               'frontend' 'site-packages' 'vagrant' 'tools' '*.whl' 
+               '*.so*' '*.svg' '*.tar' '*.ttf' '*.zip' 'php' \\
+               'frontend' 'site-packages' 'vagrant' 'tools' '*.whl'
       do
         exclude+=(--exclude "$x")
       done
       rsync --ignore-existing -z --compress-level=9 -C -h --progress \\
-        "${{exclude[@]}}" --recursive ./allotsecure root@10.111.242.38:/tmp/allotsecure
+        "${{exclude[@]}}" --recursive ./allotsecure root@10.100.100.10:/tmp/allotsecure
+      
+      # Watch:
+      while true; do
+        sleep 1
+        sudo rsync --exclude=__pycache__ --exclude=.ipynb_checkpoints --exclude=stats \\
+             --compress-level=9 --cvs-exclude --human-readable --ignore-existing \\
+             --prune-empty-dirs --itemize-changes --delete-before -r * /mnt/abbie
+      done
       /%bash
         """
 
@@ -9241,34 +9251,40 @@ def sshfs(subject=None):
   http://manpages.ubuntu.com/manpages/precise/man8/mount.fuse.8.html
   sudo sshfs -o allow_other,default_permissions admin@10.110.100.90:/ /mnt/u20_56
   
-  {h3('default_permissions')}
-    Enable permission checking, restricting access based on file mode. 
-    Useful with allow_other.
-  
-  {h3('allow_other')}
-    Don't restrict file access only to the user mounting the filesystem.
+  {h2('options')}
+    {h4('IdentityFile')}
     
-  {h3('allow_root')}
-    File access is limited to the user mounting the filesystem and root.
-    Mutually exclusive with allow_other.
-  
-  {h3('max_read=N')}
-    Default infinite
-  
-  {h3('max_readahead=BYTES')}
-    Default is determined by the kernel. Linux kernel <= 2.6.22 it's 131072 (128KB).
-  
-  {h3('max_write=BYTES')}
-    In a single write operation. Default is 131072 (128KB).
-  
-  {h3('cache_timeout=SECONDS')}
-    Default 20
+    {h4('default_permissions')}
+      Enable permission checking, restricting access based on file mode.
+      Useful with allow_other.
+    
+    {h4('allow_other')}
+      Don't restrict file access only to the user mounting the filesystem.
+      
+    {h4('allow_root')}
+      File access is limited to the user mounting the filesystem and root.
+      Mutually exclusive with allow_other.
+    
+    {h4('max_read=N')}
+      Default infinite
+    
+    {h4('max_readahead=BYTES')}
+      Default is determined by the kernel. Linux kernel <= 2.6.22 it's 131072 (128KB).
+    
+    {h4('max_write=BYTES')}
+      In a single write operation. Default is 131072 (128KB).
+    
+    {h4('cache_timeout=SECONDS')}
+      Default 20
 
   {h2('Examples')}
     %bash
     # https://superuser.com/questions/344255/faster-way-to-mount-a-remote-file-system-than-sshfs
     opts="allow_other,no_check_root,cache=yes,cache_timeout=115200,attr_timeout=115200,entry_timeout=1200,max_write=1310720,Ciphers=aes128-ctr,Compression=no"
-    sudo sshfs -o "$opts" admin@10.110.100.90:/ /mnt/u20_56
+    sudo sshfs -o "$opts" -o 'IdentityFile=/home/gilad/.ssh/foo' admin@10.110.100.90:/ /mnt/u20_56
+    
+    # Connection reset by peer -> this worked:
+    sudo sshfs -o Compression=no -o allow_root -o 'IdentityFile=/home/gilad/.ssh/abbie' $abbie:/ /mnt/abbie
     /%bash
   """
 
