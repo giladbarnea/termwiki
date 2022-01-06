@@ -261,12 +261,21 @@ def print_manual(topic: str, sub_topic=None):
         return print(MAIN_TOPICS[topic]())
     
     # ** Not a main topic. Maybe it's a precise sub topic, i.e. "diff"
+    sub_topic_key = None
     if topic in SUB_TOPICS:
+        sub_topic_key = topic
+    else:
+        for sub_topic in SUB_TOPICS:
+            sub_topic_no_leading_underscore = sub_topic.removeprefix('_')
+            if topic == sub_topic_no_leading_underscore:
+                sub_topic_key = sub_topic
+                break
+    if sub_topic_key:
         # * Indeed a precise subtopic
         ## Maybe multiple manuals have it
-        if len(SUB_TOPICS[topic]) > 1:
+        if len(SUB_TOPICS[sub_topic_key]) > 1:
             from manuals import prompt
-            manuals: list[ManFn] = list(SUB_TOPICS[topic])  # for index
+            manuals: list[ManFn] = list(SUB_TOPICS[sub_topic_key])  # for index
             
             # TODO (bugs):
             #  (1) If an ALIAS of a subtopic is the same as a SUBTOPIC of another main topic,
@@ -274,15 +283,15 @@ def print_manual(topic: str, sub_topic=None):
             #  (2) main topics with both @alias and @syntax decors, that have the issue above ("(1)"), raise
             #    a ValueError in igit prompt, because the same main topic function is passed here for each subtopic and subtopic alias.
             #  ValueError: ('NumOptions | __init__(opts) duplicate opts: ', ('<function asyncio at 0x7f5dab684ca0>', '<function asyncio at 0x7f5dab684ca0>', '<function python at 0x7f5dab669a60>'))
-            idx, choice = prompt.choose(f"{topic!r} exists in several topics, which one did you mean?",
+            idx, choice = prompt.choose(f"{sub_topic_key!r} exists in several topics, which one did you mean?",
                                         *[man.__qualname__ for man in manuals],
                                         flowopts='quit'
                                         )
-            return print(manuals[idx](f'_{topic.upper()}'))
+            return print(manuals[idx](f'_{sub_topic_key.upper()}'))
         
         ## Unique subtopic
-        manual, *_ = SUB_TOPICS[topic]
-        return print(manual(f'_{topic.upper()}'))
+        manual, *_ = SUB_TOPICS[sub_topic_key]
+        return print(manual(f'_{sub_topic_key.upper()}'))
     
     # ** Not a precise subtopic. find something precise, either a main or sub topic
     key, topic = fuzzy_find_topic(topic,
