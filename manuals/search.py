@@ -69,7 +69,7 @@ class Matches(Generic[T]):
 
 	def best(self) -> Optional[List[T]]:
 		if not self.matches:
-			logging.debug(f'no self.matches → returning None')
+			logging.debug(f'no self.matches -> returning None')
 			return None
 		ret = self.matches[self.best_score]
 		# print(paint.faint(f'Matches.best() → {len(ret)} matches with score: {self.best_score}'))
@@ -96,20 +96,20 @@ def fuzzy(keyword: str, collection: Collection[T], cutoff=2) -> Matches[T]:
 	Doesn't prompt.
 	"""
 	if not keyword or re.fullmatch(r'[\'"]+', keyword):  # only quotes
-		raise ValueError(f"fuzzy(keyword={repr(keyword)}): bad keyword")
+		raise ValueError(f"fuzzy({keyword = !r}): bad keyword")
 	if not collection or not any(item for item in collection):
-		raise ValueError(f"fuzzy({repr(keyword)}, collection = {repr(collection)}): no collection")
+		raise ValueError(f"fuzzy({keyword!r}, {collection = !r}): no collection")
 	near_matches = Matches(maxsize=5)
 	far_matches = Matches(maxsize=5)
 	max_l_dist = min(len(keyword) - 1, 17)
 	# TODO: sometimes cutoff == max_l_dist
 	coll_len = len(collection)
-	logging.debug(f'fuzzy({repr(keyword)}, collection ({coll_len}), cutoff: {cutoff}, max_l_dist: {max_l_dist})')
+	logging.debug(f'fuzzy(%r, collection (%d), cutoff = %s, max_l_dist = %d)', keyword, coll_len, cutoff, max_l_dist)
 	printed_progress = -1
 	for i, item in enumerate(collection):
 		progress = round(i / coll_len, 1)
 		if progress > printed_progress:
-			logging.debug(f'{progress * 100}% (near_matches: {near_matches.count}, far_matches: {far_matches.count})')
+			logging.debug(f'%d% (near_matches.count: %d, far_matches.count: %d)', near_matches.count, far_matches.count, progress * 100)
 			if near_matches.count ^ far_matches.count:
 				# exactly one is Truthy
 				coll = next(filter(bool, [near_matches, far_matches]))
@@ -147,12 +147,12 @@ def fuzzy(keyword: str, collection: Collection[T], cutoff=2) -> Matches[T]:
 		# * good (below cutoff)
 		near_matches.append(item, score)
 	if not near_matches and not far_matches:
-		logging.warning(f'GOT NOTHING! no near_matches, no far_matches. returning empty Matches object. collection:', collection)
+		logging.warning(f'GOT NOTHING! no near_matches, no far_matches. returning empty Matches object. collection: %r', collection)
 		return near_matches
 	if near_matches:
-		logging.debug(f'fuzzy() → near_matches')
+		logging.debug(f'fuzzy() -> near_matches')
 		return near_matches
-	logging.debug(f'fuzzy() → far_matches')
+	logging.debug(f'fuzzy() -> far_matches')
 	return far_matches
 
 
@@ -166,11 +166,11 @@ def iter_maybes(keyword: str,
 	3rd: fuzzy search (what `nearest()` uses directly)"""
 	is_maybe = _create_is_maybe_predicate(criterion)
 
-	logging.debug(f'iter_maybes({keyword = !r}, collection ({len(collection)}), extra_options: ({len(extra_options)}), {criterion = !r}, is_maybe: {is_maybe.__name__}')
+	logging.debug(f'iter_maybes(%r, collection (%d), extra_options: (%d), %r, is_maybe: %s', keyword, len(collection), len(extra_options), criterion, is_maybe.__name__)
 	if extra_options:
 		logging.warning(f'Got extra_options, ignored because not developed: %r', extra_options)
 	maybes = [item for item in collection if is_maybe(item, keyword)]
-	logging.debug(f'Yielding {len(maybes)} maybes that are True for `is_maybe(item, {keyword = })`')
+	logging.debug(f'Yielding %d maybes that are True for `is_maybe(item, keyword = %r)`', len(maybes), keyword)
 	yield maybes, False
 
 	regexp = None
@@ -189,13 +189,13 @@ def iter_maybes(keyword: str,
 			if regexp.search(item) and item not in maybes:
 				new_maybes.append(item)
 		if new_maybes and new_maybes != maybes:
-			logging.debug(f"regexp isn't None ({regexp}) and searching resulted in different maybes. yielding {len(new_maybes)} new maybes")
+			logging.debug(f"regexp isn't None (%r) and searching resulted in different maybes. yielding %d new maybes", regexp, len(new_maybes))
 			yield new_maybes, False
 
 	near_matches = fuzzy(keyword, collection)
 	if near_matches:
-		logging.debug(f"Last stop: yielding `(near_matches.best(), True)`. {near_matches = !r}")
+		logging.debug(f"Last stop: yielding `(near_matches.best(), True)`. near_matches = %r", near_matches)
 		yield near_matches.best(), True
 	else:
-		logging.warning(f"near_matches is None for fuzzy({keyword = !r}, collection ({len(collection)})). Will throw AttributeError")
+		logging.warning(f"near_matches is None for fuzzy(%r, collection (%d)). Will throw AttributeError", keyword, len(collection))
 		yield None, True
