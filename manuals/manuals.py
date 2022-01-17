@@ -1975,7 +1975,18 @@ def bash(subject=None):
       input="a,b,"
       IFS=, read -ra fields <<< "$input,"
       declare -p fields
-      # declare -a fields='([0]="a" [1]="b" [2]="")'
+      # declare -a fields='([0]="a" [1]="b" [2]="")'\
+      
+      # Example 10
+      # "EOF" -> no param expansion; -d '' -> read multiple lines (ignore newlines)
+      IFS='' read -r -d '' String <<"EOF"
+        <?xml version="1.0" encoding='UTF-8'?>
+         <painting>
+           <img src="madonna.jpg" alt='Foligno Madonna, by Raphael'/>
+           <caption>This is Raphael's "Foligno" Madonna, painted in
+           <date>1511</date>-<date>1512</date>.</caption>
+         </painting>
+      EOF
       /%bash
     """
 
@@ -3753,41 +3764,46 @@ def firestore(subject=None):
 @syntax
 def flask(subject=None):
     return f"""{h1('flask')}
-  {h2('cmd args')}
-  -h, --host TEXT                 {c('The interface to bind to.')}
-  -p, --port INTEGER              {c('The port to bind to.')}
-  --cert PATH                     {c('Specify a certificate file to use HTTPS.')}
-  --key FILE                      {c('The key file to use when specifying a')}
-                                  {c('certificate.')}
-  --reload / --no-reload          {c('Enable or disable the reloader. By default')}
-                                  {c('the reloader is active if debug is enabled.')}
-  --debugger / --no-debugger      {c('Enable or disable the debugger. By default')}
-                                  {c('the debugger is active if debug is enabled.')}
-  --eager-loading / --lazy-loader
-                                  {c('Enable or disable eager loading. By default')}
-                                  {c('eager loading is enabled if the reloader is')}
-                                  {c('disabled.')}
-  --with-threads / --without-threads
-                                  {c('Enable or disable multithreading.')}
-  --extra-files PATH              {c('Extra files that trigger a reload on change.')}
-                                  {c('Multiple paths are separated by ":".')}
+  {h2('run cmd args')}
+    {c('https://flask.palletsprojects.com/en/2.0.x/cli/')}
+    -h, --host TEXT                 {c('The interface to bind to.')}
+    -p, --port INTEGER              {c('The port to bind to.')}
+    --cert PATH                     {c('Specify a certificate file to use HTTPS.')}
+    --key FILE                      {c('The key file to use when specifying a')}
+                                    {c('certificate.')}
+    --reload / --no-reload          {c('Enable or disable the reloader. By default')}
+                                    {c('the reloader is active if debug is enabled.')}
+    --debugger / --no-debugger      {c('Enable or disable the debugger. By default')}
+                                    {c('the debugger is active if debug is enabled.')}
+    --eager-loading / --lazy-loader
+                                    {c('Enable or disable eager loading. By default')}
+                                    {c('eager loading is enabled if the reloader is')}
+                                    {c('disabled.')}
+    --with-threads / --without-threads
+                                    {c('Enable or disable multithreading.')}
+    --extra-files PATH              {c('Extra files that trigger a reload on change.')}
+                                    {c('Multiple paths are separated by ":"')}
   
   {h2('app.run() options')}
+    {c('https://flask.palletsprojects.com/en/2.0.x/api/#flask.Flask.run')}
     host     {c('the hostname to listen on. Default 127.0.0.1')}
     port     {c('the port of the web server. Default 5000')}
     debug    {c('Enable / disable debug mode. dictates use_reloader and use_debugger if unspecified')}
     load_dotenv     {c('load the nearest .env and .flaskenv files to set environment variables.')}
-    use_reloader    {c('should the server automatically restart the python process if modules were changed?')}
-    use_debugger    {c('should the werkzeug debugging system be used?')}
-    use_evalex      {c('should the exception evaluation feature be enabled?')}
-    extra_files     {c('a list of files the reloader should watch additionally to the modules.')}
-    reloader_interval     {c('the interval for the reloader in seconds.')}
-    reloader_type         {c('the type of reloader to use. default "auto"')}
+    
+    {c('options passed to wekzeug:')}
+    {c('https://werkzeug.palletsprojects.com/en/2.0.x/serving/#werkzeug.serving.run_simple')}
+    use_reloader    {c('should the server automatically restart the python process if modules were changed? Default False')}
+    use_debugger    {c('should the werkzeug debugging system be used? Default False')}
+    use_evalex      {c('should the exception evaluation feature be enabled? Default False')}
+    extra_files     {c('a list of files the reloader should watch additionally to the modules. Default None')}
+    reloader_interval     {c('the interval for the reloader in seconds. Default 1')}
+    reloader_type         {c('the type of reloader to use. Default "auto"')}
     request_handler       {c('Default "BaseHTTPServer.BaseHTTPRequestHandler". Can be subclass of')}
-    threaded       {c('should the process handle each request in a separate thread?')}
-    processes      {c('if greater than 1 then handle each request in a new process up to this maximum number of concurrent processes.')}
-    passthrough_errors    {c('set this to True to disable the error catching and die on errors.')}
-    ssl_context    {c('an SSL context for the connection.')}
+    threaded       {c('should the process handle each request in a separate thread? Default False')}
+    processes      {c('if greater than 1 then handle each request in a new process up to this maximum number of concurrent processes. Default 1')}
+    passthrough_errors    {c('set this to True to disable the error catching and die on errors. Default False')}
+    ssl_context    {c('an SSL context for the connection. Default None')}
   """
 
 
@@ -4552,6 +4568,11 @@ def gunicorn(subject=None):
 
 @syntax
 def kafka(subject=None):
+    _CONFIG = f"""{h2('Configuration')}
+    {c('https://docs.confluent.io/platform/current/installation/configuration/index.html')}
+    {c('https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md')}
+    """
+    
     _CONFLUENT = f"""{h2('confluent_kafka')}
   {h3('admin')}    {c('module')}
     {h4('AdminClient')}
@@ -4618,6 +4639,7 @@ def kafka(subject=None):
       isrs: list[int]        # e.g [1001]
       leader: int            # e.g 1001
       replicas: list[int]    # e.g [1001]
+      /%python
     """
     
     
@@ -4627,6 +4649,7 @@ def kafka(subject=None):
     else:
         return f"""{h1('kafka')}
   {_CONFLUENT}
+  {_CONFIG}
   """
 
 @syntax
@@ -7397,11 +7420,27 @@ def poetry(subject=None):
     """
     _PYPROJECT = h2('pyproject.toml') + """
     %toml
-    pdbpp = { path = "../pdbpp/", develop = true }
-    pdbpp = { git = "https://github.com/giladbarnea/pdbpp.git", optional = true }
-    requests = { git = "https://github.com/kennethreitz/requests.git", branch = "next" }
-    flask = { git = "https://github.com/pallets/flask.git", rev = "38eb5d3b" }
-    numpy = { git = "https://github.com/numpy/numpy.git", tag = "v0.13.2" }
+    pdbpp =      { path = "../pdbpp/", develop = true }
+    my-package = { path = "../my-package/dist/my-package-0.1.0.tar.gz" }
+    my-package = { url = "https://example.com/my-package-0.1.0.tar.gz" }
+    pdbpp =      { git = "https://github.com/giladbarnea/pdbpp.git", optional = true }
+    requests =   { git = "https://github.com/kennethreitz/requests.git", branch = "next" }
+    flask =      { git = "https://github.com/pallets/flask.git", rev = "38eb5d3b" }
+    numpy =      { git = "https://github.com/numpy/numpy.git", tag = "v0.13.2" }
+
+    pathlib2 =   { version = "^2.2", python = "~2.7 || ^3.2" }
+    pathlib2 =   { version = "^2.2", markers = "python_version ~= '2.7' or sys_platform == 'win32'" }
+
+    foo = [
+        {version = "<=1.9", python = "^2.7"},
+        {version = "^2.0", python = "^3.4"}
+    ]
+
+    [tool.poetry.dev-dependencies.black]
+    version = "19.10b0"
+    allow-prereleases = true
+    python = "^3.6"
+    markers = "platform_python_implementation == 'CPython'"
     
     [tool.poetry.scripts]
     tmr = 'too_many_repos.too_many_repos:main'
@@ -7719,13 +7758,13 @@ def python(subject=None):
   {c('https://docs.python.org/3.8/library/argparse.html')}
   
   {h3('ArgumentParser(...)')}
-    prog        {c('default: sys.argv[0]')}
-    usage       {c('default: generated from args')}
+    prog                  {c('default: sys.argv[0]')}
+    usage                 {c('default: generated from args')}
     description
-    epilog
+    epilog                {c('Text to display after help (default: none)')}
     ...
     
-    {h4('add_argument(...)')}
+    {h4('.add_argument(...)')}
       *name_or_flags      {c("str               'bar' or ('-f', '--foo')")}
       action              {c("str | Action      'store' (default), 'store_const',")}
                                             {c("'store_true', 'store_false',")}
@@ -7734,7 +7773,7 @@ def python(subject=None):
       const               
       default
       dest                {c("str; eventual VARIABLE name")}
-      help                {c("str               '%(prog)s %(default)s'")}
+      help                {c("str               '%(prog)s %(default)s %(type)s'")}
       metavar             {c("str; how DISPLAYED in help")}
       nargs               {c("int | '?' | '*' | '+' | argparse.REMAINDER")}
       prog                {c("str")}
@@ -7742,7 +7781,7 @@ def python(subject=None):
       type
       ...
     
-    {h4('parse_args(args: list[str] = None, namespace: Namespace = None)')}
+    {h4('.parse_args(args: list[str] = None, namespace: Namespace = None)')}
       %python friendly
       # Examples
       >>> parser.parse_args(['--max-depth', 1])
@@ -7755,7 +7794,7 @@ def python(subject=None):
       Namespace(mode='r')
       /%python
 
-    {h4('set_defaults(...)')}
+    {h4('.set_defaults(...)')}
 
     {h4('add_subparsers(...)')}
       %python friendly
