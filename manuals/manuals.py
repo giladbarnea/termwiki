@@ -2769,7 +2769,70 @@ def clickup(subject=None):
                 Checklist
     """
 
+@syntax
+@alias('pstats')
+def cprofile(subject=None):
+    __SORTKEY = f"""{h3('SortKey')}
+      SortKey.CALLS         {c('call count')}
+      SortKey.CUMULATIVE    {c('cumulative time in a function')}
+      SortKey.FILENAME      {c('file name')}
+      SortKey.LINE          {c('line number')}
+      SortKey.NAME          {c('Function name')}
+      SortKey.NFL           {c('name/file/line')}
+      SortKey.PCALLS        {c('primitive call count')}
+      SortKey.STDNAME       {c('standard name')}
+      SortKey.TIME          {c('time spent within each function')}
+    """
+    
+    _PSTATS = f"""{h2('pstats')}
+    {h3('Stats')}
+      {c('https://docs.python.org/3/library/profile.html#module-pstats')}
+      stats: Stats = pstats.Stats(profiler)
+      .strip_dirs() -> Stats               {c('Removes leading paths from file names')}
+      .print_callers(.5, 'init') -> Stats
+      .print_callees(*restrictions) -> Stats
+      .add(*filenames) -> Stats
+      .dump_stats(filename) -> Stats
+      .reverse_order() -> Stats
+      .get_stats_profile() -> StatsProfile
+      {h4('.print_stats(*restrictions)')} -> Stats
+        ncalls      {c('Number of calls')}
+        tottime     {c('Total time in function, excluding sub-functions')}
+        percall     {c('tottime / ncalls')}
+        cumtime     {c('Total time in function, including sub-functions. Accurate for recursion.')}
+        percall     {c('cumtime / primitive calls')}
+                      {c('primitive = was not induced via recursion?')}
 
+      {h4('.sort_stats(*keys)')} -> Stats
+        .sort_stats(SortKey.FILENAME).print_stats('__init__')
+        .sort_stats(SortKey.TIME).print_stats(10)
+        .sort_stats(SortKey.CUMULATIVE).print_stats(10)
+        .sort_stats(SortKey.TIME, SortKey.CUMULATIVE).print_stats(.5, 'init')
+    
+    {__SORTKEY}
+    """
+    
+    _EXAMPLES = f"""{h2('Examples')}
+    %python
+    profiler = cProfile.Profile(timer=time_ns, timeunit=1 / 1_000_000_000, builtins=False)
+    profiler.enable()
+    ...     # Can also 'with cProfile.Profile(...) as profiler:'
+    profiler.disable()
+    stats = pstats.Stats(profiler)
+    sorted_stats = stats.sort_stats(pstats.SortKey.CUMULATIVE)
+    sorted_stats.print_stats()
+    sorted_stats.dump_stats('profiling/cprofiles/whole_flow_loop')
+    /%python
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('cprofile / pstats')}
+  {c('https://docs.python.org/3/library/profile.html')}
+  {_PSTATS}
+  {_EXAMPLES}
+  """
 @syntax
 def css(subject=None):
     if subject:
