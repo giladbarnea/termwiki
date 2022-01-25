@@ -5052,6 +5052,7 @@ def ipython(subject=None):
     0               Disable
     1               Autoreload marked by {i('%aimport')}
     2               Autoreload all except {i('%aimport')}
+    2               Like 2, plus autoload symbols from something and newly imported from external modules?
     %aimport        List
     %aimport {i('[foo[, bar]]')}  Add to group 1
     %aimport {i('-foo')}   Remove from group 1
@@ -8016,6 +8017,7 @@ def python(subject=None):
     {h4('Static Methods')}
       today = date.today() {c('→ date')}
       date.fromtimestamp(1600000000) {c('→ date')}
+      date.fromisoformat("2021-10-18") {c('→ date')}
     
     {h4('Instance Methods / Attrs')}
       today.day, .month, .year {c('→ int')}
@@ -8046,6 +8048,7 @@ def python(subject=None):
       utcnow = dt.utcnow() {c('→ datetime (utc)')}
       now = dt.now() {c('→ datetime (local)')}
       dt.fromtimestamp(1600000000) {c('→ datetime')}
+      dt.fromisoformat('2021-10-18T12:31:33') {c('→ datetime')}
   
     """
     _DECORATORS = f"""{h2('Decorators')}
@@ -10489,16 +10492,17 @@ def wmctrl(subject=None):
     {h3('-r <[H]WIN>')}               {c('specify target window for ACTION')}
       -e '0,3840,0,-1,-1'     {c('gravity, x, y, w, h')}
       {h4('-b (remove|add|toggle),<PROP1>[,<PROP2>]')}  {c('where PROP can be')}
+        {c('https://www.wikiwand.com/en/Extended_Window_Manager_Hints#/Window_states')}
         modal
-        sticky
+        sticky          {c('position fixed on screen, even when virtual desktop scrolls')}
         maximized_vert
-        maximized_horz,
-        shaded
+        maximized_horz
+        shaded          {c('rolled up')}
         skip_taskbar
         skip_pager
         hidden
         fullscreen
-        above     {c('always on top')}
+        above           {c('always on top')}
         below
     """
 
@@ -10759,6 +10763,41 @@ def xonsh(subject=None):
   {_ENVIRONMENT}
     """
 
+@syntax
+def xprop(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('xprop')}
+  {c('https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html')}
+  {h2('Select Window')}
+    ⟨NO ARG⟩      {c('Interactively select window')}
+    -name ⟨NAME⟩
+    -root         {c("Selects X's root window")}
+    -id ⟨HEXID⟩
+  
+  {h2('Set / Remove Property')}
+    -remove ⟨NAME⟩
+    -set ⟨NAME⟩ ⟨VALUE⟩
+  
+  {h2('Misc')}
+   -spy     {c('Examine window properties forever, looking for property change events.')}
+  
+  {h2('Examples')}
+    {c('Print active window title')}
+    xprop -id 0x03800003 WM_NAME
+    
+    {c('Set always on top')}
+    xprop -id 0x03800003 -set _NET_WM_STATE _NET_WM_STATE_ABOVE
+    
+    {c('Set window opacity')}
+    xprop -id 0x03800003 -set _NET_WM_WINDOW_OPACITY 0xffffffff
+    
+    {c('See all window states X11 supports')}
+    xprop -root | grep '_NET_SUPPORTED(ATOM)'
+    
+  """
 
 def xvkbd(subject=None):
     if subject:
