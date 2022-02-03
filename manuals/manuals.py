@@ -1333,6 +1333,12 @@ def bash(subject=None):
         - Quote "EOF" to disable parameter expansion 
         
         %bash
+        # Small program
+        python3 <<EOF
+        import sys
+        print(sys.argv)
+        EOF
+        
         # Assign multi-line string to a shell variable
         sql=$(cat <<EOF
         SELECT foo, bar FROM db
@@ -1524,7 +1530,7 @@ def bash(subject=None):
       
       
       # Full Example
-        {linebreak + indent((os.getenv('MANPROJ') / Path('manuals/man/bash')).open().read(), '        ')}
+        {linebreak + indent((os.getenv('MANPROJ') / Path('manuals/man/bash/compdef')).open().read(), '        ')}
       /%bash
       
     {h3('compadd')} [option...] [word...]
@@ -1698,7 +1704,20 @@ def bash(subject=None):
     -e     enable interpretation of backslash escapes
     -E     disable interpretation of backslash escapes
     """
+    _FC = f"""{h1('fc')}
+    {h2('fc [-e EDITOR] [-lnr] [first] [last]')}
+      -e ⟨EDITOR⟩	{c('Defaults FCEDIT > EDITOR > vi')}
+      -l 	        {c('list instead of editing')}
+      -n	        {c('omit line numbers when listing')}
+      -r	        {c('reverse order (newest first)')}
     
+    {h2('fc -s [PATTERN=REPLACE] [COMMAND]')}
+      Execute COMMAND after replacing PATTERN with REPLACE
+    
+    {h2('Examples')}
+      fc -ln -1     {c('Last command from history')}
+      fc -s cc      {c('Run last command beginning with cc')}
+    """
     _FIND = f"""{h2('find')}
 
     {h3('examples')}
@@ -2399,6 +2418,7 @@ def bash(subject=None):
   {_DIFF}
   {_DU}
   {_CP}
+  {_FC}
   {_ECHO}
   {_FIND}
   {_GREP}
@@ -2407,6 +2427,7 @@ def bash(subject=None):
   {_MAN}
   {_MOUNT}
   {_PS}
+  {_PRINTF}
   {_READ}
   {_SED}
   {_SORT}
@@ -2772,16 +2793,16 @@ def clickup(subject=None):
 @syntax
 @alias('pstats')
 def cprofile(subject=None):
-    __SORTKEY = f"""{h3('SortKey')}
-      SortKey.CALLS         {c('call count')}
-      SortKey.CUMULATIVE    {c('cumulative time in a function')}
-      SortKey.FILENAME      {c('file name')}
-      SortKey.LINE          {c('line number')}
-      SortKey.NAME          {c('Function name')}
-      SortKey.NFL           {c('name/file/line')}
-      SortKey.PCALLS        {c('primitive call count')}
-      SortKey.STDNAME       {c('standard name')}
-      SortKey.TIME          {c('time spent within each function')}
+    __SORTKEY = f"""{h3('pstats.SortKey')}
+      SortKey.CALLS         {c('Call count | "calls", "ncalls"')}
+      SortKey.CUMULATIVE    {c('Cumulative time in a function | "cumulative", "cumtime"')}
+      SortKey.FILENAME      {c('File name | "file", "filename", "module"')}
+      SortKey.LINE          {c('Line number | "line"')}
+      SortKey.NAME          {c('Function name | "name"')}
+      SortKey.NFL           {c('Name/file/line | "nfl"')}
+      SortKey.PCALLS        {c('Primitive call count | "pcalls"')}
+      SortKey.STDNAME       {c('Standard name | "stdname"')}
+      SortKey.TIME          {c('Time spent within each function | "total", "time"')}
     """
     
     _PSTATS = f"""{h2('pstats')}
@@ -2796,6 +2817,7 @@ def cprofile(subject=None):
       .reverse_order() -> Stats
       .get_stats_profile() -> StatsProfile
       {h4('.print_stats(*restrictions)')} -> Stats
+        {c('Columns in result:')}
         ncalls      {c('Number of calls')}
         tottime     {c('Total time in function, excluding sub-functions')}
         percall     {c('tottime / ncalls')}
@@ -2811,7 +2833,15 @@ def cprofile(subject=None):
     
     {__SORTKEY}
     """
-    
+    _PROFILE = f"""{h2('cProfile.Profile')}(       {c('https://docs.python.org/3/library/profile.html#module-cProfile')}
+    %python
+        timer: () -> number = None,     # function returns a number representing current time
+        timeunit=0.0,                   # e.g timer returns milliseconds, timeunit should be 0.001
+        subcalls=True,
+        builtins=True
+    )
+    /%python
+    """
     _EXAMPLES = f"""{h2('Examples')}
     %python
     profiler = cProfile.Profile(timer=time_ns, timeunit=1 / 1_000_000_000, builtins=False)
@@ -2831,8 +2861,10 @@ def cprofile(subject=None):
         return f"""{h1('cprofile / pstats')}
   {c('https://docs.python.org/3/library/profile.html')}
   {_PSTATS}
+  {_PROFILE}
   {_EXAMPLES}
   """
+
 @syntax
 def css(subject=None):
     if subject:
@@ -2910,6 +2942,32 @@ def curl(subject=None):
   -L, --location    {c('Follow redirects')}
         """
 
+@syntax
+def cython(subject=None):
+    _CYTHONIZE = f"""{h2('cythonize')}
+    {c('https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#Cython.Build.cythonize')}
+    %python
+    from Cython.Build import cythonize
+    os.environ['CFLAGS'] = '-O3 ' + os.environ.get('CFLAGS', '')
+    ext_modules = cythonize(
+        'pydantic/*.py',
+        exclude=['pydantic/generics.py'],
+        nthreads=int(os.getenv('CYTHON_NTHREADS', 0)),
+        language_level=3,
+        compiler_directives=dict(linetrace=True),
+    )
+    /%python
+    """
+    _BUILD = f"""{h2('build')}
+    python3 setup.py build_ext --inplace    {c('Imports work if cythonized files are .pyx')}
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('cython')}
+  {_CYTHONIZE}
+  """
 
 @syntax
 def desktop(subject=None):
@@ -7782,9 +7840,34 @@ def pytest(subject=None):
     {h3('incremental')}
       {c('https://doc.pytest.org/en/latest/example/simple.html#incremental-testing-test-steps')}
     """
-    _FIXTURE = f"""{h2('@pytest.fixture')}
-    @pytest.fixture(scope="session")
-    def db(): ...
+    _FIXTURE = f"""{h2('Fixtures')}
+    {c('https://docs.pytest.org/en/latest/how-to/fixtures.html#how-to-fixtures')}
+    {h3('Pytest Built-in Fixtures')}
+      {c('https://docs.pytest.org/en/latest/reference/fixtures.html#built-in-fixtures')}
+      capfd                       {c("Capture output to file descriptors 1 and 2 as str")}
+      capfdbinary                 {c("Capture output to file descriptors 1 and 2 as bytes")}
+      caplog                      {c("Control logging and access log entries.")}
+      capsys                      {c("Capture stdout and stderr as str")}
+      capsysbinary                {c("Capture stdout and stderr as bytes")}
+      cache                       {c("Store and retrieve values across pytest runs.")}
+      doctest_namespace           {c("Provide a dict injected into the docstests namespace.")}
+      monkeypatch                 {c("Temporarily modify classes, functions, dictionaries, os.environ, and other objects.")}
+      pytestconfig                {c("Access to configuration values, pluginmanager and plugin hooks.")}
+      record_property             {c("Add extra properties to the test.")}
+      record_testsuite_property   {c("Add extra properties to the test suite.")}
+      recwarn                     {c("Record warnings emitted by test functions.")}
+      request                     {c("Provide information on the executing test function.")}
+      testdir                     {c("Provide a temporary test directory to aid in running, and testing, pytest plugins.")}
+      tmp_path                    {c("Provide a pathlib.Path object to a temporary directory which is unique to each test function.")}
+      tmp_path_factory            {c("Make session-scoped temporary directories and return pathlib.Path objects.")}
+      tmpdir                      {c("Provide a py.path.local object to a temporary directory which is unique to each test function; replaced by tmp_path.")}
+      tmpdir_factory              {c("Make session-scoped temporary directories and return py.path.local objects; replaced by tmp_path_factory.")}
+    
+    {h3('pytest.fixture')}
+    @pytest.fixture(
+                    scope="session" | "package" | "module" | "class" | "function"
+                    autouse=True        {c('No need to "request" by specifying as param')}
+    )
     """
     if subject:
         frame = inspect.currentframe()
@@ -7925,6 +8008,10 @@ def python(subject=None):
 
   {h4('See also')}
     mm python env
+    """
+    _COMPILE = _EXEC = f"""{h1('compile / exec')}
+    {h2('compile')}
+    
     """
     _CTXMGR = _CTXMANAGER = _CONTEXTMANAGER = f"""{h2('Context Manager')}
     {h3('typing.Generator')}(Iterator[T_co], Generic[T_co, T_contra, V_co])
@@ -11055,7 +11142,7 @@ def zsh(subject=None):
     zle up-history
     zle push-line
     zle accept-line
-    zle -N <function>
+    zle -N <function>   {c('Looks like $BUFFER, $LBUFFER, $CURSOR available in function (sudo plugin)')}
     """
     
     _MISC = f"""{h2('zsh misc command')}

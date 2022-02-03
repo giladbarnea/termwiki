@@ -105,6 +105,9 @@ class BasePrompt:
                 return None, ans_key
             else:
                 # TODO: this doesnt account for free_input = True, but no ans_key ('')
+                for flow_item in [v for v in items.values() if isinstance(v, FlowItem)]:
+                    if flow_item.identifier.lower().startswith(ans_key.lower()):
+                        return ans_key, flow_item
                 while ans_key not in items:
                     logging.warning(f"Unknown option: '{ans_key}'")
                     ans_key = _input(dialog_string)
