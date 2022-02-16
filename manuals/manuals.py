@@ -20,10 +20,11 @@ from pygments.lexers import (
     JsonLexer,
     MySqlLexer,
     PythonLexer,
+    RstLexer,
     SassLexer,
-    TypeScriptLexer
+    TOMLLexer,
+    TypeScriptLexer,
     )
-from pygments.lexers.configs import TOMLLexer
 from manuals.common.types import ManFn
 from manuals.formatting import h1, h2, h3, h4, h5, b, c, i, black, bg
 
@@ -33,8 +34,8 @@ literal_backslash = '\\'
 tab = '\t'
 # color = '\x1b['
 # https://help.farbox.com/pygments.html     ← previews of all styles
-Style = Literal['default', 'fruity', 'friendly', 'native', 'algol_nu', 'solarized-dark', 'inkpot', 'monokai']
-Language = Literal['mysql', 'python', 'bash', 'ipython', 'ini', 'json', 'js', 'ts', 'css', 'sass', 'docker', 'ahk', 'toml']
+Style = Literal['default', 'algol_nu', 'friendly', 'fruity', 'inkpot', 'monokai', 'native', 'solarized-dark']
+Language = Literal['ahk', 'bash', 'css', 'docker', 'ini', 'ipython', 'js', 'json', 'mysql', 'python', 'rst', 'sass', 'toml', 'ts']
 # noinspection PyUnresolvedReferences
 langs = Language.__args__
 # noinspection PyUnresolvedReferences
@@ -70,6 +71,8 @@ def __get_lexer_ctor(lang: Language) -> Type[Lexer]:
         return MySqlLexer
     if lang == 'python':
         return PythonLexer
+    if lang == 'rst':
+        return RstLexer
     if lang == 'sass':
         return SassLexer
     if lang == 'toml':
@@ -3185,6 +3188,48 @@ def django(subject=None):
   {_MANAGE}
 """
 
+@syntax
+def dob(subject=None):
+    
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('dob')}
+            {c('Start   End   Stop active?')}
+  now          No    No   Yes              dob now Baking cookies.
+  at/start    Yes    No   Yes              dob at -10m: Eating cookies.
+  from        Yes   Yes   Yes?             dob from 5:00 PM to 6:00 PM Workin' out.
+  to           No   Yes   Yes              dob to 5 mins. ago: Finishing task.
+  then        Opt    No   Yes              dob then I started a new project.
+  still       Opt    No   Yes              dob still Built Part 1, now Part 2.
+  after       Opt    No   Yes??            dob after +5m: Left for home.
+  
+  {h2('Commands')}
+    {h3('after')} [START_TIME] {c('Start a new Fact, beginning when the last Fact ended.')}
+    
+    {h3('at')} [START_TIME] {c('Start a new Fact, beginning now or at the time specified.')}
+    
+    {h3('now')} {c('Start a new Fact only if no Fact is active, using time now')}
+    
+    {h3('start')} {c('Start a new Fact, beginning now or at the time specified.')}
+    
+    {h3('still')} [START_TIME] {c('Stop the active Fact, and start a new one, copying metadata')}
+    
+    {h3('stop')} [END_TIME] {c('Stop active Fact, ending it now or at the time specified.')}
+    
+    {h3('from')} ⟨START_TIME⟩ to ⟨END_TIME⟩ {c('Insert a new Fact using the start and end time indicated.')}
+      d from 10:06 to 10:10 daily @ SSO
+
+    {h3('then')} [START_TIME] {c('Stop the active Fact, and start a new one, at given time or now')}
+      dob then Grinding beans for coffee.   {c('is the same as:')}
+      dob at +0: Grinding beans...
+    
+    {h3('to')} [END_TIME] {c('Stop the active Fact, ending it now, or at the time specified')}
+
+  {h2('Examples')}
+    @tag1 @"tag2 too" "#tag3" @give-it-up-for-tag4 \#tag5 '#'tag6
+  """
 
 @syntax(bash='friendly')
 def docker(subject=None):
@@ -6159,6 +6204,29 @@ def matplotlib(subject=None):
     /%python
     """
 
+@syntax
+def mermaid(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('mermaid')}
+  graph TD;
+      A-->B;
+      A-->C;        
+  
+  graph LR
+    TestBase --> TestA
+    TestBase --> TestB      
+
+  sequenceDiagram
+      participant Alice
+      participant Bob
+      Alice->>John: Hello John, how are you?
+      John-->>Alice: Great!
+      John->>Bob: How about you?
+      Bob-->>John: Jolly good!    
+    """
 
 @syntax
 def micro(subject=None):
@@ -8169,7 +8237,8 @@ def python(subject=None):
     c
   /%ipython
     """
-    _DOCTEST = f"""{h2('doctest')}
+    
+    _DOCTEST = f"""{h2('doctest')} [-h] [-v] [-f, --fail-fast] [-o OPTION...] file [file...]
   {h3('Programmatically')}
     {h4('Dynamically, so `python3 file.py` runs the doctests:')}
       %python
@@ -8204,7 +8273,7 @@ def python(subject=None):
     TypeError
     /%python
 
-  {h3('Options')} {c('-o <OPTION>[ -o <OPTION>...]')}
+  {h3('Options')} {c('-o OPTION [-o OPTION...]')}
     DONT_ACCEPT_BLANKLINE {c('2')}
     ELLIPSIS {c('8')}
     FAIL_FAST, -f {c('1024')}
@@ -8212,7 +8281,12 @@ def python(subject=None):
     NORMALIZE_WHITESPACE {c('4          all sequences of whitespace (blanks and newlines) are treated as equal')}
     REPORT_ONLY_FIRST_FAILURE {c('512   suppresses output of following tests, but still counts them')}
     SKIP {c('16')}
+    DONT_ACCEPT_TRUE_FOR_1
+    REPORT_UDIFF
+    REPORT_CDIFF
+    REPORT_NDIFF
     """
+    
     _ENV = f"""{h2('Environment Variables')}
   {c('https://docs.python.org/3/using/cmdline.html#environment-variables')}
 
@@ -8715,6 +8789,7 @@ def restructured_text(subject=None):
 
   {h2('function(arg)')}
     :param arg: description
+    :param str arg: description
     :type arg: description
     :return: description
     :rtype: type
@@ -9303,6 +9378,11 @@ def ssh(subject=None):
       ❯ ssh -nNT -L 9051:db.d.x:5432 node.d.y
       # Connect to the service:
       ❯ psql -U db_user -d db_dev -p 9051 -h localhost
+
+      # In Santa:
+      ❯ kubectl -n secure-management port-forward --address 0.0.0.0 rsevents-5d4b6dcdb5-k85dd 6096:6096
+      # Then from local machine:
+      ❯ ssh -T -L 6096:10.110.113.73:6096 localhost
       /%bash
 
     {h3('Remote port forwarding')}
@@ -9537,6 +9617,42 @@ def snap(subject=None):
     --classic
         """
 
+@syntax
+def sphinx(subject=None):
+    _EXTENSIONS = f"""{h2('Extensions')}
+    {c('https://www.sphinx-doc.org/en/master/usage/extensions/index.html')}
+    {h3('sphinx.ext.autodoc')}
+      {c('index.rst')}
+      After .. toctree and before Indices and Tables:
+      %rst
+      .. automodule:: pdbr
+         :members:
+      /%rst
+    
+    {h3('sphinx.ext.intersphinx')}
+      :py:func:`io.open` will be looked up in https://docs.python.org/3 if not found locally
+      {c('conf.py')}
+      %python 1
+      intersphinx_mapping = {{'python': ('https://docs.python.org/3', None)}}
+    
+    {h3('sphinx.ext.viewcode')}
+      Output a highlighted html of the source code,
+      and link to it from the documentation.
+    
+    {h3('sphinx_autodoc_annotation')}
+      Generates :type and :rtype automatically from existing type annotations.
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('sphinx')}
+  {c('https://www.sphinx-doc.org/en/master/usage/quickstart.html#getting-started')}
+  sphinx-quickstart
+  make [help]       {c('Run where the Makefile resides')}
+  
+  {_EXTENSIONS}
+  """
 
 @syntax
 def sqlalchemy(subject=None):
