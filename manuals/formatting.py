@@ -14,7 +14,7 @@ def h3(text, **kwargs):
 
 
 def h4(text, **kwargs):  # 97 or bright white
-    return colors.brightwhite(text, **kwargs)
+    return colors.brightwhite(text, 'ul', **kwargs)
 
 
 def h5(text, **kwargs):

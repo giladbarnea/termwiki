@@ -7747,7 +7747,7 @@ def postgres(subject=None):
       """
 
 
-@syntax
+@syntax(python='friendly')
 def pytest(subject=None):
     _GENERAL = f"""{h2('General')}
     -x, --exitfirst {c('or --maxfail=1')}
@@ -7781,33 +7781,132 @@ def pytest(subject=None):
     testpaths = testing
     addopts = -ra --tb short -p pytester
     """
+    _HOOKS_OBJECTS = f"""{h4('Hooks Objects')}
+      {c('https://docs.pytest.org/en/latest/reference/reference.html#objects')}
+      %python
+      BaseReport:
+          when?: 'call' | 'setup' | 'teardown'
+          outcome: 'passed' | 'failed' | 'skipped'
+          passed: bool
+          failed: bool
+          skipped: bool
+          location?: (str, int?, int)
+          longrepr?: ExceptionInfo | (str, int?, int) |  str | TerminalRepr
+          sections: [(str, str)]
+          nodeid: str
+          *properties, methods...
+    
+      TestReport(BaseReport):
+          __test__: bool = False
+          sections: [(str, str)] = []
+          duration: float = 0.0
+          user_properties?: [(str, object)] = []
+          keywords: {{ str: object }}
+          
+          @classmethod
+          from_item_and_call(item, call) -> TestReport
+    
+      CollectReport(BaseReport):
+          when: 'call' | 'setup' | 'teardown' = 'collect'
+          result?: [Item | Collector]
+          location: (str, None, int)
+      /%python
+    """
     _HOOKS = f"""{h3('Hooks')}
     {c('https://docs.pytest.org/en/latest/reference.html#hooks')}
-    %python
-    pytest_addoption(parser: config.argparsing.Parser): ...
-    
-    pytest_configure(config: Config): ...
-    
-    pytest_collection_modifyitems(config: Config, items):
-        if not config.getoption("--skip-slow"):
-            return
-        skip_slow = pytest.mark.skip(reason="Specified --skip-slow")
-        for item in items:
-            if "slow" in item.keywords:
-                item.add_marker(skip_slow)
-    
-    pytest_report_collectionfinish(config: Config, startdir, items: Sequence[Item]) -> str | list[str]:
-    /%python
-        First thing after e.g {h3('collected 3 items')}
-    %python
-    
-    pytest_report_teststatus(report: CollectReport | TestReport, config: Config) -> (str, str, str|Mapping[str, bool]):
-        Just before printing the test outcome
+    {_HOOKS_OBJECTS}
+    {h4('Initialization Hooks')}
+      %python
+      pytest_addoption(parser: pytest.Parser, pluginmanager: pytest.PytestPluginManager) -> None:
+          parser.addoption('--skip-slow', ...)
       
-    pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:
-        After printing the final summary line
+      pytest_configure(config: pytest.Config) -> None
+          '''Called for every plugin and initial conftest file after command line options have been parsed.
+             After that, the hook is called for other conftest files as they are imported.'''
+          config.addinivalue_line("markers", "slow: mark test as slow to run")
+          
+      pytest_sessionstart(session: pytest.Session) -> None: ...
+          '''Called after the Session object has been created and before performing collection and entering the run test loop.'''
+          
+      pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None: ...
+          '''Called after whole test run finished, right before returning the exit status to the system.'''
+      /%python
+      
+    {h4('Collection Hooks')}
+      %python
+      pytest_collection(session: pytest.Session) -> object?:
+          '''Perform the collection phase for the given session.'''
+      
+      pytest_pycollect_makeitem(collector, name, obj)
+      
+      pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
+          '''Called after collection has been performed. May filter or re-order the items in-place.'''
+          if not config.getoption("--skip-slow"):
+              return
+          skip_slow = pytest.mark.skip(reason="Specified --skip-slow")
+          for item in items:
+              if "slow" in item.keywords:
+                  item.add_marker(skip_slow)
+      
+      pytest_collection_finish(session: pytest.Session) -> None:
+          '''Called after collection has been performed and modified.'''
+      /%python
     
-    /%python
+    {h4('Test running (runtest) hooks')}
+    {h4('Reporting Hooks')}
+      %python
+      pytest_collectstart(collector: pytest.Collector) -> None:
+          '''Collector starts collecting.'''
+      
+      pytest_make_collect_report(collector: pytest.Collector) -> CollectReport?:
+          '''Perform collector.collect() and return a CollectReport.'''
+      
+      pytest_itemcollected(item: pytest.Item) -> None
+      
+      pytest_collectreport(report: pytest.CollectReport) -> None:
+          '''Collector finished collecting.'''
+      
+      pytest_deselected(items: Sequence[pytest.Item]) -> None:
+          '''Called for deselected test items, e.g. by keyword.'''
+      
+      pytest_report_collectionfinish(config: Config, start_path: Path, startdir: DEPRECATED, items: [Item]) -> str | list[str]:
+          '''First thing after e.g collected 3 items.
+          Return a string or list of strings to be displayed after collection has finished successfully.'''
+      
+      pytest_report_teststatus(report: CollectReport | TestReport, config: Config)
+          -> ("passed" | "skipped" | "error" | str,
+              "." | "s" | "E" | str,
+              "PASSED" | "SKIPPED" | "ERROR" | str | {{str: bool}} ):
+          '''Just before printing the test outcome.
+          Return result-category, shortletter and verbose word for status reporting.'''
+        
+      pytest_terminal_summary(terminalreporter: _pytest.terminal.TerminalReporter, exitstatus: int, config: pytest.Config) -> None:
+          '''After printing the final summary line. Add a section to terminal summary reporting.'''
+      
+      pytest_runtest_longreport(report: TestReport) -> None:
+          '''Process the TestReport produced for each of the setup, call and teardown runtest phases of an item.'''
+      
+      pytest_assertrepr_compare(config: pytest.Config, op:str, left, right) -> [str]?:
+          '''Return explanation for comparisons in failing assert expressions.'''
+          
+      pytest_assertion_pass(item, lineno, orig, expl)[source] -> None:
+          '''Called whenever an assertion passes.'''
+      /%python
+    
+    {h4('Debugging / Interaction Hooks')}
+      %python
+      pytest_internalerror(excrepr, excinfo) -> bool?
+      
+      pytest_keyboard_interrupt(excinfo) -> None
+      
+      pytest_exception_interact(node, call, report) -> None
+          '''Called when an exception was raised which can potentially be interactively handled.
+          Not called if the raised exception is internal like skip.Exception.'''
+      
+      pytest_enter_pdb(config, pdb) -> None
+      
+      pytest_leave_pdb(config, pdb) -> None
+      /%python
     """
     _CONFTEST = f"""{h3('conftest.py')}
     {c('Possibly multiple conftest.py files under / for different directories')}
@@ -8810,8 +8909,34 @@ def restructured_text(subject=None):
     
   {h2('Examples')}
     {h3('highlighted code')}
+    {c('Example 1')}
     ::
         foo(42)
+        
+    {c('Example 2')}
+    .. code-block:: javascript
+      :emphasize-lines: 8,10,16 {c('or :linenos:')}
+
+    code
+    
+    {c('Example 3')}
+    .. include:: my_code_example.txt
+    
+    {c('Example 4')}
+    .. literalinclude:: configuration.json
+      :language: JSON
+    
+    {c('Example 5')}
+    .. example-code::
+    
+      .. code-block:: python
+    
+        pygments_style = 'sphinx'
+    
+    
+      .. code-block:: ruby
+    
+        print "Hello, World!\n"
     
     {h3('click')}
       :class:`Option` or :class:`Argument`
