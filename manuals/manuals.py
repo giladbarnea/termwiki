@@ -2359,6 +2359,8 @@ def bash(subject=None):
     }}
     set -T
     trap 'preexec_invoke_exec' DEBUG
+
+    trap 'rm -f $TMP' EXIT SIGHUP SIGINT SIGTERM
     /%bash
   
   {h3('See also')}
@@ -3195,10 +3197,11 @@ def dob(subject=None):
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
-        return f"""{h1('dob')}
+        return f"""{h1('dob')} [--global] ⟨command⟩ [--option] [times] [activity[@category]] [@tag...] [description]
+
             {c('Start   End   Stop active?')}
   now          No    No   Yes              dob now Baking cookies.
-  at/start    Yes    No   Yes              dob at -10m: Eating cookies.
+  at,start    Yes    No   Yes              dob at -10m: Eating cookies.
   from        Yes   Yes   Yes?             dob from 5:00 PM to 6:00 PM Workin' out.
   to           No   Yes   Yes              dob to 5 mins. ago: Finishing task.
   then        Opt    No   Yes              dob then I started a new project.
@@ -3208,9 +3211,10 @@ def dob(subject=None):
   {h2('Commands')}
     {h3('after')} [START_TIME] {c('Start a new Fact, beginning when the last Fact ended.')}
     
-    {h3('at')} [START_TIME] {c('Start a new Fact, beginning now or at the time specified.')}
+    {h3('at,start')} [START_TIME] {c('Start a new Fact, beginning now or at the time specified.')}
     
     {h3('now')} {c('Start a new Fact only if no Fact is active, using time now')}
+      dob now gui-fonts@        {c('activity: gui-fonts; empty category')}
     
     {h3('start')} {c('Start a new Fact, beginning now or at the time specified.')}
     
@@ -3227,7 +3231,17 @@ def dob(subject=None):
     
     {h3('to')} [END_TIME] {c('Stop the active Fact, ending it now, or at the time specified')}
 
-  {h2('Examples')}
+  {h2('Category / Activity / Tag')}
+                 {c('activity  category description')}
+    dob at 08:00 Waking up@Personal Woke up.
+
+            {c('activity   category description')}
+    dob now @MEET-4567 @standup Barely made it
+
+    {c('Empty @ means last activity')}
+    dob to 08:45 @ Getting ready for work.
+    dob start 30 mins ago '#PROJ-9876' @ Refactoring this mess.
+
     @tag1 @"tag2 too" "#tag3" @give-it-up-for-tag4 \#tag5 '#'tag6
   """
 
@@ -4323,14 +4337,7 @@ def git(subject=None):
 
     """
     _LOG = f"""{h2('log')}
-    git log                     {c('shows commits')}
-    git log --stat              {c('also show additions/deletions stats')}
-    git log -p [-1]             {c('also show patch diff (can limit patches)')}
-    git log --pretty=[oneline | short | medium | full | fuller | reference | email | raw]
-    git log --oneline           {c('short SHAs; convenience for --pretty=oneline --abbrev-commit')}
-    git log {i("origin/master")}       {c('show where HEAD and origin/master is')}
-    git log {i("SHA")}                 {c('of commit / branch')}
-    git log {i('my_branch')} --pretty=oneline --graph
+    {c('https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit-History')}
     
     {h3('Formatting')}
       {c('Most options can have appended iso-local')}
@@ -4360,6 +4367,18 @@ def git(subject=None):
         --[branches tags remotes]={i('pattern')}
         --exclude={i('pattern')}
 
+    {h3('Examples')}
+      git log                     {c('shows commits')}
+      git log --stat              {c('also show additions/deletions stats')}
+      git log -p [-1]             {c('also show patch diff (can limit patches)')}
+      git log --pretty=[oneline | short | medium | full | fuller | reference | email | raw]
+      git log --oneline           {c('short SHAs; convenience for --pretty=oneline --abbrev-commit')}
+      git log {i("origin/master")}       {c('show where HEAD and origin/master is')}
+      git log {i("SHA")}                 {c('of commit / branch')}
+      git log {i('my_branch')} --pretty=oneline --graph
+      git log -S function_name
+      git log -- path/to/file
+      git log --since=2.weeks     {c('also 2 years 1 day 3 minutes ago')}
         """
     
     _MERGE = f"""{h2('merge')} [OPTIONS...] [-m MSG] [COMMIT...]
@@ -7454,6 +7473,10 @@ def pip(subject=None):
     {h3('From local dir')}
       {c('sudo chmod 777 target dir, and make sure no prompts in target setup.py')}
       (env) pip install --log ./PIP.log -v -e /home/gilad/Code/IGit
+    
+    {h3('requirements.txt')}
+      --index-url https://pypi.python.org/simple/
+      -e .      {c('in the end of file')}
 
     --src <dir>                  {c('Check out editables into <dir>. Default is "<venv path>/src", global default is "<current dir>/src"')}
     --root <dir>                 {c('Install everything relative to this alternate root directory')}
@@ -8580,6 +8603,17 @@ def python(subject=None):
     {h3('getLogger(name=None)')}
       {c('Returns Logger.manager.getLogger(name) if name else root')}
     """
+    _MAGIC = _DUNDER = f"""{h2('Magic / Dunder methods')}
+    {h3('__dict__ dir / vars / inspect.getmembers')}
+    dir(Console) == inspect.getmembers(Console)
+    vars(Console) == set(Console.__dict__)
+    dir(Console) > vars(Console)    # True
+    dir(Console) - vars(Console)    # '__class__', '__delattr__', '__dir__', '__eq__', '__format__', '__ge__',
+                                    # '__getattribute__', '__gt__', '__hash__', '__init_subclass__', '__le__',
+                                    # '__lt__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__setattr__',
+                                    # '__sizeof__', '__str__', '__subclasshook__'
+    inspect.isroutine(Console) ==
+    """
     _OPEN = rf"""{h2(f'with open(path, mode="rt" {c("default")}, errors=None)')}
   {h2('mode')}
     w                   {c("truncate file first. doesn't raise")}
@@ -8832,6 +8866,8 @@ def python(subject=None):
   {_ENV}
 
   {_LOGGING}
+  
+  {_MAGIC}
 
   {_OPEN}
 
@@ -9144,9 +9180,9 @@ def ripgrep(subject=None):
       --max-depth <N>             {c('0 only works for files. 1 searches direct children of dir')}
       -a, --text                  {c('treat binary as text (and search them)')}
       -z, --search-zip
-      -g, --[i]glob <GLOB>        {c("filter paths. --glob '!*.py' to exclude")}
+      -g, --[i]glob ⟨GLOB⟩        {c("filter paths. --glob '!*.py' to exclude")}
       --pre <COMMAND>             {c('search stdoud of COMMAND FILE. see "man rg" for example.')}
-      --pre-glob <GLOB> ...       {c('apply "--pre" only on files matching GLOB(s)')}
+      --pre-glob ⟨GLOB⟩ ...       {c('apply "--pre" only on files matching GLOB(s)')}
 
     {h3('match control')}
       -s, --case-sensitive        {c('overrides -i/--ignore-case and -S/--smart-case')}
@@ -11358,14 +11394,16 @@ def zenity(subject=None):
   """
 
 
+@syntax
+@alias('unzip')
 def zip_(subject=None):
     return f"""{h1('zip')}
   {h2('options')}
-    -r      {c('recursive')}
-    -i, --include <GLOB>
-    -x, --exclude <GLOB>
+    -r            {c('recursive')}
+    -i, --include ⟨GLOB⟩
+    -x, --exclude ⟨GLOB⟩
     -v, --verbose
-    -<int>  {c('0: no compression; 9: most compression')}
+    -⟨int⟩        {c('0: no compression; 9: most compression')}
 
   {h2('examples')}
     zip -r -9 'outfile' . -i "somedir/*"
@@ -11374,11 +11412,14 @@ def zip_(subject=None):
     
 {h1('unzip')} [-Z] [-cflptTuvz[abjnoqsCDKLMUVWX$/:^]] file[.zip] [file(s) ...]  [-x xfile(s) ...] [-d exdir='.']
   {h2('options')}
-    -x <GLOB>   {c("Example: '-x */*' extract all files in root but none in subdirs")}
-
-  {h2('examples')}
-    {c('View contents')}
-    unzip -l rsevents.zip
+    -x ⟨GLOB⟩   {c("Exclude, e.g: '-x */*' extract all files in root but none in subdirs")}
+    -d ⟨DIR⟩    {c("Intead of cwd")}
+    -u          {c("update: extract only new/newer files")}
+    -l          {c("List file names")}
+    -v          {c("List files plus size, comp ratio and method etc")}
+    -j          {c("Junk paths. Don't preserve dir structure (flatten)")}
+    -n          {c("never overwrite existing files")}
+    -q[q]       {c("quiet")}
     """
 
 
@@ -11393,10 +11434,23 @@ def zsh(subject=None):
     zle -N <function>   {c('Looks like $BUFFER, $LBUFFER, $CURSOR available in function (sudo plugin)')}
     """
     
-    _MISC = f"""{h2('zsh misc command')}
+    _MISC = f"""{h2('zsh misc.')}
     {h3('print')}
-    {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
-    print -z print -z print This is a line    {c('Put in buffer')}
+      {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
+      print -z print -z print This is a line    {c('Put in buffer')}
+    
+    {h3('emulate')}
+      emulate -L zsh
+      emulate -RL zsh
+    
+    {h3('autoload')}
+      autoload -U add-zsh-hook
+      autoload -Uz compinit
+    
+    {h3('add-zsh-hook')} hook function
+      add-zsh-hook chpwd chpwd_dirhistory    {c('dirhistory plugin')}
+      {c('valid hooks:')}
+      chpwd precmd preexec periodic zshaddhistory zshexit zsh_directory_name
     """
     
     _ZPARSEOPTS = f"""{h2('zparseopts')} [ -D -E -F -K -M ] [ -a array ] [ -A assoc ] [ - ] spec ...
@@ -11454,6 +11508,7 @@ def zsh(subject=None):
       (( verbosity = $#flag_v - $#flag_q ))
       /%bash
     """
+
     _BINDKEY = f"""{h3('bindkey')}
     %bash
     hexdump
@@ -11467,6 +11522,7 @@ def zsh(subject=None):
     bindkey "\e"man <function>
     /%bash
     """
+
     _KEYS = f"""{h2('Keyboard Shortcuts')}
     {c('show all with just `bindkey`')}
     {h3('Glossary')}
@@ -11516,23 +11572,23 @@ def zsh(subject=None):
       ^X^O    {c('overwrite mode')}
       ^X^U    {c('undo')}
 
+
     {h3('More zle functions')}  {c('zle <FN>')}
       .kill-buffer    {c('dirhistory plugin')}
-      .accept-line    
+      .accept-line
   
     """
 
+    _SETOPT = f"""{h2('setopt')}
+    setopt localoptions noautopushd     {c('extract plugin')}
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
         return f"""{h1('zsh')}
   {c('http://zsh.sourceforge.net/Guide/zshguide04.html')}
-  autoload -U add-zsh-hook
-  autoload -Uz compinit
-  add-zsh-hook chpwd chpwd_dirhistory    {c('dirhistory plugin')}
-  emulate -L zsh
-  emulate -RL zsh
+
   {_MISC}
   
   {_ZLE}
