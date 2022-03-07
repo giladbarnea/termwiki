@@ -2957,6 +2957,7 @@ def cython(subject=None):
     ext_modules = cythonize(
         'pydantic/*.py',
         exclude=['pydantic/generics.py'],
+        # annotate=True,
         nthreads=int(os.getenv('CYTHON_NTHREADS', 0)),
         language_level=3,
         compiler_directives=dict(linetrace=True),
