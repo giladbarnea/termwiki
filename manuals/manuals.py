@@ -2100,6 +2100,11 @@ def bash(subject=None):
     
     _SED = f"""{h2('sed')}
   {c('https://github.com/adrianscheff/useful-sed')}
+  {h3('Options')}
+    --silent, --quiet, -n        {c('dont print pattern space (only print matched lines)')}
+    --regexp-extended, -r, -E    {c('use extended regular expressions')}
+    --in-place, -i
+  
   {h3('Replace match')}
     %bash 1
     sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/g' ~/.zshrc
@@ -9666,7 +9671,7 @@ def ssh(subject=None):
         # Scan .1 to .254 range:
         nmap -sn 192.168.2.1/24       # also e.g 192.168.1.0/24
         # Or:
-        arp -a 
+        arp -a      # apt install net-tools
       
       # Check access to site:
         ssh -T git@bitbucket.org
@@ -11447,11 +11452,6 @@ def zsh(subject=None):
     {h3('autoload')}
       autoload -U add-zsh-hook
       autoload -Uz compinit
-    
-    {h3('add-zsh-hook')} hook function
-      add-zsh-hook chpwd chpwd_dirhistory    {c('dirhistory plugin')}
-      {c('valid hooks:')}
-      chpwd precmd preexec periodic zshaddhistory zshexit zsh_directory_name
     """
     
     _ZPARSEOPTS = f"""{h2('zparseopts')} [ -D -E -F -K -M ] [ -a array ] [ -A assoc ] [ - ] spec ...
@@ -11523,7 +11523,21 @@ def zsh(subject=None):
     bindkey "\e"man <function>
     /%bash
     """
-
+    
+    _HOOKS = f"""{h2('add-zsh-hook, or general hooks')}
+    {c('https://zsh.sourceforge.io/Doc/Release/Functions.html')}
+    {h3('add-zsh-hook')} HOOK FUNCTION
+      add-zsh-hook chpwd chpwd_dirhistory    {c('dirhistory plugin')}
+      {c('Available hooks:')}
+      chpwd precmd preexec periodic zshaddhistory zshexit zsh_directory_name
+    
+    {h3('Hook arrays')}
+      precmd_functions preexec_functions zshexit_functions
+      {c('Examples:')}
+      precmd_functions+=(my_precmd_function)
+      _p9k_precmd
+      
+    """
     _KEYS = f"""{h2('Keyboard Shortcuts')}
     {c('show all with just `bindkey`')}
     {h3('Glossary')}
@@ -11581,7 +11595,9 @@ def zsh(subject=None):
     """
 
     _SETOPT = f"""{h2('setopt')}
+    setopt TAB TAB  {c('194 available options')}
     setopt localoptions noautopushd     {c('extract plugin')}
+    setopt no_local_options no_prompt_bang prompt_percent prompt_subst prompt_cr prompt_sp  {c('_p9k_precmd function')}
     """
     if subject:
         frame = inspect.currentframe()
@@ -11597,6 +11613,8 @@ def zsh(subject=None):
   {_KEYS}
   
   {_BINDKEY}
+  
+  {_HOOKS}
   
   {_ZPARSEOPTS}
   """
