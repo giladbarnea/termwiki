@@ -1415,7 +1415,6 @@ def bash(subject=None):
     _COMPLETE = _COMPGEN = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
     {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
     {c('https://wiki.bash-hackers.org/syntax/shellvars?s[]=completion')}
-    {c('https://github.com/zsh-users/zsh-completions/blob/master/zsh-completions-howto.org')} <- very friendly markdown
 
     {h3('Flags')}
       -a      {c('alias')}
@@ -1512,43 +1511,88 @@ def bash(subject=None):
       /%bash
     
     {h3('See also')}
-      compdef, compctl, compadd
+      compdef / compctl / compadd
     """
     _COMPDEF = _COMPCTL = _COMPADD = f"""{h2('compdef')}
       {h4('#compdef name ... [ -{p|P} pattern ... [ -N name ... ] ]')} # at start of file
       {h4('compdef [ -ane ] function name ... [ -{p|P} pattern ... [ -N name ...]]')}
       {c('https://zsh.sourceforge.io/Doc/Release/Completion-System.html')}
-      %bash
-      # Single line
-        compdef _git git.my-commits=git-log
-        compdef _git=git (?)
+      {c('https://github.com/zsh-users/zsh-completions/blob/master/zsh-completions-howto.org')} <- very friendly markdown
       
-      # Simple Example
-        _ffmpeg.slice.get(){{
+      {h4('_describe')}
+        %bash
+        # One list
           local -a subcmds
           subcmds=('c:description for c command' 'd:description for d command')
-          _describe 'ffmpeg.slice.get' subcmds
-        }}
-        compdef _ffmpeg.slice.get ffmpeg.slice.get
+          _describe 'command' subcmds
+          
+        # Multiple lists separated by double hyphen
+          local -a subcmds topics
+          subcmds=('c:description for c command' 'd:description for d command')
+          topics=('e:description for e help topic' 'f:description for f help topic')
+          _describe 'command' subcmds -- topics
+        /%bash
+      
+      {h4('_arguments')}
+        %bash
+        _arguments '-s[sort output]' '--l[long output]' '-l[long output]'
+        _arguments '-f[input file]:filename:_files'
+        _arguments '-s[sort output]' '1:first arg:_net_interfaces' '::optional arg:_files' ':next arg:(a b c)'
+        _arguments {{-q,--quiet}}"[Only display network IDs]"
+        
+        # More complex:
+        _arguments '-m[music file]:filename:->files' '-f[flags]:flag:->flags'
+        case "$state" in
+          files) ... ;;
+          flags)  _values -s , 'flags' a b c d e ;;
+        esac
+        /%bash
       
       
-      # Full Example
-        {linebreak + indent((os.getenv('MANPROJ') / Path('manuals/man/bash/compdef')).open().read(), '        ')}
-      /%bash
+      {h4('Examples')}
+        %bash
+        # Single line
+          compdef _git git.my-commits=git-log
+          compdef _git=git (?)
+          compdef _my_comp_fn my_fn
+        
+        # Simple Example
+          _ffmpeg.slice.get(){{
+            local -a subcmds=('c:description for c command' 'd:description for d command')
+            _describe 'ffmpeg.slice.get' subcmds
+          }}
+          compdef _ffmpeg.slice.get ffmpeg.slice.get
+        
+        # Reuse existing completion function
+          _my_comp_fn(){{
+            _docker
+          }}
+          compdef _my_comp_fn my_fn
+        
+        # One-liner
+          _my_comp_fn(){{ _describe "command" "('bla:bla')" ; }} ; compdef _my_comp_fn my_fn
+        
+        # One-liner: anonynous function
+          compdef "_describe command \\"('--readlines:bla')\\"" docker.down_build_up
+        
+        
+        # Full Example
+          {linebreak + indent((os.getenv('MANPROJ') / Path('manuals/man/bash/compdef')).open().read(), '        ')}
+        /%bash
       
     {h3('compadd')} [option...] [word...]
-      {c('Inside a compdef function')}
-      {h4('compadd -X explanation')}
-      {h4('compadd -x message')}        {c('Prints regardless of completions')}
-      {h4('compadd -a array')}          {c('words are names of arrays. matches are values. may contain subscripts, eg `foo[2,-1]`')}
-      {h4('compadd -k assoc_array')}    {c('words are names of assoc arrays. matches are keys. may contain subscripts, eg `foo[(R)*bar*]`')}
+      {c('Inside a compdef function or #compdef whatever file')}
+      compadd -X ⟨explanation⟩ ⟨word⟩
+      compadd -x ⟨message⟩        {c('Prints regardless of completions')}
+      compadd -a ⟨array⟩          {c('words are names of arrays. matches are values. may contain subscripts, eg `foo[2,-1]`')}
+      compadd -k ⟨assoc_array⟩    {c('words are names of assoc arrays. matches are keys. may contain subscripts, eg `foo[(R)*bar*]`')}
       
       %bash
       # Example 1
-        _ffmpeg.slice.get(){{
-          compadd foo bar
-        }}
-        compdef _ffmpeg.slice.get ffmpeg.slice.get
+        compadd foo bar
+        compadd -X 'Some completions' foo bar blah
+        compadd -x 'Usage'
+        compadd -a wordsarray
       
       # Example 2
         compadd -- $(COMP_CWORD=$((CURRENT-1)) \\
@@ -1567,10 +1611,10 @@ def bash(subject=None):
       read -l line
       read -ln point
       si="$IFS"
-      IFS=$'\\n' reply=($(COMP_CWORD="$cword" \
-                         COMP_LINE="$line" \
-                         COMP_POINT="$point" \
-                         npm completion -- "${{words[@]}}" \
+      IFS=$'\\n' reply=($(COMP_CWORD="$cword" \\
+                         COMP_LINE="$line" \\
+                         COMP_POINT="$point" \\
+                         npm completion -- "${{words[@]}}" \\
                          2>/dev/null)) || return $?
       IFS="$si"
       /%bash
@@ -2126,7 +2170,6 @@ def bash(subject=None):
     # syspy=/usr/local/bin/python3.9 -> /usr/local/bin/python3.9
     alias | grep "syspy" | sed -n "s/syspy=\(.*\)/\1/p"
   
-  
   {h3('Delete line from file')}
     %bash
     sed 'Nd' file                         # sed '1d' file | sed '1,3d' file
@@ -2139,6 +2182,11 @@ def bash(subject=None):
     sed '${{/ubuntu/d;}}'                   # last line only if it contains the pattern
     sed -i <file> -re '<start>,<end>d'    # Remove range of lines
     /%bash
+    
+  {h3('Custom delimiter')}
+    %bash
+    sed -n '\@bla bla@p' ~/.zsh_history
+    sed 's@search@replace@g' ~/.zsh_history
     """
     
     _SYMLINK = _LN = _LINK = f"""{h2('ln - make links between files')}
@@ -11431,6 +11479,16 @@ def zip_(subject=None):
 
 @syntax
 def zsh(subject=None):
+    _ARRAY = _ARR = f"""{h2('Arrays')}
+    {c('https://zsh.sourceforge.io/Guide/zshguide05.html')}
+    %bash
+    # Splitting
+    print -l ${{(s.:.)PATH}}
+    
+    # Joining
+    arr=(one two three); echo ${{(j.:.)arr}}    # one:two:three
+    /%bash
+    """
     _ZLE = f"""{h2('zle')} - Z-Shell Line Editor
     {c('https://web.cs.elte.hu/zsh-manual/zsh_14.html')}
     {c('https://github.com/mskar/setup/blob/5d9dddd447a05e8d866b9c09b06a085f02e41bd3/.zshrc#L686')}
@@ -11443,7 +11501,27 @@ def zsh(subject=None):
     _MISC = f"""{h2('zsh misc.')}
     {h3('print')}
       {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
-      print -z print -z print This is a line    {c('Put in buffer')}
+      {h4('options')}
+        -a            {c('Only with -c/-C; col incr first')}
+        -b            {c('Recognize escape sequences defined for bindkey')}
+        -C COLS       {c('Print in COLS columns (row incr first unless -a)')}
+        -c            {c('Print in columns (row incr first unless -a)')}
+        -D            {c('Treat args as path, replace with ~')}
+        -i            {c('With -o/-O, sort case insensitively')}
+        -m            {c('First arg is a filter (pattern) to remove args that dont match it')}
+        -n            {c('No newline at end')}
+        -N            {c('Null-terminated and separated arguments')}
+        -o            {c('Sort ascending')}
+        -O            {c('Sort descending')}
+        -p            {c('Print to input of the coprocess')}
+        -P            {c('Prompt expansion')}
+        -r            {c('Ignore echo escpae conventions')}
+        -R            {c('Emulate echo')}
+        -s            {c('Store in history instead of stdout. Can many args.')}
+        -S            {c('Store in history instead of stdout. Only one arg allowed.')}
+        -u FILEDESC   {c('Print to file descriptor FILEDESC')}
+        -v VARNAME    {c('Store printed result as val of VARNAME')}
+        -z            {c('Put args in editing buffer, space-separated')}
     
     {h3('emulate')}
       emulate -L zsh
@@ -11472,39 +11550,64 @@ def zsh(subject=None):
       name      {c('Takes no arg (flag)')}
       name+     {c('Option appended to array each time its found')}
       name:     {c('Mandatory. Added as a separate element')}
-      name:-    {c('Mandatory. Added to the same element')}
+      name:-    {c('Mandatory. Added to the same element.')}
+                  {c('Note: zparseopts -D -E - f:-fname => foo:zparseopts:1: invalid option description: f:-fname')}
+                  {c('Maybe should f:-=fname?')}
       name+:    {c('Appended and mandatory?')}
       name::    {c('Optional')}
       
     {h4('Examples')}
       %bash
-      # Example 0
+      ############################
+      
+      zparseopts -D -E - v=verbose
+      foo -v     # verbose: -v (optional)
+      
+      ############################
+      
       set -- -a -bx -c y -cz baz -cend
-      zparseopts a=foo b:=bar c+:=bar
+      zparseopts a=foo b:=bar c+:=bar   # -c is multiple; baz is discarded; -cend?
         # Results in:
         foo=(-a)
         bar=(-b x -c y -c z)
-
-      # Example 0.5
+      
+      ############################
+      
       set -- -a x -b y -c z arg1 arg2
       zparseopts -E -D b:=bar
         # Results in:
         bar=(-b y)
         set -- -a x -c z arg1 arg2
-        
-      # Example 1
+    
+      
+      ############################
+      
+      zparseopts -D -E - f:-=fname
+      foo -f myname     # fname[1]: -fmyname
+    
+      
+      ############################
+      
+      zparseopts -D -E - f:=fname
+      foo -f myname     # fname[1]: -f | fname[2]: myname
+    
+      
+      ############################
+      
       zmodload zsh/zutil
       zparseopts -D -E -F - a:=arg_val -arg:=arg_val f=flag -flag=flag {literal_backslash}
       	F=foobar -foo=foobar B=foobar -bar=foobar || exit 1
       
-      # remove first -- or -
+      ##### remove first -- or - ###
       end_opts=$@[(i)(--|-)]
       set -- "${{@[0,end_opts-1]}}" "${{@[end_opts+1,-1]}}"
       
-      # Example 2
+      ############################
+      
       zparseopts -D -E - a:+=a_and_b b:+=a_and_b
       
-      # Example 3
+      ############################
+      
       zparseopts -D -E - v+=flag_v -verbose+=flag_v q+=flag_q -quiet+=flag_q
       (( verbosity = $#flag_v - $#flag_q ))
       /%bash
