@@ -692,49 +692,13 @@ def autohotkey(subject=None):
   https://www.autohotkey.com/boards/viewtopic.php?t=66376
   """
 
+
 @syntax
 def bash(subject=None):
-    # 	_strings(){
-    # 		printf "$(_h1 'Strings')
-    #
-    #   stringZ=abcABC123ABCabc;
-    #
-    #   $(_h2 '6. Substring Removal')
-    #     $(_white '6.0. Strip out from front of string')
-    #       $(_white '6.0.0 Shortest match')
-    #         \${stringZ#a*C}                         $(_# '123ABCabc')
-    #
-    #       $(_white '6.0.1 Longest match')
-    #         \${stringZ##a*C}                        $(_# 'abc')
-    #
-    #       $(_white '6.0.2 Parameterize the substrings')
-    #         X='a*C';
-    #         \${stringZ#\$X}                         $(_# '123ABCabc')
-    #         \${stringZ##\$X}                        $(_# 'abc')
-    #
-    #     $(_white '6.1. Strip out from the back of string')
-    #       $(_white '6.1.0 Shortest match')
-    #         \${stringZ%%A*c}                        $(_# 'abcABC123')
-    #
-    #       $(_white '6.1.1 Longest match')
-    #         \${stringZ%%%%A*c}                       $(_# 'abc')
-    #
-    #   $(_h2 '7. Substring Replacement')
-    #     $(_white '7.0 Replace first match')
-    #         \${stringZ/abc/xyz}                     $(_# 'xyzABC123ABCabc')
-    #
-    #     $(_white '7.1 Replace all matches')
-    #         \${stringZ//abc/xyz}                    $(_# 'xyzABC123ABCxyz')
-    #
-    #     $(_white '7.2 Replace with nothing')
-    #         \${stringZ/abc}                         $(_# 'ABC123ABCabc')
-    #         \${stringZ//abc}                        $(_# 'ABC123ABC"')
-    #
-    
     # TODO: git diff -w "$@" | view -
-    __ARGUMENTS = __ARGS = f"""{h2('Arguments')}
-    
-    {h3('getopts')}
+    __ARGUMENTS = __ARGS = f"""{h1('Arguments')}
+
+    {h2('getopts')}
       %bash
       local opt
       # zsh can e.g getopts "dDhLUzk" opt?
@@ -746,7 +710,7 @@ def bash(subject=None):
     	  -)
       	    case "${{OPTARG}}" in
               # Long options
-              quiet) quiet=true;;	  
+              quiet) quiet=true;;
               *)
 	        echo "Usage: ${{0##*/}} [-n] [-d day] [-o offset] ARGS..."
 	        exit 2;;
@@ -758,11 +722,11 @@ def bash(subject=None):
       /%bash
 
 
-    {h3('getopt')}
+    {h2('getopt')}
       %bash 1
       getopt [-u, --unquoted] --long difftool: -- "$@"    # supports --difftool=foo and --difftool foo
-    
-    {h3('Parse args / kwargs')}
+
+    {h2('Parse args / kwargs')}
       %bash
       POSITIONAL=()
       while [[ $# -gt 0 ]]; do
@@ -791,79 +755,79 @@ def bash(subject=None):
       done
       set -- "${{POSITIONAL[@]}}" # restore positional params
       /%bash
-    
-    {h3('Get by index')}
+
+    {h2('Get by index')}
       ${{#}}                  {c('get number of args (myfn "hello world" indeed → 2)')}
       ${{*:2}} {c('or')} ${{@:2}}      {c('2nd and following pos args')}
       ${{*:2:3}}              {c('three pos args, starting from 2nd')}
       ${{2}}                  {c('2nd arg exactly')}
-      
-      {h4('second-to-last, like sys.argv[-2]')}
+
+      {h3('second-to-last, like sys.argv[-2]')}
         %bash 1
-        ${{*:$((${{#}} - 1)):1}}  
+        ${{*:$((${{#}} - 1)):1}}
         {c('or')}
         %bash 1
         $@[$(($# - 1))]
         {c('or')}
         %bash 1
         $*[$(($# - 1))]
-      
-      {h4('last arg')}
+
+      {h3('last arg')}
         %bash 1
         $@[$#]
-    
-    {h3('${*} vs $@')}
-      {h4('Basically:')}
+
+    {h2('${*} vs $@')}
+      {h3('Basically:')}
         "$*" concats all args within one string (like " ".join(args))
         "$@" keeps them separate
-      
-      {h4('Example:')}
+
+      {h3('Example:')}
         %bash
         function echo_1st_arg() {{ echo "$1" }}
         function pass_at() {{ echo_1st_arg "$@" }}
         function pass_star() {{ echo_1st_arg "$*" }}
-        $ pass_at foo bar     
+        $ pass_at foo bar
         # foo
-        $ pass_star foo bar   
-        # foo bar 
+        $ pass_star foo bar
+        # foo bar
         /%bash
-      
-      {h4('Example:')}
+
+      {h3('Example:')}
         %bash
         function star() {{ printf "args: '%s'{literal_linebreak}" "${{*}}" }}  # $* same
-        $ star hello world    
+        $ star hello world
         # args: 'hello world'
-    
+
         function at() {{ printf "args: '%s'{literal_linebreak}" "$@" }}  # ${{@}} same
         $ at hello world
         # args: 'hello'
         # args: 'world'
         /%bash
-      
-      {h4('Example:')}
+
+      {h3('Example:')}
         %bash
         function star() {{ echo "${{*:2}}" }}
-        $ star hello world    
+        $ star hello world
         # llo world
-      
+
         function at() {{ echo "${{@:2}}" }}
-        $ at hello world      
+        $ at hello world
         # world
         /%bash
-        
+
     """
     
-    __ARRAY = rf"""{h3("Array")}
+    __ARRAY = rf"""{h2("Array")}
     %bash
     # Build array from multiline string
     arr=( $(echo ${{lines//" "/$'\n'}}) )
       # These also worked?
-      arr=( $(echo ${{lines// /}}) ) 
+      arr=( $(echo ${{lines// /}}) )
       arr=( $(echo $lines) )
-    
+
     # indexed array
       declare -a arr=([0]="mars" [2]="pluto")
-    
+
     # initialize with values
       foo_arr=('foo'
       'bar')
@@ -873,25 +837,25 @@ def bash(subject=None):
       ${{#arr}}          #4
       ${{#arr[*]}}       #6 (num of items)
       ${{#arr:[@]}}      #6
-    
+
     # iterate over indexed array indices (keys; not necessarily continuous)
       for i in "${{!arr[@]}}"
-    
+
     # append
       arr+=("six")
-    
+
     # delete
       arr=("${{arr[@]/pluto}}")      # removes matching prefixes, not whole items
       unset 'arr[2]'               # only from assoc arr?
-    
+
     # concatenate two arrays
       array=(${{array_1[@]}} ${{array_2[@]}})
       # also (echo looks ok):
       array+=${{other[@]}}
-  
+
     # last item
       ${{array[${{#array}}]}}
-    
+
     # get
       #TODO: this is all wrong?
       ${{arr[0]}}        # zero
@@ -899,37 +863,37 @@ def bash(subject=None):
       ${{arr[1]}}        # one
       ${{arr:1}}         # ero
     /%bash
-    
-    {h3('Associative array')}
+
+    {h2('Associative array')}
       %bash
       # Printing:
       for x in "${{!array[@]}}"; do printf "[%q]=%q\n" "$x" "${{array[$x]}}" ; done
-      
+
       # Bash:
       echo ${{!arr[@]}}      # keys
       echo ${{arr[@]}}      # values
-      
+
       # Zsh:
       echo ${{(t)array}}
       echo ${{(k)array}}
       echo ${{(kv)array}}
-      
+
       # Tricks:
       # Copy arr to a new one:
       delcare -A LISA=([url]=www.google.com)
       tmp=$(declare -p LISA)        # tmp now holds 'declare -A LISA=([url]="www.google.com")'
       eval "declare -A lisa=${{tmp#*=}}"
       echo ${{lisa[url]}}   # www.google.com
-      
+
       # Another way:
       declare -A FOO
       for k in ${{!LISA[@]}}; do eval "FOO[$k]=${{LISA[$k]}}"; done
       /%bash
-      
-      {h4('See "declare"')}
+
+      {h3('See "declare"')}
     """
     
-    __CASE = f"""{h3('case')}
+    __CASE = f"""{h2('case')}
     %bash
     case $1 in
         verbose)    echo 'verbose';;
@@ -939,16 +903,16 @@ def bash(subject=None):
     esac
     /%bash
     """
-    __DECLARE = f"""{h3('declare')} [-aAfFgilnrtux] [-p] [name[=value] ...]
+    __DECLARE = f"""{h2('declare')} [-aAfFgilnrtux] [-p] [name[=value] ...]
     Without NAME, display all attributes/values of all variables.
-    
-    {h4('Options')}
+
+    {h3('Options')}
       -g	{c('Makes variables global when inside function')}
       -f	{c('Print functions including content')}
       -F	{c('Print function names')}
       -p	{c('Print attributes/values of each NAME')}
-    
-    {h4('Options which set attributes')}
+
+    {h3('Options which set attributes')}
       -a	{c("Array")}
       -A	{c("Associative array")}
       -E	{c("Engineering floating point")}
@@ -965,28 +929,28 @@ def bash(subject=None):
       -x	{c("Export")}
       -Z	{c("Right-justify and fill with leading zeroes")}
     """
-    __EXEC = __EVAL = f"""{h3('exec, eval and $(...)')}
+    __EXEC = __EVAL = f"""{h2('exec, eval and $(...)')}
     %bash 2
     if ! $(git checkout "$@"); then     # executes what's inside $()
     if ! git checkout "$@"; then        # doesn't execute
     """
-    __REGEX = f"""{h3("[[ ... =~ REGEX ]]")}
+    __REGEX = f"""{h2("[[ ... =~ REGEX ]]")}
     %bash
     if [[ "defhi_" =~ '[[:space:]_]' ]]; then ... fi
-    [:alnum:], [:alpha:], [:blank:], [:cntrl:], [:digit:], 
-    [:graph:], [:lower:], [:print:], [:punct:], [:space:], 
+    [:alnum:], [:alpha:], [:blank:], [:cntrl:], [:digit:],
+    [:graph:], [:lower:], [:print:], [:punct:], [:space:],
     [:upper:], and [:xdigit:]
     /%bash
     """
-    __TEST = __FILES = f"""{h3('test')}
-    {h4('Usage')}
+    __TEST = __FILES = f"""{h2('test')}
+    {h3('Usage')}
       test EXPRESSION
       test
       [ EXPRESSION ]
       [ ]
       [ OPTION
-      
-    {h4('File-Descriptor Flags')}
+
+    {h3('File-Descriptor Flags')}
       -b  {c('block special')}
       -c  {c('character special')}
       -d  {c('directory')}
@@ -1007,33 +971,33 @@ def bash(subject=None):
       -v  {c("variable is set, e.g '[ -v myvar ]' (true even for myvar= and myvar='')")}
       -w  {c('write permission is granted')}
       -x  {c('execute (or search) permission is granted')}
-      
-    {h4('Variable Flags')}
+
+    {h3('Variable Flags')}
       EXPRESSION1 -a EXPRESSION2
     """
     
-    __FOR = rf"""{h3('for')}
+    __FOR = rf"""{h2('for')}
     %bash
     # Example 1:
     for reqsubstr in 'o' 'M' 'alt' 'str';
-    
+
     # Example 2:
     for l in $(git diff --summary gilad | grep -o -P "(?<=\d{{6}}\s).*");
-    
+
     # Example 3:
     n=$((5));
     for ((i=0; i<n; i++));
     for i in {{1..$n}};   # Problematic: SC2051
     /%bash
     """
-    __NUMBER = __INT = f"""{h3('numbers')}
+    __NUMBER = __INT = f"""{h2('numbers')}
     %bash 3
     count=$((0))
     count=$((0+1))
     count=$((count+1))
     ((count++))
     """
-    __RETURN = f"""{h3('return value from functions')}
+    __RETURN = f"""{h2('return value from functions')}
     %bash
     function myfunc() {{
         local  __resultvar=$1
@@ -1052,10 +1016,10 @@ def bash(subject=None):
     /%bash
     """
     
-    __SET = f"""{h3('set')} {c('[-abefhkmnptuvxBCHP] [-o [OPTION]] [--] [arg ...]')}
+    __SET = f"""{h2('set')} {c('[-abefhkmnptuvxBCHP] [-o [OPTION]] [--] [arg ...]')}
     Using + rather than - causes these flags to be turned off.
     The current set of flags may be found in $-.
-    
+
     | -o <CMD>             | -? | description
     | --------             | -- | -----------
     | -o                   |    | bare "o" displays a list of all options and their values
@@ -1094,11 +1058,11 @@ def bash(subject=None):
     |                      |    |   The -x and -v options are turned off.
 
       """
-    __STRING = rf"""{h3('strings')}
+    __STRING = rf"""{h2('strings')}
     https://linux.die.net/man/1/zshexpn
     mystr=abcABC123ABCabc
 
-    {h4('Index and length')}
+    {h3('Index and length')}
       %bash
       # length:
       echo ${{#mystr}}                   # length: 15
@@ -1111,8 +1075,8 @@ def bash(subject=None):
       expr index "$mystr" 'A'          # 4
       expr index "$mystr" '1c'         # 3 ("c" matches before "1")
       /%bash
-    
-    {h4('Substring')}
+
+    {h3('Substring')}
       %bash
       # 0-based index
       echo -e -n ${{mystr:4}}                  # BC123ABCabc
@@ -1128,7 +1092,7 @@ def bash(subject=None):
       expr match "$mystr" '\([a-z]*[A-Z]\)'    # abcA
       expr match "$mystr" '\(\{{4\}}\)'          # abcA
       echo "$foo" | tr -d ' \n'                # removes both whitespace and newline
-      
+
       # to lowercase (^ for upper)
       var="AmazinG GracE"
       echo "${{var,}}"           # amazinG GracE
@@ -1137,14 +1101,14 @@ def bash(subject=None):
       echo "${{var,,[AAEIUO]}}"  # amazinG Grace
       /%bash
 
-    {h4('Manipulation')}
+    {h3('Manipulation')}
       %bash
       # Delete from end
       ${{string%substring}}                       # Deletes *shortest* match of $substring from *end* of $string.
         echo "${{SHELL%/*}}"                      # /usr/bin
-        
+
       ${{string%%substring}}                      # Deletes *longest* match of $substring from *end* of $string.
-      
+
       # Delete from start
       ${{string#substring}}                       # Deletes *shortest* match of $substring from *start* of $string.
 
@@ -1152,8 +1116,8 @@ def bash(subject=None):
         echo "${{SHELL##*/}}"                     # zsh
         # gets value of --difftool=val and --difftool val:
         argstr="$*"; difftool="${{argstr##*difftool[= ]}}"
-        
-      
+
+
       # Replacement
       ${{string/substring/replacement}}    # Replace *first* match of $substring with $replacement.
 
@@ -1164,30 +1128,30 @@ def bash(subject=None):
       ${{string//substring/replacement}}   # Replace *all* matches of $substring with $replacement.
       /%bash
 
-    {h4('Contacenating')}
+    {h3('Contacenating')}
     %bash
     mystr+="u"
     /%bash
     """
-    __TYPE = f"""{h3('type')} [-afptP] name [name ...]
+    __TYPE = f"""{h2('type')} [-afptP] name [name ...]
     Display information about command type.
-    
+
     no flag       {c("print type and content of would be used.")}
-                  {c("  type -f cd → cd is a function; cd () {{...}}")} 
+                  {c("  type -f cd → cd is a function; cd () {{...}}")}
     -t            {c("(only bash?) output alias, keyword, function, builtin, file, or nothing (1)")}
     -a            {c("display all locations, including content.")}
-                  {c("  type -f cd → cd is a function; cd () {{...}}; cd is a shell builtin")}  
+                  {c("  type -f cd → cd is a function; cd () {{...}}; cd is a shell builtin")}
     -f            {c("suppress custom function lookup")}
-                  {c("  type -f cd → cd is a shell builtin")}  
+                  {c("  type -f cd → cd is a shell builtin")}
                   {c("  type -f log → not found (1)")}
     -P            {c("(only bash?) search PATH, output disk file")}
                   {c("  type -P ls → /bin/ls (even if overridden or aliased)")}
     -p            {c("output disk file, restricted to -t → 'function'")}
     -w            {c("(only zsh?) print command type. type -w syspy -> 'syspy: alias'")}
-    
+
     see {bg('declare')}
     """
-    __VARIABLES = __VARS = f"""{h3('Variables')}
+    __VARIABLES = __VARS = f"""{h2('Variables')}
     %bash 2
     ${{var:?}}          # fail if the variable is unset (or empty)
     : "${{var:=5}}"     # initialize it to a default value (5) if uninitialized
@@ -1197,8 +1161,8 @@ def bash(subject=None):
                         #   also assign "word" to var
     ${{var?error}}        # if var is defined, use var; otherwise print "error" and exit
     """
-    __QUOTES = f"""{h3('Quotes and var expansion')}
-  {h4('simple')}
+    __QUOTES = f"""{h2('Quotes and var expansion')}
+  {h3('simple')}
     %bash 2
     $ VAR='hi "everyone"'
     $ echo $VAR
@@ -1220,7 +1184,7 @@ def bash(subject=None):
     $ echo 'VAR'
     {i('VAR')}
 
-  {h4('advanced')}
+  {h3('advanced')}
     %bash 2
     # '$(...)' captures the output
     $ VAR="command: $(echo hi)"
@@ -1252,7 +1216,7 @@ def bash(subject=None):
     {i('command: "$(echo hi)"')}
     """
     
-    __WHILE = f"""{h3('while')}
+    __WHILE = f"""{h2('while')}
     %bash
     x=1
     while [[ ${{x}} -le 5 ]]; do
@@ -1261,7 +1225,7 @@ def bash(subject=None):
     done
     /%bash
     """
-    __PIPE = __FILEDESCRIPTOR = __BG = __FG = __REDIRECTION = __JOB = __HEREDOC = f"""{h2('Pipe, Processes, File Descriptors, Background, Foreground, Redirection, >, >>, <, <<, <<<')}
+    __PIPE = __FILEDESCRIPTOR = __BG = __FG = __REDIRECTION = __JOB = __HEREDOC = f"""{h1('Pipe, Processes, File Descriptors, Background, Foreground, Redirection, >, >>, <, <<, <<<')}
     {c('https://stackoverflow.com/questions/35116699/piping-not-working-with-echo-command')}
     {c('http://tiswww.case.edu/php/chet/bash/bashref.html#Job-Control')}
     %bash
@@ -1269,18 +1233,18 @@ def bash(subject=None):
     CMD 2>&1
 
     echo "echo lol" | $SHELL  # lol
-    
+
     echo "$NAUTILUS_SCRIPT_SELECTED_FILE_PATHS" 2>bad.log
     /%bash
 
-    {h3('?')}
+    {h2('?')}
       %bash
       # status of last command
       wait $pid
       echo Job 1 exited with status $?
       /%bash
-    
-    {h3('!')}
+
+    {h2('!')}
       %bash
       # process id of last command
       sleep 20 &
@@ -1289,15 +1253,15 @@ def bash(subject=None):
       wait $pid
       echo "$pid was terminated"
       /%bash
-    
-    {h3('&')}
+
+    {h2('&')}
       %bash
       # immediately displays '[1] 21415'
       # then after 3 seconds: '[1]  + 21415 done       sleep 3'
       sleep 3 &
       /%bash
-    
-    {h3('fg')}
+
+    {h2('fg')}
       %bash
       # immediately displays:
       # [1] 21415
@@ -1305,8 +1269,8 @@ def bash(subject=None):
       # and terminal is frozen for 3 seconds
       sleep 3 & fg
       /%bash
-    
-    {h3('bg, ctrl+z')}
+
+    {h2('bg, ctrl+z')}
       %bash
       # ctrl+z to send a foreground process to sleep background
       # process will be paused until next signal
@@ -1320,7 +1284,7 @@ def bash(subject=None):
       # [1]  + 22523 done       sleep 10
       /%bash
 
-    {h3('>, >>, <, <<, <<<')}    
+    {h2('>, >>, <, <<, <<<')}
       {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l60')}
       >       {c('output to file')}
       >>      {c('append to file')}
@@ -1330,32 +1294,32 @@ def bash(subject=None):
         [COMMAND] <<[-] 'DELIMITER'
           HERE-DOCUMENT
         DELIMITER
-        
+
         - COMMAND is file descriptor, defaults to stdin (0)
         - '-' after '<<' to remove leading <tab> chars
-        - Quote "EOF" to disable parameter expansion 
-        
+        - Quote "EOF" to disable parameter expansion
+
         %bash
         # Small program
         python3 <<EOF
         import sys
         print(sys.argv)
         EOF
-        
+
         # Assign multi-line string to a shell variable
         sql=$(cat <<EOF
         SELECT foo, bar FROM db
         WHERE foo='baz'
         EOF
         )
-        
+
         # Pass multi-line string to a file in Bash
         cat <<EOF > print.sh
         #!/bin/bash
         echo \\$PWD
         echo $PWD
         EOF
-        
+
         # Pass multi-line string to a pipe in Bash
         cat <<EOF | grep 'b' | tee b.txt
         foo
@@ -1370,17 +1334,17 @@ def bash(subject=None):
 
         # Send stdin from a pipe
         echo script.sh | sh /dev/stdin dest=/some/other/location
-        
+
         /%bash
-      
+
       <<<     {c('reverse pipe')}
         %bash
         # The following are the same:
         echo "hi" | cut -c 1
         cut -c 1 <<< "hi"
-        /%bash    
+        /%bash
     """
-    _BASENAME = _DIRNAME = _REALPATH = f"""{h2('basename / dirname / realpath')}
+    _BASENAME = _DIRNAME = _REALPATH = f"""{h1('basename / dirname / realpath')}
     %bash
     realpath nav.sh  # /home/gilad/Code/bashscripts/nav.sh
     basename /home/gilad/Code/bashscripts/nav.sh  # nav.sh
@@ -1388,35 +1352,35 @@ def bash(subject=None):
     dirname /home/gilad/Code/bashscripts/nav.sh  # /home/gilad/Code/bashscripts
     /%bash
     """
-    _CHMOD = _CHOWN = f"""{h2('chown / chmod')}
-    {h3('OPTION')} applies to either
-      -v        
+    _CHMOD = _CHOWN = f"""{h1('chown / chmod')}
+    {h2('OPTION')} applies to either
+      -v
       -c          {c('like verbose but show only changes')}
       -R
-  
-    {h3('chmod')} {c('[OPTION]... MODE[,MODE]... FILE...')}
+
+    {h2('chmod')} {c('[OPTION]... MODE[,MODE]... FILE...')}
       recursively: chmod 777 */*.py
-      {h4('MODE')}
+      {h3('MODE')}
         ugo   {c('user, group, other')}
         4     {c('read')}
         2     {c('write')}
         1     {c('execute')}
-  
+
         chmod 756 → [rwx][r-x][rw-]
                     user  grp  othr
-  
-    {h3('chown')} {c('[OPTION]... [OWNER][:GROUP] FILE...')}
+
+    {h2('chown')} {c('[OPTION]... [OWNER][:GROUP] FILE...')}
       chown gilad:gilad -R .git
       -h          {c('affect symbolic links instead of referenced file (default is affect the file)')}
       -H          {c('if arg is symlink to dir, traverse it')}
       -L          {c('when encountering a symlink to dir, traverse it (default is not to traverse)')}
     """
     
-    _COMPLETE = _COMPGEN = f"""{h2('complete')} [FLAGS] [OPTS] [name ...]
+    _COMPLETE = _COMPGEN = f"""{h1('complete')} [FLAGS] [OPTS] [name ...]
     {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
     {c('https://wiki.bash-hackers.org/syntax/shellvars?s[]=completion')}
 
-    {h3('Flags')}
+    {h2('Flags')}
       -a      {c('alias')}
       -b      {c('shell builtins')}
       -c      {c('all commands')}
@@ -1429,22 +1393,22 @@ def bash(subject=None):
       -s      {c('service')}
       -u      {c('userAlias names')}
       -v      {c('shell variables')}
-          
-    {h3('Options')}
+
+    {h2('Options')}
       {c('https://datacadamia.com/edition/complete#bash_-_complete_builtin_command_-_completion')}
       -A ⟨action⟩    {c('one of the following to generate a list of possible completions:')}
               {c('alias    arrayvar  binding   builtin  command    directory')}
               {c('enabled  disabled  job       keyword  running    variable')}
               {c('export   file      function  group    helptopic  hostname')}
-              {c('service  setopt    shopt     signal   stopped    user')} 
-      -G globpat 
-      -W wordlist 
+              {c('service  setopt    shopt     signal   stopped    user')}
+      -G globpat
+      -W wordlist
       -F function    {c('Should modify COMPREPLY, because completions will be retrieved from COMPREPLY')}
       -C command     {c('Output will be used for completions')}
-      -X filterpat 
-      -P prefix 
+      -X filterpat
+      -P prefix
       -S suffix
-      {h4('-o ⟨OPTION⟩')}
+      {h3('-o ⟨OPTION⟩')}
         -p    {c('print existing completion specifications in a reusable format')}
         -r    {c('remove a completion specification for each NAME, or, if no')}
               {c('  NAMEs are supplied, all completion specifications')}
@@ -1460,8 +1424,8 @@ def bash(subject=None):
         nosort
         nospace
         plusdirs    {c('attempt and add dir name completion after any matches')}
-    
-    {h3('Globals')}
+
+    {h2('Globals')}
       COMP_WORDS{c(': Numbered array (words in buffer)')}
       COMP_CWORD{c(': int (1-index of current word in COMP_WORDS)')}
       COMP_LINE{c(': str (the whole buffer)')}
@@ -1479,7 +1443,7 @@ def bash(subject=None):
       CUTBUFFER
       RBUFFER
       LBUFFER
-    
+
     {h3('compgen')} [option] [word]
       %bash
       # Ex. 1
@@ -1490,110 +1454,109 @@ def bash(subject=None):
         alias unalias'
       COMPREPLY=($(compgen -W "$possible_completions" -- "${{current}}"))
       /%bash
-    
+
     {h3('Examples')}
       %bash
       complete -o default -F __nvm nvm
-      
+
       complete -o filenames -C '_z --complete "$COMP_LINE"' ${{_Z_CMD:-z}}
-      
+
       complete -o default -C 'compgen -W "a b c d" -- "${{COMP_WORDS[COMP_CWORD]}}"' hfzf
-      
+
       complete -o default -C "compgen -W 'INPUT_1... INPUT_N OUTPATH'" ffmpeg.concat
-      
+
       complete -o bashdefault -o default -o nospace -F _drush_completion d dr drush drush5 drush6 drush7 drush8 drush.php
-      
+
       complete -o nosort -W 'a b c d' ffmpeg.slice.get
-      
+
       complete -o bashdefault -o default -o nospace -C "_bfind(){{ echo hi; }} ; _bfind" bfind
-      
+
       complete -o default -C 'completion.generate ⟨INPUT_PATH⟩ ⟨OUTPUT_PATH⟩ "⟨INCREASE_FACTOR: int⟩" [ffmpeg_args...]' ffmpeg.inc-rate
       /%bash
-    
-    {h3('See also')}
+
+    {h2('See also')}
       compdef / compctl / compadd
     """
-    _COMPDEF = _COMPCTL = _COMPADD = f"""{h2('compdef')}
-      {h4('#compdef name ... [ -{p|P} pattern ... [ -N name ... ] ]')} # at start of file
-      {h4('compdef [ -ane ] function name ... [ -{p|P} pattern ... [ -N name ...]]')}
+    _COMPDEF = _COMPCTL = _COMPADD = f"""{h1('compdef')}
+      {h3('#compdef name ... [ -{p|P} pattern ... [ -N name ... ] ]')} # at start of file
+      {h3('compdef [ -ane ] function name ... [ -{p|P} pattern ... [ -N name ...]]')}
       {c('https://zsh.sourceforge.io/Doc/Release/Completion-System.html')}
       {c('https://github.com/zsh-users/zsh-completions/blob/master/zsh-completions-howto.org')} <- very friendly markdown
-      
-      {h4('_describe')}
+
+      {h3('_describe')}
         %bash
         # One list
           local -a subcmds
           subcmds=('c:description for c command' 'd:description for d command')
           _describe 'command' subcmds
-          
+
         # Multiple lists separated by double hyphen
           local -a subcmds topics
           subcmds=('c:description for c command' 'd:description for d command')
           topics=('e:description for e help topic' 'f:description for f help topic')
           _describe 'command' subcmds -- topics
         /%bash
-      
-      {h4('_arguments')}
+
+      {h3('_arguments')}
         %bash
         _arguments '-s[sort output]' '--l[long output]' '-l[long output]'
         _arguments '-f[input file]:filename:_files'
         _arguments '-s[sort output]' '1:first arg:_net_interfaces' '::optional arg:_files' ':next arg:(a b c)'
         _arguments {{-q,--quiet}}"[Only display network IDs]"
-        
-        # More complex:
+        _arguments '1: :(possible_value_1 possible_value_2)'
+        _arguments '2: :((a\:bar b\:baz))'      # shows two lines: a    -- bar, b    -- baz
+
+        # With action:
         _arguments '-m[music file]:filename:->files' '-f[flags]:flag:->flags'
         case "$state" in
           files) ... ;;
           flags)  _values -s , 'flags' a b c d e ;;
         esac
         /%bash
-      
-      
-      {h4('Examples')}
+
+
+      {h3('Examples')}
         %bash
         # Single line
           compdef _git git.my-commits=git-log
-          compdef _git=git (?)
+          compdef cmd1=cmd2                     # apply completions of cmd2 to cmd1
           compdef _my_comp_fn my_fn
-        
+          compdef '_my_comp_fn arg1 arg2' my_fn
+
         # Simple Example
           _ffmpeg.slice.get(){{
             local -a subcmds=('c:description for c command' 'd:description for d command')
             _describe 'ffmpeg.slice.get' subcmds
           }}
           compdef _ffmpeg.slice.get ffmpeg.slice.get
-        
+
         # Reuse existing completion function
-          _my_comp_fn(){{
-            _docker
-          }}
+          _my_comp_fn(){{ _docker ; }}
           compdef _my_comp_fn my_fn
-        
+
         # One-liner
           _my_comp_fn(){{ _describe "command" "('bla:bla')" ; }} ; compdef _my_comp_fn my_fn
-        
+
         # One-liner: anonynous function
           compdef "_describe command \\"('--readlines:bla')\\"" docker.down_build_up
-        
-        
-        # Full Example
-          {linebreak + indent((os.getenv('MANPROJ') / Path('manuals/man/bash/compdef')).open().read(), '        ')}
+          compdef "compadd -x 'Message'; _describe command \\"('{{-e,--event}}:EVENT')\\"" inotifylog inotifytee
+
         /%bash
-      
-    {h3('compadd')} [option...] [word...]
+
+    {h2('compadd')} [option...] [word...]
       {c('Inside a compdef function or #compdef whatever file')}
       compadd -X ⟨explanation⟩ ⟨word⟩
       compadd -x ⟨message⟩        {c('Prints regardless of completions')}
       compadd -a ⟨array⟩          {c('words are names of arrays. matches are values. may contain subscripts, eg `foo[2,-1]`')}
       compadd -k ⟨assoc_array⟩    {c('words are names of assoc arrays. matches are keys. may contain subscripts, eg `foo[(R)*bar*]`')}
-      
+
       %bash
       # Example 1
         compadd foo bar
         compadd -X 'Some completions' foo bar blah
         compadd -x 'Usage'
         compadd -a wordsarray
-      
+
       # Example 2
         compadd -- $(COMP_CWORD=$((CURRENT-1)) \\
                    COMP_LINE=$BUFFER \\
@@ -1601,8 +1564,8 @@ def bash(subject=None):
                    npm completion -- "${{words[@]}}" \\
                    2>/dev/null)
       /%bash
-    
-    {h3('compctl')}
+
+    {h2('compctl')}
       %bash
       local cword line point words si
       read -Ac words
@@ -1618,13 +1581,13 @@ def bash(subject=None):
                          2>/dev/null)) || return $?
       IFS="$si"
       /%bash
-    
-    {h3('See also')}
+
+    {h2('See also')}
       complete, compgen
     """
     
-    _CP = f"""{h2('cp')}
-    {h4('Examples')}
+    _CP = f"""{h1('cp')}
+    {h3('Examples')}
     Given:
     {i('''
     ./
@@ -1637,18 +1600,18 @@ def bash(subject=None):
     ''')}
     %bash 1
     cpx -r */.idea/* /__test/
-   
+
     Creates:
     {i('''
     /__test/
             foo.txt
             bar.txt
     ''')}
-  
+
     But:
     %bash 1
     cpx -r --parents */.idea/* /__test/
-    
+
     Creates:
     {i('''
     /__test/
@@ -1660,17 +1623,17 @@ def bash(subject=None):
                     bar.txt
     ''')}
     """
-
-    _CUT = f"""{h2('cut')}
+    
+    _CUT = f"""{h1('cut')}
     -b, -c and -f are mutually exclusive
-  
+
     -b                {c('bytes')}
     -c                {c('characters')}
     -f                {c('fields')}
     -d                {c('delimiter')}
     -z                {c('zero delimited')}
 
-    {h4('examples')}
+    {h3('examples')}
       cut -c 2          {c('[1]')}
       cut -c 1-         {c('[0:]')}
       cut -c -1         {c('[:1]')}
@@ -1681,10 +1644,10 @@ def bash(subject=None):
       cut -d$'{literal_linebreak}' -f4   {c(f'x.split("{literal_linebreak}")[4]')}
     """
     
-    _DIFF = f"""{h2('diff')}
+    _DIFF = f"""{h1('diff')}
     {c('diff [OPTION]... FILES')}
 
-    {h3('Behavior')}
+    {h2('Behavior')}
       -r, --recursive        {c('for subdirectories')}
       -d, --minimal          {c('Try harder for smaller changes')}
           --suppress-common-lines
@@ -1694,7 +1657,7 @@ def bash(subject=None):
           --speed-large-files
                   {c('assume large files and many scattered small changes')}
 
-    {h3('Ignoring')}
+    {h2('Ignoring')}
       -w, --ignore-all-space
       -i, --ignore-case         {c('for content')}
       -E, --ignore-tab-expansion
@@ -1706,7 +1669,7 @@ def bash(subject=None):
       -x, --exclude={i('PATTERN')}     {c('Exclude files matching PATTERN')}
       -X, --exclude-from={i('FILE')}
 
-    {h3('Output')}
+    {h2('Output')}
       -c, -C, --context[={i('NUM')}]  {c('lines of copied context')}
       -u, -u, --unified[={i('NUM')}]  {c('lines of unified context')}
       -q, --brief
@@ -1714,11 +1677,11 @@ def bash(subject=None):
       -y, --side-by-side
       -l, --paginate           {c('splits to pages, i.e. "page 1" etc')}
       -W, --width={i('NUM')}          {c('default 130')}
-    
-    {h3('Examples')}
+
+    {h2('Examples')}
       %bash
       diff config_dev.json ../reconciliation_engine/config.json -wBy --suppress-common-lines
-      
+
       # Comparing content of binary files
       diff <(xxd profile-icecream.JPG) <(xxd profile-icecream2.JPG)
 
@@ -1727,8 +1690,8 @@ def bash(subject=None):
       /%bash
       """
     
-    _DU = f"""{h2('du')} [options] [path]
-    {h3('options')}
+    _DU = f"""{h1('du')} [options] [path]
+    {h2('options')}
       -a                  {c('all files, not just dirs')}
       -c                  {c('grand total')}
       -d, --max-depth=DEPTH      {c(f'for each files and dirs in {i("DEPTH")}')}
@@ -1739,40 +1702,41 @@ def bash(subject=None):
       -x, --exclude-from=FILE    {c('exclude files that match any pattern in FILE')}
       -S, --separate-dirs        {c("don't include size of subdirectories for parent dirs")}
 
-    {h3('examples')}
+    {h2('examples')}
       du -a | sort -n
       du -ah | sort -h
       du -ah -d 1 | sort -h      {c('Show only of this level')}
       du -sh --exclude="*env*" video_motion_detection
     """
     
-    _ECHO = f"""{h2('echo')}
+    _ECHO = f"""{h1('echo')}
     -n     do not output the trailing newline
     -e     enable interpretation of backslash escapes
     -E     disable interpretation of backslash escapes
     """
     _FC = f"""{h1('fc')}
-    {h2('fc [-e EDITOR] [-lnr] [first] [last]')}
+    {h1('fc [-e EDITOR] [-lnr] [first] [last]')}
       -e ⟨EDITOR⟩	{c('Defaults FCEDIT > EDITOR > vi')}
       -l 	        {c('list instead of editing')}
       -n	        {c('omit line numbers when listing')}
       -r	        {c('reverse order (newest first)')}
-    
-    {h2('fc -s [PATTERN=REPLACE] [COMMAND]')}
-      Execute COMMAND after replacing PATTERN with REPLACE
-    
-    {h2('Examples')}
-      fc -ln -1     {c('Last command from history')}
-      fc -s cc      {c('Run last command beginning with cc')}
-    """
-    _FIND = f"""{h2('find')}
 
-    {h3('examples')}
+    {h1('fc -s [PATTERN=REPLACE] [COMMAND]')}
+      Execute COMMAND after replacing PATTERN with REPLACE
+
+    {h1('Examples')}
+      fc -l -1      {c('Last command from history')}
+      fc -s cc      {c('Doesnt work: Run last command beginning with cc')}
+      
+    """
+    _FIND = f"""{h1('find')}
+
+    {h2('examples')}
     find . -path '*.py' -and -not -path '*playground*'
     find . -path '*.py' ! -path '*playground*'
     find -E . -type f -regex ".*b.*" -exec {i('rm')} "{{}}" ";"
     find . -maxdepth 1 -type d      {c('list dirs in current directory')}
-    
+
     -E          {c('extended regex. takes effect only with "-[i]regex" (and "-[i]wholename"?)')}
     -X          {c('safe with xargs')}
     -depth      {c('depth-first')}
@@ -1780,7 +1744,7 @@ def bash(subject=None):
     -empty
     -exec[dir] {i('UTIL [argument ...]')} "{{}}" "[;|+]"      {c(f'{{}} is replaced by file path (containing dir path with {i("execdir")}). ";" → for each, "+" → for as many (?)')}
 
-    {h3('times')} {c('-a accessed, -c created, -m modified')}
+    {h2('times')} {c('-a accessed, -c created, -m modified')}
       -[a|c|m]time {i('n[smhdw]')}     {c('-atime -1h30m')}
       -[a|c|m]min {i('n')}             {c('minutes')}
       -[a|c|m]newer {i('file')}
@@ -1801,7 +1765,7 @@ def bash(subject=None):
         s       {c('socket')}
     -user {i('name')}
 
-    {h3('quirks')}
+    {h2('quirks')}
       given: ./b.txt
                     b   b.txt   b.t*t   *b.txt  .*b.txt  *b*t
       -name         F   T       T       T       F        T
@@ -1811,44 +1775,44 @@ def bash(subject=None):
 
         """
     
-    _GREP = f"""{h2('grep')}
-    {h4('grep')} [OPTION...] PATTERN [FILE...]
-    {h4('grep')} [OPTION...] -e PATTERN... [FILE...]
-    {h4('grep')} [OPTION...] -f PATTERN_FILE... [FILE...]
-    
-    {h3('options')}
-      {h4('pattern syntax')}
+    _GREP = f"""{h1('grep')}
+    {h3('grep')} [OPTION...] PATTERN [FILE...]
+    {h3('grep')} [OPTION...] -e PATTERN... [FILE...]
+    {h3('grep')} [OPTION...] -f PATTERN_FILE... [FILE...]
+
+    {h2('options')}
+      {h3('pattern syntax')}
         -E, --extended-regexp    {c('aka ERE')}
         -F, --fixed-strings      {c('take pattern literally, dont interpret regex chars')}
         -P, --perl-regexp        {c('aka PCRE. only linux?')}
-      
-      {h4('match control')}
+
+      {h3('match control')}
         -e PATTERN [-e PATTERN...]    {c("to specify multiple patterns. alias: '--regexp=PATTERN'")}
-        -i, --ignore-case 
+        -i, --ignore-case
         -v, --invert-match
         -w, --word-regexp             {c("show only lines containing matches that form whole words. '-x' disables")}
         -x, --line-regexp             {c("show only lines that match fully")}
-      
-      {h4('context')}
+
+      {h3('context')}
         -C NUM, -NUM, --context=NUM
         -A NUM, --after-context=NUM
         -B NUM, --before-context=NUM
-        
-      {h4('output')}
+
+      {h3('output')}
         -c, --count                   {c('how many lines had a match per file')}
         -L, --files-without-match     {c('print paths of files without matches')}
         -l, --files-with-matches      {c('print paths of files with matches')}
         -o, --only-matching           {c('show only the matched parts')}
         -q, --quiet, --silent         {c('exit code works')}
         -s, --no-messages             {c('suppress error messages about nonexistent / unreadable files')}
-      
-      {h4('line prefix')}
+
+      {h3('line prefix')}
         -H, --with-filename
         -n, --line-number
         -T, --initial-tab             {c('pad line content with tab stop to align nicely')}
         -Z, --null                    {c('zero byte instead of normal character following file name')}
-        
-      {h4('file filter')}
+
+      {h3('file filter')}
         -a, --text                    {c('process bin files as if text')}
         --exclude=GLOB
         --exclude-dir=GLOB
@@ -1858,7 +1822,7 @@ def bash(subject=None):
         -r, --recursive
         -z, --null-data               {c('Treat input and output data as zero-byte terminated sequences of lines (instead of newline)')}
 
-    {h3('Special Characters')}
+    {h2('Special Characters')}
       [[:alnum:]]       {c("Alphanumeric characters.")}
       [[:alpha:]]       {c("Alphabetic characters")}
       [[:blank:]]       {c("Blank characters: space and tab.")}
@@ -1866,8 +1830,8 @@ def bash(subject=None):
       [[:lower:]]       {c("Lower-case letters: ‘a b c d e f g h i j k l m n o p q r s t u v w x y z’.")}
       [[:space:]]       {c("Space characters: tab, newline, vertical tab, form feed, carriage return, and space.")}
       [[:upper:]]       {c("Upper-case letters: ‘A B C D E F G H I J K L M N O P Q R S T U V W X Y Z’.")}
-      
-    {h3('Examples')}
+
+    {h2('Examples')}
       grep '[:upper:]' filename
       grep -E '[[:upper:]]' filename
       grep -r -w --color 'HereB' .    {c('-recursive, -word')}
@@ -1875,15 +1839,15 @@ def bash(subject=None):
       grep --exclude-dir "*home/gilad/Downloads/ANGRYsearch*" --exclude "file.zip" -riPa "angrysearch"
       grep -nIrEH -C 1 --exclude="*.log" --exclude-dir="src" "[^def ]loadDataFromS3" .
         """
-
-    _HEAD = _TAIL = f"""{h2('head, tail')} [OPTION]... [FILE]...
+    
+    _HEAD = _TAIL = f"""{h1('head, tail')} [OPTION]... [FILE]...
     -z      {c('zero terminated')}
     head -n, --lines=NUM      {c('[:NUM]    until NUM')}
                      -NUM     {c('[:-NUM]   until len-NUM')}
     tail -n, --lines=NUM      {c('[-NUM:]   from len-NUM')}
                      +NUM     {c('[NUM:]    from NUM')}
-    
-    {h3('examples')}
+
+    {h2('examples')}
       %bash
       # Last 20 lines:
       tail -n 20 FILE
@@ -1891,7 +1855,7 @@ def bash(subject=None):
       tail -20 FILE
       # OR:
       tail -n -20 FILE
-      
+
       # First 20 lines:
       head -n 20 FILE
       # OR:
@@ -1900,35 +1864,35 @@ def bash(subject=None):
       head -n +20 FILE
       /%bash
     """
-
-    _LESS = f"""{h2('less')}
-    {h3('args')}
+    
+    _LESS = f"""{h1('less')}
+    {h2('args')}
       -N                      {c('Show line numbers')}
       -p, --pattern PATTERN   {c('Start at PATTERN')}
       -s, --squeeze-blank-lines
       -S, --chop-long-lines   {c('default is to wrap')}
       -W, --HILITE-UNREAD
 
-    {h3('navigation')}
+    {h2('navigation')}
       f         scroll down 1 window
       b         scroll up 1 window
       d         scroll down 0.5 screen
       u         scroll up 0.5 screen
       g
 
-    {h3('search')}
+    {h2('search')}
       [/ ? &]{i('pattern')} forward, backward, display only match
         !                   not
         ^K                  highlight match but dont move to it
         ^R                  not regex (simply text)
 
-    {h3('misc')}
+    {h2('misc')}
       ! {i('shell-command')}
       s {i('filename')}     saves to file. works only if input is a pipe
     """
-
-    _MAN = f"""{h2('man')}
-  {h3('Usage')}
+    
+    _MAN = f"""{h1('man')}
+  {h2('Usage')}
     man [man options] [[section] page ...] ...
     man -k|--apropos [apropos options] regexp ...
     man -K|--global-apropos [man options] [section] term ...
@@ -1936,48 +1900,48 @@ def bash(subject=None):
     man -l|--local-file [man options] file ...
     man -w|--where|--path|--location [man options] page ...
     man -W|--where-cat|--location-cat [man options] page ...
-  
-  {h3('Finding manuals')}
+
+  {h2('Finding manuals')}
     --regex or --wildcard     {c('Show all pages matching PAGE arg')}
-  {h3('Controlling formatted output')}
+  {h2('Controlling formatted output')}
     -P pager, --pager=pager
     """
     
-    _MOUNT = _UMOUNT = f"""{h2('mount, umount')}
-    {h3('mount')}
+    _MOUNT = _UMOUNT = f"""{h1('mount, umount')}
+    {h2('mount')}
       mount [-fnrsvw] [-t fstype] [-o options] <device> <dir>
       mount [-fnrsvw] [-o options] <device>|<dir>
 
-      {h4('flags')}
+      {h3('flags')}
         --fake
         --move
         -o, --options <options>
         --options-mode <ignore | append | prepend | replace>    {c('default prepend')}
         -v, --verbose
 
-      {h4('-o options')}
+      {h3('-o options')}
         ro              {c('readonly')}
         rw              {c('read-write')}
         remount         {c('an already-mounted filesystem')}
-        
-      {h4('Examples')}
+
+      {h3('Examples')}
         mount /dev/foo /dir                 {c('mount device foo at /dir')}
         mount <device>|<dir> -o <options>   {c('append to list of existing options. last opt wins')}
 
         mount --move <olddir> <newdir>
-      
 
-      {h4('Mounting an external USB:')}
+
+      {h3('Mounting an external USB:')}
         sudo mkdir /media/external2tb
         sudo mount /dev/sdb1 /media/external2tb
-      
-      {h4('Remounting with read-write permissions:')}
+
+      {h3('Remounting with read-write permissions:')}
         sudo mount -o remount,rw /dev/sda1
 
-      {h4('Backing up partition list:')}
+      {h3('Backing up partition list:')}
         sudo sfdisk -d /dev/nvme0n1 > partition_bak.dmp
-  
-      {h4('Listing devices')}
+
+      {h3('Listing devices')}
         lsblk [--fs]    {c('good')}
         fdisk -l        {c('also good')}
             {c('prints relevant info nicely:')}
@@ -1985,12 +1949,12 @@ def bash(subject=None):
         findmnt [-A, --all] or [-l, --list]
         blkid -p <device>
 
-    {h3('umount')} [-dflnrv] <directory>|<device>...
+    {h2('umount')} [-dflnrv] <directory>|<device>...
       --fake        {c('dry run')}
       -v, --verbose
     """
     
-    _READ = rf"""{h2('/bin/bash -c "read"')}
+    _READ = rf"""{h1('/bin/bash -c "read"')}
     http://linuxcommand.org/lc3_man_pages/readh.html
     read [-ers] [-a array] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]
     -a array	    {c(f'assign words read to {i("ARRAY")} indices (0-indexed)')}
@@ -2004,20 +1968,20 @@ def bash(subject=None):
     -s              {c(f'do not echo input coming from a terminal')}
     -t TIMEOUT      {c(f'fail if a line is not read within TIMEOUT seconds. "0" means no timeout.')}
 
-    {h4('Examples')}
+    {h3('Examples')}
       %bash
       # Example 1
       foo=$(/bin/bash -c 'read bar; echo $bar');
-      
+
       # Example 2 (bad)
       find . -type f -regex ".*/.*\.pdf" | while read file; do
         if pdftotext -layout "$file" - | grep -on "foo"; then
             echo "$file"
         fi
-      done 
+      done
 
       # Example 3 (correct)
-      while read -r gid gdescription; do; :; done < <(ghg-get-line sxhkd.cfg)      
+      while read -r gid gdescription; do; :; done < <(ghg-get-line sxhkd.cfg)
 
       # Example 4
       lines=$'first line\nsecond line\nthird line'
@@ -2028,7 +1992,7 @@ def bash(subject=None):
 
       # Example 6
       while read -r line; do ... done < <(echo -n "$words")
-      
+
       # Example 7
       IFS=$'\n' ${{#( $(while read -r _drive; do echo "$_drive"; done <<< "$(sudo fdisk -l | grep -E '^/dev')") )}}
 
@@ -2042,7 +2006,7 @@ def bash(subject=None):
       IFS=, read -ra fields <<< "$input,"
       declare -p fields
       # declare -a fields='([0]="a" [1]="b" [2]="")'\
-      
+
       # Example 10
       # "EOF" -> no param expansion; -d '' -> read multiple lines (ignore newlines)
       IFS='' read -r -d '' String <<"EOF"
@@ -2055,23 +2019,23 @@ def bash(subject=None):
       EOF
       /%bash
     """
-
-    _PRINTF = rf"""{h2('printf')}
-    {h3('Escape Sequences')}
+    
+    _PRINTF = rf"""{h1('printf')}
+    {h2('Escape Sequences')}
       $ printf "hello\x1b[1mworld\x1b[0m"
       hello{b('world')}
-      
+
       $ printf %s "hello\x1b[1mworld\x1b[0m"
       hello\x1b[1mworld\x1b[0m%
-  
+
       $ printf %b "hello\x1b[1mworld\x1b[0m"
       hello{b('world')}
-      
+
       $ printf %q "hello\x1b[1mworld\x1b[0m"
       hello\\x1b\[1mworld\\x1b\[0m%
 
 
-    {h3('Whitespace')}
+    {h2('Whitespace')}
       $ printf '\n'
       $ printf $'\n'
       $ printf %s $'\n'
@@ -2088,15 +2052,15 @@ def bash(subject=None):
       $ printf %q $'\n'
       $'\n'
     """
-
-    _PS = _PKILL = _PGREP = _KILL = _SIGNAL = f"""{h2('Processes / Signals')}
-    {h3('ps')}
+    
+    _PS = _PKILL = _PGREP = _KILL = _SIGNAL = f"""{h1('Processes / Signals')}
+    {h2('ps')}
       -A      All processes
       -f      Full format
 
-    {h3('pgrep')} [options] ⟨PATTERN⟩
+    {h2('pgrep')} [options] ⟨PATTERN⟩
       PATTERN: Extended Regular Expression
-      
+
       -f, --full         {c("Match full command line, not only proc name")}
           {c("note: looks like re.search() behavior, i.e. '.*' isn't needed")}
       -i, --ignore-case
@@ -2106,25 +2070,25 @@ def bash(subject=None):
       -n, --newest       {c('Select only most recently started')}
       -o, --oldest       {c('Select only least recently started')}
 
-    {h3('kill')} [options] ⟨PID...⟩
+    {h2('kill')} [options] ⟨PID...⟩
       Without specifying signal, sends SIGTERM.
-      
-      {h4('options')}
+
+      {h3('options')}
         -⟨SIGNAL⟩ / -s ⟨SIGNAL⟩ / --signal ⟨SIGNAL⟩
         -l, --list [SIGNAL]
         -L, --table                {c('List signals in table')}
-      
-      {h4('Examples')}
+
+      {h3('Examples')}
         kill -9 -1                 {c('Kill all processes you can kill.')}
         kill -l 11                 {c('Translate number 11 into a signal name.')}
         kill -L                    {c('List the available signal choices in a nice table.')}
         kill 123 543 2341 3453     {c('Send the default signal, SIGTERM, to all those processes.')}
-      
-      {h4('See also')}
+
+      {h3('See also')}
         killpg(3)                  {c('Sends a signal to all of the members of a specified process group.')}
         mm filedescriptor
-  
-    {h3('Signals')}
+
+    {h2('Signals')}
       {c('man 7 signal')}
       {c('Useful: HUP, INT, KILL, STOP, CONT, and 0')}
        1 HUP      2 INT      3 QUIT     4 ILL      5 TRAP     6 ABRT     7 BUS
@@ -2132,8 +2096,8 @@ def bash(subject=None):
       15 TERM    16 STKFLT  17 CHLD    18 CONT    19 STOP    20 TSTP    21 TTIN
       22 TTOU    23 URG     24 XCPU    25 XFSZ    26 VTALRM  27 PROF    28 WINCH
       29 POLL    30 PWR     31 SYS
-      
-    {h3('killall')} [options] ⟨NAME⟩
+
+    {h2('killall')} [options] ⟨NAME⟩
       -e, --exact
       -g, --process-group     {c('Kill the process group to which the process belong')}
       -i, --interactive
@@ -2142,35 +2106,35 @@ def bash(subject=None):
       -I, --ignore-case
     """
     
-    _SED = f"""{h2('sed')}
+    _SED = f"""{h1('sed')}
   {c('https://github.com/adrianscheff/useful-sed')}
-  {h3('Options')}
+  {h2('Options')}
     --silent, --quiet, -n        {c('dont print pattern space (only print matched lines)')}
     --regexp-extended, -r, -E    {c('use extended regular expressions')}
     --in-place, -i
-  
-  {h3('Replace match')}
+
+  {h2('Replace match')}
     %bash 1
     sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/g' ~/.zshrc
 
-  {h3('Append after match')}
+  {h2('Append after match')}
     %bash 1
     sed -i '/# HIST_STAMPS="mm\/dd\/yyyy"/ a HISTSIZE=1000000' ~/.zshrc
 
-  {h3('Print specific line')}
+  {h2('Print specific line')}
     %bash 1
     sed -n 10p /path/to/file
 
-  {h3('Print line num of match')}
+  {h2('Print line num of match')}
     %bash 1
     cat -n /path/to/file | sed -n '/MATCH/p' | cut -d ' ' -f 1 | head -1 | xargs | cut -d ' ' -f 1
 
-  {h3('match.group(1)')}
+  {h2('match.group(1)')}
     %bash 2
     # syspy=/usr/local/bin/python3.9 -> /usr/local/bin/python3.9
     alias | grep "syspy" | sed -n "s/syspy=\(.*\)/\1/p"
-  
-  {h3('Delete line from file')}
+
+  {h2('Delete line from file')}
     %bash
     sed 'Nd' file                         # sed '1d' file | sed '1,3d' file
     sed '$d' file                         # last line
@@ -2182,14 +2146,14 @@ def bash(subject=None):
     sed '${{/ubuntu/d;}}'                   # last line only if it contains the pattern
     sed -i <file> -re '<start>,<end>d'    # Remove range of lines
     /%bash
-    
-  {h3('Custom delimiter')}
+
+  {h2('Custom delimiter')}
     %bash
     sed -n '\@bla bla@p' ~/.zsh_history
     sed 's@search@replace@g' ~/.zsh_history
     """
     
-    _SYMLINK = _LN = _LINK = f"""{h2('ln - make links between files')}
+    _SYMLINK = _LN = _LINK = f"""{h1('ln - make links between files')}
   {c('Hard links by default')}
 
   {c(f'create link to {i("TARGET")} with the name {i("LINK_NAME")}:')}
@@ -2205,14 +2169,14 @@ def bash(subject=None):
   -i, --interactive   {c('prompt whether to remove destinations')}
   find . -type l ! -exec test -e {{}} \\; -print    {c('print empty symlinks')}
     """
-
-    _SCP = f"""{h2('scp')} [options...] <SOURCE> ... <TARGET>
-    SOURCE and TARGET may be: 
+    
+    _SCP = f"""{h1('scp')} [options...] <SOURCE> ... <TARGET>
+    SOURCE and TARGET may be:
      - a local pathname (rel or abs)
      - a remote host with optional path (e.g [user@]host:[path])
      - URI e.g. scp://[user@]host[:port][/path]
-    
-    {h3('options')}
+
+    {h2('options')}
       -i <identity_file>
       -P <port>
       -o <ssh_option>
@@ -2220,17 +2184,17 @@ def bash(subject=None):
       -p      {c('preserve attributes of original file (times, modes)')}
       -r      {c('recursively copy dirs. follows symlinks')}
       -v      {c('verbose')}
-    
-    {h3('scp examples')}
+
+    {h2('scp examples')}
       %bash
       scp -i /Users/gilad/Code/rapyd/CD-COMMON.pem ./test29.json5 ubuntu@172.20.10.121:/home/rapusr/reconciliation-testing-tools/scenarios
 
       scp -6 root@\[fd00:10:110:112:113:ef::48\]:/root/.kube/config .
       /%bash
-  
+
     """
     
-    _SORT = f"""{h2('sort')}
+    _SORT = f"""{h1('sort')}
   sort -u   {c('unique')}
   sort -s   {c('stable. keeps orig order of same-key values')}
   sort -n   {c('numeric sort (good with du -ak | sort -n )')}
@@ -2239,7 +2203,7 @@ def bash(subject=None):
   sort -r   {c('reverse')}
   sort -V   {c('version sort.')}
 
-  {h3('ignoring')}
+  {h2('ignoring')}
     sort -b   {c('--ignore-leading-blanks')}
     sort -f   {c('--ignore-case')}
     sort -i   {c('--ignore-nonprinting')}
@@ -2247,21 +2211,21 @@ def bash(subject=None):
 
   history | grep -o "idea.*" | sort -u
       """
-
-    _SPLIT = f"""{h2('split')}
-  {h4('Examples')}
+    
+    _SPLIT = f"""{h1('split')}
+  {h3('Examples')}
   %bash
   # outputs 'my_file_00', 'my_file_01', ...
   split -d --bytes 102300KB my_file.pdf my_file_
- 
+
   # join back:
   cat my_file_* > joined.pdf
   /%bash
     """
-
-    _STAT = f"""{h2('/bin/stat')} [OPTION...] FILE...
+    
+    _STAT = f"""{h1('/bin/stat')} [OPTION...] FILE...
   stat -c, --format=FORMAT
-  {h4('FORMAT')}
+  {h3('FORMAT')}
     %A    {c('Access rights in human format, i.e. "-rwxrwxrwx"')}
     %s    {c('Size in bytes, i.e. 22099')}
 
@@ -2276,9 +2240,9 @@ def bash(subject=None):
 
   stat -c "Group: %G (%g) | User: %U (%u) | Perms: %A (%a)" /root
     """
-
-    _SUDO = _SU = f"""{h2('sudo, su')}
-    {h3('sudo')}
+    
+    _SUDO = _SU = f"""{h1('sudo, su')}
+    {h2('sudo')}
       -u, --user=USER     {c('instead of usual default "root"')}
       -S, --stdin         {c('prompt to stderr, read pass from stdin')}
                             {c('echo mypass | sudo -S, or sudo -S <<< mypass')}
@@ -2289,8 +2253,8 @@ def bash(subject=None):
       -i, --login         {c('read e.g .profile, .bash_profile or .login')}
       -P, --preserve-groups
       -s, --shell         {c('honor SHELL env var. Incompat with --login')}
-    
-    {h3('su')}
+
+    {h2('su')}
       -c, --command=CMD
       -g, --group=GROUP
       -, -i, --login      {c('Clear all env vars except TERM and --whitelist-environment')}
@@ -2298,47 +2262,47 @@ def bash(subject=None):
       -m, -p, --preserve-environment
       -w, --whitelist-environment=FOO,BAR   {c('Ignores HOME, SHELL, USER, LOGNAME, PATH')}
     """
-
-    _SYNTAX = rf"""{h2('Syntax')}
+    
+    _SYNTAX = rf"""{h1('Syntax')}
   {__ARGUMENTS}
-  
+
   {__RETURN}
-  
+
   {__ARRAY}
-  
+
   {__CASE}
-  
+
   {__TEST}
-  
+
   {__FOR}
-  
+
   {__WHILE}
-  
+
   {__NUMBER}
-  
+
   {__STRING}
-  
+
   {__QUOTES}
-  
+
   {__EXEC}
-  
+
   {__SET}
-  
+
   {__TYPE}
-  
+
   {__VARIABLES}
-      
+
   {__REGEX}
-  
+
   {__FILEDESCRIPTOR}
     """
     
-    _TR = rf"""{h2('tr')} {c('[OPTION]... SET1 [SET2]')}
+    _TR = rf"""{h1('tr')} {c('[OPTION]... SET1 [SET2]')}
   -c, -C, --complement      {c('use the complement of SET1')}
   -d, --delete              {c('delete characters in SET1, do not translate')}
   -t, --truncate-set1       {c('first truncate SET1 to length of SET2')}
 
-  {h3('SET')}
+  {h2('SET')}
     \NNN            {c('character with octal value NNN (1 to 3 octal digits)')}
     \\              {c('backslash')}
     \a              {c('audible BEL')}
@@ -2348,7 +2312,7 @@ def bash(subject=None):
     \r              {c('return')}
     \t              {c('horizontal tab')}
     \v              {c('vertical tab')}
-    
+
     CHAR1-CHAR2     {c('all characters from CHAR1 to CHAR2 in ascending order')}
     [CHAR*]         {c('in SET2, copies of CHAR until length of SET1')}
     [CHAR*REPEAT]   {c('REPEAT copies of CHAR, REPEAT octal if starting with 0')}
@@ -2366,14 +2330,14 @@ def bash(subject=None):
     [:xdigit:]      {c('all hexadecimal digits')}
     [=CHAR=]        {c('all characters which are equivalent to CHAR')}
 
-  {h3('Examples')}
+  {h2('Examples')}
     %bash
     # Replace substring:
     echo "AxxBC" | tr xyz _     # A__BC
 
     # To lowercase:
     echo "AbC" | tr '[:upper:]' '[:lower:]'     # abc
-    
+
     # Delete substring:
     foo="\n hi\nbye\n "
     echo "$foo" | tr -d ' \n'           # hibye%
@@ -2383,20 +2347,20 @@ def bash(subject=None):
     /%bash
     """
     
-    _TRAP = f"""{h2('trap')} [-lp] [[ARG] SIGNAL ...]
-    
+    _TRAP = f"""{h1('trap')} [-lp] [[ARG] SIGNAL ...]
+
     -l          {c('List signals and numbers')}
-  
-  {h3('ARG')}
+
+  {h2('ARG')}
     If '-' or unspecified, resets SIGNAL
-  
-  {h3('SIGNAL')}
+
+  {h2('SIGNAL')}
     EXIT (0)    {c('Execute ARG on exit')}
     DEBUG       {c('Execute ARG on before every simple command')}
     RETURN      {c("Execute ARG after 'source' or '.' finishes")}
     ERR         {c("Execute ARG every time a command would fail on '-e' opt")}
-  
-  {h3('Examples')}
+
+  {h2('Examples')}
     %bash
     # Trivial trap
     set -o errtrace
@@ -2415,34 +2379,34 @@ def bash(subject=None):
 
     trap 'rm -f $TMP' EXIT SIGHUP SIGINT SIGTERM
     /%bash
-  
-  {h3('See also')}
+
+  {h2('See also')}
     set
     """
     
-    _WC = f"""{h2('wc')} {c('[OPTION]... [FILE]...')}
+    _WC = f"""{h1('wc')} {c('[OPTION]... [FILE]...')}
     -l, --lines     {c('newline count')}
     -w, --words     {c('word count')}
     -m, --chars     {c('character count')}
     -c, --bytes     {c('byte count')}
-    
+
     apt list | wc -l
     wc -l data.json
     """
-    _WHERE = _WHICH = _WHEREIS = _WHENCE = _WHATIS = _WHICHCOMMAND = f"""{h2('where / whereis / which / whence / whatis / which-command')}
-    {h3('which')} [-a] filename ...
+    _WHERE = _WHICH = _WHEREIS = _WHENCE = _WHATIS = _WHICHCOMMAND = f"""{h1('where / whereis / which / whence / whatis / which-command')}
+    {h2('which')} [-a] filename ...
       -a     {c('print all matching pathnames of each argument (doesnt work?)')}
       exits 1 if one or more specified commands is nonexistent or not executable
       man which
-    
-    {h3('whereis')} [options] [-BMS directory... -f] name...
+
+    {h2('whereis')} [options] [-BMS directory... -f] name...
       man whereis
-      
-    {h3('whatis')} [-dlv?V] [-r|-w] [-s list] [-m system[,...]] [-M path] [-L locale] [-C file] name ...
+
+    {h2('whatis')} [-dlv?V] [-r|-w] [-s list] [-m system[,...]] [-M path] [-L locale] [-C file] name ...
       man whatis
     """
-    _XARGS = f"""{h2('xargs')} [options] [command [initial-args]]
-    {h3('Options')}
+    _XARGS = f"""{h1('xargs')} [options] [command [initial-args]]
+    {h2('Options')}
       -P <max-procs>, --max-procs=<max-procs>   {c('in Parallel')}
       -t, --verbose
       -L <max-lines>        {c('Use at most N nonblank input lines per command line. Implies -x')}
@@ -2450,11 +2414,11 @@ def bash(subject=None):
       -I <replace-str>      {c('Implies -x and -L 1')}
       -p, --interactive     {c('Prompt before running each command. Implies -t')}
       -r, --no-run-if-empty
-    
-    {h3('Examples')}
+
+    {h2('Examples')}
       ls | xargs echo
       ls | xargs -L 1 echo            {c('max 1 lines')}
-      xargs -0 -I % cp % ~/backups    
+      xargs -0 -I % cp % ~/backups
       -0 seems to keep line breaks?   {c("cat requirements.txt | cut -d'=' -f1 | xargs")}
       cat zooecho | vipe | xargs -I % $SHELL -c "%"
     """
@@ -4780,7 +4744,15 @@ def githubcli(subject=None):
 
 @syntax
 def gunicorn(subject=None):
-    _APP = f"""{h2('app')}"""
+    _CMD = f"""{h2('gunicorn cmdline tool')}
+    --preload                   Load application code before the worker processes are forked. [False]
+    --reload                    Restart workers when code changes. [False]
+    --threads INT               The number of worker threads for handling requests. [1]
+    -w INT, --workers INT       The number of worker processes for handling requests. [1]
+    --worker-connections INT    The maximum number of simultaneous clients. [1000]
+    -c CONFIG, --config CONFIG
+    -b ADDRESS, --bind ADDRESS  '127.0.0.1:8000'
+    """
     _SIGNALS = f"""{h2('Signals')}
     {c('https://docs.gunicorn.org/en/stable/signals.html')}
     
@@ -4801,7 +4773,7 @@ def gunicorn(subject=None):
         return frame.f_locals[subject]
     else:
         return f"""{h1('gunicorn')}
-  {_APP}
+  {_CMD}
   {_SIGNALS}
   """
 
@@ -5834,6 +5806,21 @@ def jira(subject=None):
   {_PYJIRA}
         """
 
+@syntax
+def jq(subject=None):
+    _EXAMPLES = f"""{h2('Examples')}
+    %bash
+    # Limit max depth to 1
+    jq 'del(.[]?[]?[]?)'
+    /%bash
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('jq')}
+  
+  """
 
 @syntax
 def jupyter(subject=None):
@@ -7686,6 +7673,7 @@ def poetry(subject=None):
     /%bash
     """
     _PYPROJECT = h2('pyproject.toml') + """
+    """ + c('https://python-poetry.org/docs/dependency-specification/') + """
     %toml
     pdbpp =      { path = "../pdbpp/", develop = true }
     my-package = { path = "../my-package/dist/my-package-0.1.0.tar.gz" }
@@ -7694,7 +7682,13 @@ def poetry(subject=None):
     requests =   { git = "https://github.com/kennethreitz/requests.git", branch = "next" }
     flask =      { git = "https://github.com/pallets/flask.git", rev = "38eb5d3b" }
     numpy =      { git = "https://github.com/numpy/numpy.git", tag = "v0.13.2" }
-
+    
+    # ^1      >=1.0.0 <2.0.0
+    # ^1.2.3  >=1.2.3 <2.0.0
+    # ~1	  >=1.0.0 <2.0.0
+    # ~1.2.3  >=1.2.3 <1.3.0
+    # *       >=0.0.0
+    # 1.2.*   >=1.2.0 <1.3.0
     pathlib2 =   { version = "^2.2", python = "~2.7 || ^3.2" }
     pathlib2 =   { version = "^2.2", markers = "python_version ~= '2.7' or sys_platform == 'win32'" }
 
@@ -10174,7 +10168,7 @@ def sxhkd(subject=None):
       bspc node --resize $d1 $dx $dy || bspc node --resize $d2 $dx $dy                    
   """
 
-
+@syntax
 def tar(subject=None):
     return f"""{h1('tar')} [option...] [file...]
   -x        {c('extract')}
@@ -11632,7 +11626,13 @@ def zsh(subject=None):
     {h3('add-zsh-hook')} HOOK FUNCTION
       add-zsh-hook chpwd chpwd_dirhistory    {c('dirhistory plugin')}
       {c('Available hooks:')}
-      chpwd precmd preexec periodic zshaddhistory zshexit zsh_directory_name
+      chpwd             {c('Current dir changed')}
+      preexec           {c('Before command is executed')}
+      precmd            {c('After command executed, before prompt is displayed')}
+      periodic          {c('Every time you display a prompt (?), every $PERIOD seconds')}
+      zshaddhistory     {c('Just before line is added to history')}
+      zshexit           {c('Just before zsh exits')}
+      zsh_directory_name    {c('directory name conversion by Dynamic named directories')}
     
     {h3('Hook arrays')}
       precmd_functions preexec_functions zshexit_functions

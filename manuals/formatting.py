@@ -2,11 +2,13 @@ from more_termcolor import colors
 
 
 def h1(text, **kwargs):
-    return colors.bold(text, 'ul', 'reverse', 'bright white', **kwargs)
+    h_width = len(text) + 2
+    h_bar = '─' * h_width
+    return '┌' + h_bar + '┐\n│ ' + colors.bold(text, 'ul', 'reverse', 'bright white', **kwargs) + ' │\n└' + h_bar + '┘'
 
 
 def h2(text, **kwargs):
-    return colors.bold(text, 'ul', 'bright white', **kwargs)
+    return colors.bold(text, 'ul', 'reverse', 'bright white', **kwargs)
 
 
 def h3(text, **kwargs):
@@ -14,7 +16,8 @@ def h3(text, **kwargs):
 
 
 def h4(text, **kwargs):  # 97 or bright white
-    return colors.brightwhite(text, 'ul', **kwargs)
+    # return colors.brightwhite(text, 'ul', **kwargs)
+    return colors.bold(text, **kwargs)
 
 
 def h5(text, **kwargs):
