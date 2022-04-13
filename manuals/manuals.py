@@ -29,6 +29,7 @@ def wow(subject=None):
     {_ADD}
     """
 
+
 def adhd(subject=None):
     _DIET = f"""{h2('Diet')}
     Bad: sugary foods
@@ -37,7 +38,7 @@ def adhd(subject=None):
       Modulaitng dopamine, makes it more available.
     """
     _BEHAVIOR = f"""{h2('Behavior')}
-    """    
+    """
     _COGNITIVE = _MENTAL = f"""{h2('Cognitive / Mental')}
     Open monitoring (vs soda-straw focus): 
       Higher time framerate. Can see 2 waldos. 
@@ -53,7 +54,8 @@ def adhd(subject=None):
     {_DIET}
     {_BEHAVIOR}
     {_COGNITIVE}
-    """    
+    """
+
 
 @syntax(python='friendly')
 def altair(subject=None):
@@ -153,7 +155,7 @@ def altair(subject=None):
     {h3('view.interactive()')}
 
     """
-    
+
     _MISC = f"""
   {h2('Miscellaneous')}
     %python
@@ -199,6 +201,7 @@ def anxiety(subject=None):
       {h3('3. Talk to someone')}: repeated thoughts in head amplify. Sharing stops repetition.  
       {h3('4. Negative Visualization')} (worst case + imagine how I'd handle, prob ok. stoicism?)  
     """
+
 
 @syntax
 def apt(subject=None):
@@ -388,7 +391,7 @@ def asyncio(subject=None):
 
       client_connected_cb{c('(StreamReader, StreamWriter)     plain callable or coroutine. if coroutine, it is scheduled as Task.')}
     """
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -552,7 +555,7 @@ def bash(subject=None):
         /%bash
 
     """
-    
+
     __ARRAY = rf"""{h2("Array")}
     %bash
     # Build array from multiline string
@@ -628,7 +631,7 @@ def bash(subject=None):
 
       {h3('See "declare"')}
     """
-    
+
     __CASE = f"""{h2('case')}
     %bash
     case $1 in
@@ -711,7 +714,7 @@ def bash(subject=None):
     {h3('Variable Flags')}
       EXPRESSION1 -a EXPRESSION2
     """
-    
+
     __FOR = rf"""{h2('for')}
     %bash
     # Example 1:
@@ -751,7 +754,7 @@ def bash(subject=None):
     echo $result2   # 'some value'
     /%bash
     """
-    
+
     __SET = f"""{h2('set')} {c('[-abefhkmnptuvxBCHP] [-o [OPTION]] [--] [arg ...]')}
     Using + rather than - causes these flags to be turned off.
     The current set of flags may be found in $-.
@@ -951,7 +954,7 @@ def bash(subject=None):
     $ echo $VAR
     {i('command: "$(echo hi)"')}
     """
-    
+
     __WHILE = f"""{h2('while')}
     %bash
     x=1
@@ -1111,7 +1114,7 @@ def bash(subject=None):
       -H          {c('if arg is symlink to dir, traverse it')}
       -L          {c('when encountering a symlink to dir, traverse it (default is not to traverse)')}
     """
-    
+
     _COMPLETE = _COMPGEN = f"""{h1('complete')} [FLAGS] [OPTS] [name ...]
     {c('https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html')}
     {c('https://wiki.bash-hackers.org/syntax/shellvars?s[]=completion')}
@@ -1321,7 +1324,7 @@ def bash(subject=None):
     {h2('See also')}
       complete, compgen
     """
-    
+
     _CP = f"""{h1('cp')}
     {h3('Examples')}
     Given:
@@ -1359,7 +1362,7 @@ def bash(subject=None):
                     bar.txt
     ''')}
     """
-    
+
     _CUT = f"""{h1('cut')}
     -b, -c and -f are mutually exclusive
 
@@ -1379,7 +1382,7 @@ def bash(subject=None):
       cut -d'=' -f1,3   {c('x.split("=")[0,2] (joined)')}
       cut -d$'{literal_linebreak}' -f4   {c(f'x.split("{literal_linebreak}")[4]')}
     """
-    
+
     _DIFF = f"""{h1('diff')}
     {c('diff [OPTION]... FILES')}
 
@@ -1425,7 +1428,7 @@ def bash(subject=None):
       diff <(echo "foo") <(echo "fo0")
       /%bash
       """
-    
+
     _DU = f"""{h1('du')} [options] [path]
     {h2('options')}
       -a                  {c('all files, not just dirs')}
@@ -1444,7 +1447,7 @@ def bash(subject=None):
       du -ah -d 1 | sort -h      {c('Show only of this level')}
       du -sh --exclude="*env*" video_motion_detection
     """
-    
+
     _ECHO = f"""{h1('echo')}
     -n     do not output the trailing newline
     -e     enable interpretation of backslash escapes
@@ -1510,7 +1513,7 @@ def bash(subject=None):
       -regex        F   F       F       F       T        F
 
         """
-    
+
     _GREP = f"""{h1('grep')}
     {h3('grep')} [OPTION...] PATTERN [FILE...]
     {h3('grep')} [OPTION...] -e PATTERN... [FILE...]
@@ -1575,7 +1578,7 @@ def bash(subject=None):
       grep --exclude-dir "*home/gilad/Downloads/ANGRYsearch*" --exclude "file.zip" -riPa "angrysearch"
       grep -nIrEH -C 1 --exclude="*.log" --exclude-dir="src" "[^def ]loadDataFromS3" .
         """
-    
+
     _HEAD = _TAIL = f"""{h1('head, tail')} [OPTION]... [FILE]...
     -z      {c('zero terminated')}
     head -n, --lines=NUM      {c('[:NUM]    until NUM')}
@@ -1600,7 +1603,7 @@ def bash(subject=None):
       head -n +20 FILE
       /%bash
     """
-    
+
     _LESS = f"""{h1('less')}
     {h2('args')}
       -N                      {c('Show line numbers')}
@@ -1626,7 +1629,7 @@ def bash(subject=None):
       ! {i('shell-command')}
       s {i('filename')}     saves to file. works only if input is a pipe
     """
-    
+
     _MAN = f"""{h1('man')}
   {h2('Usage')}
     man [man options] [[section] page ...] ...
@@ -1642,7 +1645,7 @@ def bash(subject=None):
   {h2('Controlling formatted output')}
     -P pager, --pager=pager
     """
-    
+
     _MOUNT = _UMOUNT = f"""{h1('mount, umount')}
     {h2('mount')}
       mount [-fnrsvw] [-t fstype] [-o options] <device> <dir>
@@ -1689,7 +1692,7 @@ def bash(subject=None):
       --fake        {c('dry run')}
       -v, --verbose
     """
-    
+
     _READ = rf"""{h1('/bin/bash -c "read"')}
     http://linuxcommand.org/lc3_man_pages/readh.html
     read [-ers] [-a array] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]
@@ -1755,7 +1758,7 @@ def bash(subject=None):
       EOF
       /%bash
     """
-    
+
     _PRINTF = rf"""{h1('printf')}
     {h2('Escape Sequences')}
       $ printf "hello\x1b[1mworld\x1b[0m"
@@ -1788,7 +1791,7 @@ def bash(subject=None):
       $ printf %q $'\n'
       $'\n'
     """
-    
+
     _PS = _PKILL = _PGREP = _KILL = _SIGNAL = f"""{h1('Processes / Signals')}
     {h2('ps')}
       -A      All processes
@@ -1841,7 +1844,7 @@ def bash(subject=None):
       -v, --verbose
       -I, --ignore-case
     """
-    
+
     _SED = f"""{h1('sed')}
   {c('https://github.com/adrianscheff/useful-sed')}
   {h2('Options')}
@@ -1888,7 +1891,7 @@ def bash(subject=None):
     sed -n '\@bla bla@p' ~/.zsh_history
     sed 's@search@replace@g' ~/.zsh_history
     """
-    
+
     _SYMLINK = _LN = _LINK = f"""{h1('ln - make links between files')}
   {c('Hard links by default')}
 
@@ -1905,7 +1908,7 @@ def bash(subject=None):
   -i, --interactive   {c('prompt whether to remove destinations')}
   find . -type l ! -exec test -e {{}} \\; -print    {c('print empty symlinks')}
     """
-    
+
     _SCP = f"""{h1('scp')} [options...] <SOURCE> ... <TARGET>
     SOURCE and TARGET may be:
      - a local pathname (rel or abs)
@@ -1929,7 +1932,7 @@ def bash(subject=None):
       /%bash
 
     """
-    
+
     _SORT = f"""{h1('sort')}
   sort -u   {c('unique')}
   sort -s   {c('stable. keeps orig order of same-key values')}
@@ -1947,7 +1950,7 @@ def bash(subject=None):
 
   history | grep -o "idea.*" | sort -u
       """
-    
+
     _SPLIT = f"""{h1('split')}
   {h3('Examples')}
   %bash
@@ -1958,7 +1961,7 @@ def bash(subject=None):
   cat my_file_* > joined.pdf
   /%bash
     """
-    
+
     _STAT = f"""{h1('/bin/stat')} [OPTION...] FILE...
   stat -c, --format=FORMAT
   {h3('FORMAT')}
@@ -1976,7 +1979,7 @@ def bash(subject=None):
 
   stat -c "Group: %G (%g) | User: %U (%u) | Perms: %A (%a)" /root
     """
-    
+
     _SUDO = _SU = f"""{h1('sudo, su')}
     {h2('sudo')}
       -u, --user=USER     {c('instead of usual default "root"')}
@@ -1998,7 +2001,7 @@ def bash(subject=None):
       -m, -p, --preserve-environment
       -w, --whitelist-environment=FOO,BAR   {c('Ignores HOME, SHELL, USER, LOGNAME, PATH')}
     """
-    
+
     _SYNTAX = rf"""{h1('Syntax')}
   {__ARGUMENTS}
 
@@ -2032,7 +2035,7 @@ def bash(subject=None):
 
   {__FILEDESCRIPTOR}
     """
-    
+
     _TR = rf"""{h1('tr')} {c('[OPTION]... SET1 [SET2]')}
   -c, -C, --complement      {c('use the complement of SET1')}
   -d, --delete              {c('delete characters in SET1, do not translate')}
@@ -2082,7 +2085,7 @@ def bash(subject=None):
     echo -n $(echo "$foo" | tr -d ' ')  # hi bye%
     /%bash
     """
-    
+
     _TRAP = f"""{h1('trap')} [-lp] [[ARG] SIGNAL ...]
 
     -l          {c('List signals and numbers')}
@@ -2119,7 +2122,7 @@ def bash(subject=None):
   {h2('See also')}
     set
     """
-    
+
     _WC = f"""{h1('wc')} {c('[OPTION]... [FILE]...')}
     -l, --lines     {c('newline count')}
     -w, --words     {c('word count')}
@@ -2158,11 +2161,11 @@ def bash(subject=None):
       -0 seems to keep line breaks?   {c("cat requirements.txt | cut -d'=' -f1 | xargs")}
       cat zooecho | vipe | xargs -I % $SHELL -c "%"
     """
-    
+
     if subject:
         if subject.startswith('<') or subject.startswith('>') or subject in ('!', '?', '&', '|'):
             return __FILEDESCRIPTOR
-        
+
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
@@ -2224,6 +2227,7 @@ def bat(subject=None):
   bat --pager <command>   {c('bat --pager "less -RF"')}
   bat --wrap <auto|never|character>
   """
+
 
 @syntax
 def bats(subject=None):
@@ -2297,7 +2301,8 @@ def bats(subject=None):
   {_KEYWORDS}
   {_FUNCTIONS}
   """
-  
+
+
 def brew(subject=None):
     return f"""{h1('Brew')}
     brew update && brew upgrade
@@ -2548,6 +2553,7 @@ def clickup(subject=None):
                 Checklist
     """
 
+
 @syntax
 @alias('pstats')
 def cprofile(subject=None):
@@ -2562,7 +2568,7 @@ def cprofile(subject=None):
       SortKey.STDNAME       {c('Standard name | "stdname"')}
       SortKey.TIME          {c('Time spent within each function | "total", "time"')}
     """
-    
+
     _PSTATS = f"""{h2('pstats')}
     {h3('Stats')}
       {c('https://docs.python.org/3/library/profile.html#module-pstats')}
@@ -2622,6 +2628,7 @@ def cprofile(subject=None):
   {_PROFILE}
   {_EXAMPLES}
   """
+
 
 @syntax
 def css(subject=None):
@@ -2700,6 +2707,7 @@ def curl(subject=None):
   -L, --location    {c('Follow redirects')}
         """
 
+
 @syntax
 def cython(subject=None):
     _CYTHONIZE = f"""{h2('cythonize')}
@@ -2727,6 +2735,7 @@ def cython(subject=None):
         return f"""{h1('cython')}
   {_CYTHONIZE}
   """
+
 
 @syntax
 def desktop(subject=None):
@@ -2777,7 +2786,7 @@ def django(subject=None):
       {c('Starting development server at http://127.0.0.1:8000')}
       PROJ/wsgi.py
     """
-    
+
     _UTILS = f"""{h2('django.utils')}
     timezone.now() {c('-> datetime.datetime(2020, 12, 19, 6, 12, 57, 938731, tzinfo=<UTC>)')}
     timezone.get_current_timezone() {c('-> pytz.UTC: <UTC>')}
@@ -2785,7 +2794,7 @@ def django(subject=None):
     timezone.get_default_timezone() {c('-> pytz.UTC: <UTC>')}
     timezone.get_default_timezone_name() {c('-> str: "UTC"')}
     """
-    
+
     _ADMIN = f"""{h2('django-admin')} <subcommand>
     check
     compilemessages
@@ -2836,7 +2845,7 @@ def django(subject=None):
     testserver
 
     """
-    
+
     _MANAGE = _MANAGEPY = f"""{h2('manage.py')}
     {h3('runserver')}
       --no[threading reload static]
@@ -2851,7 +2860,7 @@ def django(subject=None):
 
     {h3('createsuperuser')}
     """
-    
+
     _MODELS = f"""{h2('models')}
     ForeignKey: many-to-one     {c('class Car')}
                                     {c('manufacturer = ForeignKey(Manufacturer)')}
@@ -2879,7 +2888,7 @@ def django(subject=None):
       from django.contrib.auth.models import User
       /%ipython
     """
-    
+
     _TEMPLATES = f"""{h2('templates')}
     {{% autoescape %}}
     {{% block %}} {{% endblock %}}
@@ -2913,7 +2922,7 @@ def django(subject=None):
     {{% blocktrans with as %}} {{% endblocktrans %}}
 
     """
-    
+
     _DJANGO_EXTENSIONS = f"""{h2('django-extensions')}  {c('pip install django-extensions')}
     dumpscript
     graph_models
@@ -2944,9 +2953,9 @@ def django(subject=None):
   {_MANAGE}
 """
 
+
 @syntax
 def dob(subject=None):
-    
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -2999,6 +3008,7 @@ def dob(subject=None):
     @tag1 @"tag2 too" "#tag3" @give-it-up-for-tag4 \#tag5 '#'tag6
   """
 
+
 @syntax(bash='friendly')
 def docker(subject=None):
     _DOCKERFILE = f"""{h2('Dockerfile')}
@@ -3033,7 +3043,7 @@ def docker(subject=None):
       -a, --all                          {c('Show also stopped containers')}
           --services
     """
-    
+
     # ** Starting
     __COMPOSE_START = f"""{h3('start')} [SERVICE...]
     {bg('Start existing containers')}
@@ -3073,7 +3083,7 @@ def docker(subject=None):
       -v, --volumes                      {c('Remove volumes declared in `volumes` of Compose file and anonymous volumes attached to containers')}
       --remove-orphans                   {c('Remove containers for services not defined in Compose file.')}
     """
-    
+
     __COMPOSE_STOP = f"""{h3('stop')} [options] [--] [SERVICE...]
     {bg('Stop running containers without removing them. Can be started again with `up`')}
     {c('SERVICE is output of docker-compose ps --services')}
@@ -3081,7 +3091,7 @@ def docker(subject=None):
     docker-compose stop mosquitto adminmongo
     /%bash
     """
-    
+
     _COMPOSE = f"""{h2('docker-compose')}
   LISTING
     {__COMPOSE_IMAGES}
@@ -3094,7 +3104,7 @@ def docker(subject=None):
     {__COMPOSE_DOWN}
     {__COMPOSE_STOP}
     """
-    
+
     # *** docker
     # ** Listing
     __CLI_IMAGES = f"""{h3('images')} [OPTIONS] [REPOSITORY[:TAG]]
@@ -3123,7 +3133,7 @@ def docker(subject=None):
       -p <LOCAL PORT>:<INSIDE CONTAINER PORT>
       dozens of additional options
     """
-    
+
     __CLI_BUILD = f"""{h3('build')} [OPTIONS] PATH | URL | -
     {bg('Build an image from a Dockerfile')}
       --rm                               {c('Remove intermediate containers after a successful build')}
@@ -3144,12 +3154,12 @@ def docker(subject=None):
     {bg('Remove one or more containers')}
       -f, --force                        {c('uses SIGKILL')}
     """
-    
+
     __CLI_RMI = f"""{h3('rmi')} [OPTIONS] IMAGE [IMAGE...]
     {bg('Remove one or more images')}
       -f, --force                        {c('uses SIGKILL')}
     """
-    
+
     __CLI_STOP = f"""{h3('stop')} [OPTIONS] CONTAINER_ID [CONTAINER_ID...]
     {bg('Stop one or more running containers')}
     {c('CONTAINER_ID is output of docker ps -q')}
@@ -3157,7 +3167,7 @@ def docker(subject=None):
     docker stop 83a036c2fe15 16d0b2aa69a0
     /%bash
     """
-    
+
     __CLI_KILL = f"""{h3('kill')} [OPTIONS] CONTAINER [CONTAINER...]
     {bg('Kill one or more running containers')}
       -s, --signal <STRING>              {c('default KILL')}
@@ -3198,7 +3208,7 @@ def docker(subject=None):
     {__CLI_STOP}
     {__CLI_KILL}
     """
-    
+
     # *** docker container
     # ** Listing
     __CONTAINER_LS = f"""{h3('ls')} [OPTIONS]
@@ -3245,10 +3255,10 @@ def docker(subject=None):
     """
     __CONTAINER_PAUSE = f"""{h3('pause')}
     """
-    
+
     __CONTAINER_PRUNE = f"""{h3('prune')}
     """
-    
+
     # ** Not sure
     __CONTAINER_WAIT = f"""{h3('wait')}
     """
@@ -3264,7 +3274,7 @@ def docker(subject=None):
     """
     __CONTAINER_PORT = f"""{h3('port')}
     """
-    
+
     _CONTAINER = f"""{h2('docker container')}
   LISTING
     {__CONTAINER_LS}
@@ -3296,7 +3306,7 @@ def docker(subject=None):
     {__CONTAINER_RENAME}
     {__CONTAINER_PORT}
     """
-    
+
     # *** Collections
     _LISTING = f"""
 {h2('docker-compose')}
@@ -3587,7 +3597,7 @@ def firestore(subject=None):
       /%python
     """
     _COLL_REF = _COLLECTION_REF
-    
+
     _DOCUMENT_REF = f"""{h2('DocumentReference')}        {c('CollectionReference.document(...)')}
     washington_ref = db.collection('cities').document('DC')
       .id {c(': str')}
@@ -3626,7 +3636,7 @@ def firestore(subject=None):
         {c('or firestore.SERVER_TIMESTAMP')}
     """
     _DOC_REF = _DOCUMENT_REF
-    
+
     _DOCUMENT_SNAPSHOT = f"""{h2('DocumentSnapshot')}        {c('DocumentReference.get()')}
     snapshot = db.collection('cities').document('DC').get()
       .create_time {c(': Timestamp')}
@@ -3641,13 +3651,13 @@ def firestore(subject=None):
     """
     _DOCUMENT_SNAP = _DOCUMENT_SNAPSHOT
     _DOC_SNAP = _DOCUMENT_SNAPSHOT
-    
+
     _TIMESTAMP = f"""{h2('Timestamp')}
     ts.ToSeconds() {c(': int')}
     ts.ToDatetime() {c(': datetime.datetime')}
     ts.ToJsonString() {c(': 2020-04-15T15:31:17.554685Z')}
     """
-    
+
     _TRANSACTION = f"""{h2('Transaction')}
     transaction = db.transaction()
 
@@ -3658,13 +3668,13 @@ def firestore(subject=None):
 
     update_in_transaction(transaction, washington_ref)
     """
-    
+
     _QUERY = f"""{h2('Query')}        {c("CollectionReference.where(...)")}
     stream() {c('→ Generator[DocumentSnapshot]')}
     select({c("field_paths")}) {c('→ Query')}
     where({c("field_path, op_string, value")}) {c('→ Query')}
     """
-    
+
     _BATCH = f"""{h2('Batch')}
     batch = db.batch()
     batch.update(doc_ref, dict(...))
@@ -3798,28 +3808,28 @@ def gcloud(subject=None):
     {h3('deploy')}
       gcloud app deploy --project={i('PROJNAME')}
     """
-    
+
     _CONFIG = f"""{h2('config')}
     gcloud config list
     gcloud config set core/project {i('PROJNAME')}
     gcloud auth activate-service-account --key-file="/home/gilad/application_default_credentials.json"
     """
-    
+
     _PROJECTS = f"""{h2('projects')}
     gcloud projects list
     gcloud projects update {i('OLDNAME')} --name={i('NEWNAME')}
     gcloud projects describe {i('PROJ_ID')}
     """
-    
+
     _AUTH = f"""{h2('auth')}
     gcloud auth list
     gcloud auth application-default login   {c('create new credentials')}
     """
-    
+
     _SERVICES = f"""{h2('services')}
     gcloud services list
     """
-    
+
     __ins = i('i17-03-2020')
     _SQL = f"""{h2('SQL')}
     {h3('connect locally')}
@@ -3915,12 +3925,12 @@ def git(subject=None):
 
     git branch [--all] --contains {i('SHA')}
         """
-    
+
     _CLONE = f"""{h2('clone')}
     {h3(f"Clone branch")}
       git clone --branch {i('somebranch')} https://github.com/{i('owner')}/{i('repo')}.git {i('dir')}
     """
-    
+
     _CHECKOUT = f"""{h2('checkout')}
     {h3('Checkout specific file')}
       git checkout {i('origin/somebranch')} -- {i('path/to/file')}
@@ -3931,18 +3941,18 @@ def git(subject=None):
     {h3('Checkout specific file from specific commit')}
       git checkout {i('$SHA1')} -- {i('path/to/file')}
     """
-    
+
     _COMMIT = f"""{h2('Commit')}
     {h3('commit specific file')}
       git commit {i('path/to/file')}
     """
-    
+
     _COMPARE = f"""{h2('Compare')}
     {h3('Compare 2 commits / branches')}
       {c(f"[..] line:line, [...] commit:commit")}
       https://github.com/Talship/sport-bingo/compare/gilad-staging...main
       https://bitbucket.org/cashdash/reconciliation_engine/branches/compare/recon-engine-v2.4.1%0Drecon-engine-v2.4.0"""
-    
+
     _CONFIG = f"""{h2('Config')}
     git config --global user.name giladbarnea
     git config --global user.email giladbrn@gmail.com
@@ -4069,14 +4079,14 @@ def git(subject=None):
         git diff -G '(FIXME)|(TODO)'
 
     """
-    
+
     _IGNORE = f"""{h2('ignore')}
     {h3('Ignore everything in dir except specific path')}
       !/node_modules/
       /node_modules/*
       !/node_modules/pyano_local_modules/
     """
-    
+
     _INIT = f"""{h2('init')}
     cd {{...}}
     git init
@@ -4134,7 +4144,7 @@ def git(subject=None):
       git log -- path/to/file
       git log --since=2.weeks     {c('also 2 years 1 day 3 minutes ago')}
         """
-    
+
     _MERGE = f"""{h2('merge')} [OPTIONS...] [-m MSG] [COMMIT...]
     {h3('examples')}
       $(master) git merge better_branch     {c('merge better_branch INTO master and commit')}
@@ -4162,7 +4172,7 @@ def git(subject=None):
     {h3('Undo merge after conflict')}
       git merge --abort
         """
-    
+
     _PRUNE = f"""{h2('prune')}
     {c(f"update local copies of remote branches")}
     git fetch --prune origin
@@ -4179,7 +4189,7 @@ def git(subject=None):
     _PULL = f"""{h2('pull')}
     
     """
-    
+
     _REBASE = f"""{h2('Rebase')}
     {h3('Rebase branch-to-update onto (on top) branch-with-changes.')}
       {c("This will apply changes from branch-with-changes to branch-to-update")}
@@ -4189,7 +4199,7 @@ def git(subject=None):
       {c("In short:")}
       git checkout {i('branch-to-update')} && git rebase {i('branch-with-changes')} && git push
       """
-    
+
     _REMOTE = f"""{h2('remote')} [OPTIONS]
     
     {h3('options')}
@@ -4236,13 +4246,13 @@ def git(subject=None):
       --mixed   {c('the default: changes head and index, not working tree')}
       --hard    {c('changes head, index and working tree')}
     """
-    
+
     _RM = f"""{h2('rm')}
     {h3('Remove file only from online repo')}
       {c(f"{i('cached')} means only in online repo")}
       git rm --cached {i('path/to/file')} && git commit -m "removed file from cache" && git push
     """
-    
+
     _STASH = f"""{h2('stash')}
     git stash                  {c(f"convenience for {i('git stash push')}")}
     list [git log options]     {c('all stashed entries ever')}
@@ -4264,7 +4274,7 @@ def git(subject=None):
     {h3('Examples')}
       git stash list --source --name-status --pretty=full
     """
-    
+
     _STATUS = f"""{h2('status')}
     -s, --short
     -b, --branch    {c('Show the branch and tracking info (even in short-format)')}
@@ -4290,7 +4300,7 @@ def git(subject=None):
       U             {c('updated but unmerged')}
       ??            {c('untracked')}
     """
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -4513,13 +4523,14 @@ def gunicorn(subject=None):
   {_SIGNALS}
   """
 
+
 @syntax
 def kafka(subject=None):
     _CONFIG = f"""{h2('Configuration')}
     {c('https://docs.confluent.io/platform/current/installation/configuration/index.html')}
     {c('https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md')}
     """
-    
+
     _CONFLUENT = f"""{h2('confluent_kafka')}
   {h3('admin')}    {c('module')}
     {h4('AdminClient')}
@@ -4588,8 +4599,7 @@ def kafka(subject=None):
       replicas: list[int]    # e.g [1001]
       /%python
     """
-    
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -4598,6 +4608,7 @@ def kafka(subject=None):
   {_CONFLUENT}
   {_CONFIG}
   """
+
 
 @syntax
 def kitty(subject=None):
@@ -4611,7 +4622,7 @@ def kitty(subject=None):
     {c('Select from the clicked point to the end of the line:')}
     mouse_map ctrl+alt+left triplepress ungrabbed mouse_selection line_from_point
     """
-    
+
     _DIFF = f"""{h2('Diff')}
     {c('https://sw.kovidgoyal.net/kitty/kittens/diff/')}
     kitty +kitten diff [options] <path> <path>
@@ -4623,7 +4634,7 @@ def kitty(subject=None):
       --config <PATH>
       --override, -o <OPTION>	{c('-o background=gray')}
     """
-	
+
     _MARKER = _MARKS = f"""{h2('Marks')}
     {c('https://sw.kovidgoyal.net/kitty/marks/')}
     
@@ -4643,7 +4654,7 @@ def kitty(subject=None):
       
       map f1 toggle_marker iregex 1 \\bERROR\\b 2 \\bWARNING\\b
     """
-    
+
     _KEYBOARD = f"""{h2('Keyboard')}
     {c('https://sw.kovidgoyal.net/kitty/conf/#keyboard-shortcuts')}
     
@@ -4654,7 +4665,7 @@ def kitty(subject=None):
     map kitty_mod+y new_window less @selection
     map ctrl+shift+p>f kitten hints --type path --program -
     """
-    
+
     _LAUNCH = f"""{h2('launch')}
     {c('https://sw.kovidgoyal.net/kitty/launch/')}
     
@@ -4672,7 +4683,7 @@ def kitty(subject=None):
     @cursor-x
     @cursor-y
     """
-    
+
     _HINTS = f"""{h2('Hints')}
     {c('https://sw.kovidgoyal.net/kitty/kittens/hints/')}
     
@@ -4682,7 +4693,7 @@ def kitty(subject=None):
     
     kitty @kitten hints [options]     {c('xdg-open choice. defaults to --type url')}
     """
-    
+
     _PANEL = f"""{h2('Panel')}
     {c('https://sw.kovidgoyal.net/kitty/kittens/panel/')}
 
@@ -4698,7 +4709,7 @@ def kitty(subject=None):
     """
     _MISC = f"""{h2('Misc')}
     kitty +kitten ssh some-hostname-to-connect-to
-    """    
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -4791,7 +4802,7 @@ def inspect_(subject=None):
       finfo.lineno{c(': int')}
 
     """
-    
+
     _CODE = f"""{h2('code')}    {c(f"frame.f_code, function.__code__")}
       {c('import gc; gc.get_referrers(code_obj)')}
 
@@ -4823,7 +4834,7 @@ def inspect_(subject=None):
       fn.__name__{c(': str')}
       fn.__qualname__{c(': str')}
     """
-    
+
     _FULL_ARG_SPEC = f"""{h2('FullArgSpec')}    {c(f"inspect.getfullargspec(function)")}
       spec.args{c(': List[str]')}
       spec.defaults{c(': Tuple[str]')}
@@ -4833,17 +4844,17 @@ def inspect_(subject=None):
       spec.varkw{c(': str')}
       spec.annotations{c(': dict')}
     """
-    
+
     _CLOSURE_VARS = f"""{h2('ClosureVars')}    {c(f"inspect.getclosurevars(function)")}
       ???
     """
-    
+
     _SIGNATURE = f"""{h2('Signature')}    {c(f"inspect.signature(function, follow_wrapped=True)")}
       sig.parameters {c(': { "param" : Parameter }')}
       sig.return_annotation
       str(str)       {c('(app, *args, **kwargs)')}
     """
-    
+
     _PARAMETER = f"""{h2('Parameter')}    {c(f"sig.parameters['myparam']")}
       p.annotation {c(': inspect._empty OR ???')}
       p.default
@@ -4857,17 +4868,17 @@ def inspect_(subject=None):
         VAR_KEYWORD
         VAR_POSITIONAL
     """
-    
+
     _ARGUMENTS = f"""{h2('Arguments')}    {c(f"inspect.getargs(code)")}
       args.args{c(': List[str]    if passed fn.__code__, returns fn sig args')}
       args.varargs
       args.varkw
     """
-    
+
     _ARG_INFO = f"""{h2('ArgInfo')}    {c(f"inspect.getargvalues(frame)")}
       ???
     """
-    
+
     _MODULE = f"""{h2('module')}
       m.__name__ {c(": str ('mytool.myman.manuals')")}
       m.__package__ {c(": str ('mytool.myman')")}
@@ -4881,7 +4892,7 @@ def inspect_(subject=None):
         spec.origin {c(': str (absolute path)')}
         spec.submodule_search_locations
     """
-    
+
     _INSPECT = f"""
     {c('https://docs.python.org/3/library/inspect.html')}
     inspect.getcurrentframe() {c('→ frame')}
@@ -4911,7 +4922,7 @@ def inspect_(subject=None):
     fs.locals {c('→ int')}
     fs.name {c('→ str (e.g "run_code")')}
     """
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -4932,7 +4943,8 @@ def inspect_(subject=None):
     {_STACK_SUMMARY}
     {_FRAME_SUMMARY}
     """
-    
+
+
 @syntax
 def ipython(subject=None):
     _AUTORELOAD = f"""{h2('%autoreload')}       {c(f'{i("%load_ext")} first')}
@@ -5030,10 +5042,10 @@ def ipython(subject=None):
     --autocall=(0|1|2)  2: lone str → str(); 1: only if args (str 43 works, str doesnt call)
 
     """
-    
+
     _CONFIG = f"""{h2('%config')} Class[.trait=value]
     """
-    
+
     _DEBUG = f"""{h2('%debug')}
   {h4('Without args:')}
     Right after an exception, run '%debug' to ipdb to where exception occurred
@@ -5056,13 +5068,13 @@ def ipython(subject=None):
     
   {h4('See also: %tb')}  
     """
-    
+
     _DISPLAY = f"""{h2('%display')}
     %python 2
     from IPython.display import Image
     Image(filename='my_screenshot.jpg')
     """
-    
+
     _EDIT = f"""{h2('%edit')} [options] [args]
     {h3('options')}
       -n <NUM>       {c('open editor at a specified line number')}
@@ -5076,7 +5088,7 @@ def ipython(subject=None):
       string variable: contents are loaded into the editor.
       name of an object: locate the file where it was defined and open the editor at the point where it is defined
     """
-    
+
     _HIST = _HISTORY = f"""{h2('%hist[ory]')} [options] ⟨VALUE⟩
     {h3("VALUE")}
       {c('Can be space separated for multiple values')}
@@ -5097,7 +5109,7 @@ def ipython(subject=None):
       -u                {c('Unique')}
       -t                {c('"Translated" history')}
     """
-    
+
     _MACRO = f"""{h2('%macro')} [options] <macro_name> <history_args>
     {c('re-execute those lines')}
     {h3('options')}
@@ -5108,7 +5120,7 @@ def ipython(subject=None):
     
     {h4('See also: %save, %store')}
     """
-    
+
     _MAGIC = f"""{h2('IPython.core.magic')}
     {c('https://ipython.readthedocs.io/en/stable/config/custommagics.html')}
     %python
@@ -5130,7 +5142,7 @@ def ipython(subject=None):
         options_table{c(': dict')}
         shell{c(': TerminalInteractiveShell')}
     """
-    
+
     _KEYS = f"""{h2('keys')}
     F12             Open editor
     ctrl-a          beginning of line
@@ -5155,7 +5167,7 @@ def ipython(subject=None):
     ctrl-d          Delete next character
     alt-d           Delete to end of word
     """
-    
+
     _LOAD = f"""{h2('%load')} {i('FILE, URL, MACRO')}
     -r                      Range
     -s                      Symbol
@@ -5172,14 +5184,14 @@ def ipython(subject=None):
     %load -n {i('my_module.wonder_function')}
     /%ipython
     """
-    
+
     _PRINT = f"""{h2('%p<foo>')}
     %pdef           Print call signature.
     %pdoc           Print docstring.
     %pfile          Print the file where object is defined.
     %psource        Print the source code for an object.
     """
-    
+
     _SEARCH = _PSEARCH = f"""{h2('%psearch')} {c(f'[options]')} {i("PATTERN [OBJECT TYPE]")}
     {c('a*? and ?a* are equivalent to ‘%psearch a*’')}
     -a              Match underscored objs
@@ -5194,7 +5206,7 @@ def ipython(subject=None):
     
     {h4('See also: %who')}
     """
-    
+
     _SHELL = _IP = f"""{h2('TerminalInteractiveShell')} {c('IPython.terminal.interactiveshell.TerminalInteractiveShell')}
       %python 2
       from IPython import get_ipython()
@@ -5217,7 +5229,7 @@ def ipython(subject=None):
         ip.extension_manager
         ip.magics_manager
     """
-    
+
     _PROFILE = _PROFILER = _PRUN = _LPRUN = f"""{h2('%prun')} [options] <statement>
     {c('Profiler Run')}
 
@@ -5257,7 +5269,7 @@ def ipython(subject=None):
 
   {h4('See also: %run, %time')}
     """
-    
+
     _REP = _RECALL = f"""{h2('%rep / %recall')}
     %recall (no arguments)      {c('Put editable last output in prompt')}
     %recall 45                  {c('Put hist line 45 in prompt')}
@@ -5265,7 +5277,7 @@ def ipython(subject=None):
     %recall var1+var2           {c('If vars exist, evaluated and placed in prompt.')}
                                   {c('Otherwise, history searched for lines with that substring')}
     """
-    
+
     _RESET = f"""{h2('%reset')}
     -f                        {c('force reset without asking for confirmation.')}
     -s                        {c('Only clears your namespace, leaving history intact.')}
@@ -5274,14 +5286,14 @@ def ipython(subject=None):
     %reset_selective -f b[2-3]m     {c("removes 'b2m' and 'b3m' from ns")}
     %reset_selective -f b           {c("removes 'b', 'b1m', 'b2s', 'b4m' from ns")}
     """
-    
+
     _RERUN = f"""{h2('%rerun')}
     -l {i('<n>')}             {c('Repeat last <n> lines (excluding current)')}
     -g {i('<foo>')}           {c('Repeat most recent lines which contain <foo>')}
     
     {h4('See also: %run')}
     """
-    
+
     _RUN = f"""{h2('%run')} {c(f"[options]")} {i('-m MOD | FILE')}
     -i {i('file')}                          {c('run the file in IPython’s namespace instead of an empty one.')}
     -e                               {c('ignore sys.exit() calls or SystemExit exceptions')}
@@ -5293,12 +5305,12 @@ def ipython(subject=None):
     
     {h4('See also: %rerun, %prun, %lprun')}
     """
-    
+
     _ENV = _SET_ENV = f"""{h2('%set_env')}
     {i('%set_env KEY=VAL')}
     {i('%set_env KEY=$VAL')}
     """
-    
+
     _SAVE = f"""{h2('%save')} [options] filename n1-n2 n3-n4 … n5 .. n6 …
     {c('Save a set of lines or a macro to a given filename.')}
     %history syntax
@@ -5309,7 +5321,7 @@ def ipython(subject=None):
     
     {h4('See also: %store, %macro')}
     """
-    
+
     _STORE = f"""{h2('%store')}
     {i('%store')}                     Show list
     {i('%store foo bar')}
@@ -5319,14 +5331,14 @@ def ipython(subject=None):
     
     {h4('See also: %macro, %save')}
     """
-    
+
     _PASTE = f"""{h2('%paste')} also %cpaste
     """
-    
+
     _TB = _TRACEBACK = f"""{h2('%tb')}
     {c('Print last traceback')}
     """
-    
+
     _TIME = f"""{h2('%time')} Time execution of statement (once)
 
   {h2('%timeit')} [-n{i("<N>")} -r{i("<R>")} [-t|-c] -q -p{i("<P>")} -o] {i('statement')}
@@ -5337,7 +5349,7 @@ def ipython(subject=None):
     -o              return TimeitResult
     -q              quiet, don't print result
     """
-    
+
     _WHO = f"""{h2(f'%who[s] {i("[type [type ...]]")}')}
     {c('Session variables')}
     %who function str
@@ -5351,7 +5363,7 @@ def ipython(subject=None):
     
   {h4('See also: %psearch')}  
     """
-    
+
     _MISC = f"""{h2('Miscellaneous')}
   %python
   # dynamic ipython prompt:
@@ -5487,7 +5499,7 @@ def jira(subject=None):
     assignee = currentUser() AND resolution = Unresolved AND issueLinkType != "Child of"
     issue not in childIssuesOf("ASM-5277")
     """
-    
+
     _REST = f"""{h2('REST v2')}
     %bash
     curl --request GET -s --user $JIRA_USER:$JIRA_PASS --header 'Accept: application/json' --header 'Content-Type: application/json' --data '{{"fields":"parent"}}' https://jira.allot.com/rest/api/2/issue/$ISSUE
@@ -5501,14 +5513,14 @@ def jira(subject=None):
         started {c('h.000+m.000')}
         comment
     """
-    
+
     _CLI = f"""{h2('jira-cli')}
     {h3('view')}
       jira-cli view --search-jql='assignee=cr-gbarn-herolo{literal_backslash}u0040allot.com'
       jira-cli view --search-jql='assignee=cr-gbarn-herolo{literal_backslash}u0040allot.com AND parent=ASM-5293 ORDER BY status'
       jira-cli view --search-jql='assignee=cr-gbarn-herolo{literal_backslash}u0040allot.com AND resolution = Unresolved AND issueLinkType not in ("Child of","is blocked by") ORDER BY status ASC'
     """
-    
+
     _PYJIRA = f"""{h2('from jira import JIRA')}
     jira = JIRA("https://jira.allot.com/", basic_auth=('<USER>', '<PASS>'))
     issue = jira.issue('ASM-11480', fields=None, expand=None)
@@ -5545,6 +5557,7 @@ def jira(subject=None):
   {_PYJIRA}
         """
 
+
 @syntax
 def jq(subject=None):
     _EXAMPLES = f"""{h2('Examples')}
@@ -5560,6 +5573,7 @@ def jq(subject=None):
         return f"""{h1('jq')}
   
   """
+
 
 @syntax
 def jupyter(subject=None):
@@ -5654,7 +5668,7 @@ def loguru(subject=None):
     thread {c(': { name, id (default) }')}
     time{c(': datetime.datetime')}
     """
-    
+
     _ADD = f"""{h2('.add')}(                      {c('https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.add')}
     %python
       sink: str | {{ write(message) -> None }} | Path | (message) -> None | coroutine | logging.Handler = ?,
@@ -5688,7 +5702,7 @@ def loguru(subject=None):
       logger.add(sys.stderr, format=format)
     /%python
     """
-    
+
     _FORMAT = f"""{h2('Formatting')} {c('str | (record) -> str')}
     %python 2
     format="{{level.icon}} {{level}} | {{extra[foo]}} - {{message}}{literal_linebreak}{{exception}}"
@@ -5736,7 +5750,7 @@ def loguru(subject=None):
       {{name: ^15}}
       /%python
     """
-    
+
     _SINK = f"""{h2('Sink')} {c('str | { write(message) -> None } | Path | (message) -> None | coroutine | logging.Handler')}
     %python
     logger.add(sys.stdout)
@@ -5754,7 +5768,7 @@ def loguru(subject=None):
     logger.add(publish, serialize=True)
     /%python
     """
-    
+
     _FILTER = f"""{h2('Filter')} {c('str | dict | (rec) -> bool')}
     %python
     # str: only records with same `name`
@@ -5767,7 +5781,7 @@ def loguru(subject=None):
     fliter={{ 'sub.module' : level_int | 'level_name' | True | False }}
     /%python
     """
-    
+
     _ENV = f"""{h2('Environment Variables')}
     Each `add()` param can be controlled e.g LOGURU_[PARAM]:
       LOGURU_FORMAT="{{time}} - {{message}}"
@@ -5806,7 +5820,7 @@ def loguru(subject=None):
       
       /%python
     """
-    
+
     _BIND = f"""{h2('.bind')}(**extra_kv) -> Logger
     {c("Sets record['extra'] attributes.")}
     %python
@@ -5815,7 +5829,7 @@ def loguru(subject=None):
     logger = logger.bind(user='gilad')
     /%python
     """
-    
+
     _OPT = f"""{h2('.opt')}(*,    {c('Modify config')}
     %python
       exception=None,    # bool | tuple | Exception
@@ -5847,10 +5861,10 @@ def loguru(subject=None):
       )
     /%python
     """
-    
+
     _REMOVE = f"""{h2('.remove')}(handler_id=0)
     """
-    
+
     _LEVEL = f"""{h2('.level')}(name,
     %python
        no: int = None,     # number (severity)
@@ -5867,7 +5881,7 @@ def loguru(subject=None):
       logger.custom("Logging...")
       /%python
     """
-    
+
     _SNIPPETS = f"""{h2('Snippets')}
     %python
     # Monkeypatch all warnings
@@ -6003,6 +6017,7 @@ def matplotlib(subject=None):
     /%python
     """
 
+
 @syntax
 def mermaid(subject=None):
     if subject:
@@ -6026,6 +6041,7 @@ def mermaid(subject=None):
       John->>Bob: How about you?
       Bob-->>John: Jolly good!    
     """
+
 
 @syntax
 def micro(subject=None):
@@ -6188,7 +6204,7 @@ def mongo(subject=None):
     getCollectionNames(){c(' → str[]')}
     getCollection(name){c(' → Collection')}
     """
-    
+
     __QUERY = f"""{h3('Query Operators')}
     {c('https://docs.mongodb.com/manual/reference/operator/query/#std-label-query-selectors')}
     {h4('Comparison')}
@@ -6250,7 +6266,7 @@ def mongo(subject=None):
     {__PROJECTION}
     {__UPDATE}
     """
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -6429,7 +6445,7 @@ def mysql(subject=None):
       0   Gilad
       2   Catta
     """
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -6484,7 +6500,9 @@ def netstat(subject=None):
       Iface      MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
       br-08441  1500     8497      0      0 0          8517      0      0      0 BMRU
         
-        """ 
+        """
+
+
 @syntax
 def node(subject=None):
     _MODULES = f"""{h2('ES6 Modules with Typescript')}
@@ -6564,7 +6582,7 @@ def node(subject=None):
       %bash 1
       grep -nrEHao "https://nodejs\.org/download/release/v[0-9]+\.[0-9]+\.[0-9]+" "./node_modules/electron/dist/electron"
     """
-    
+
     _PACKAGING = f"""{h2('Packaging')}
   {c('Note: I managed to get it working only with 1 file')}
 
@@ -6691,7 +6709,7 @@ def node(subject=None):
   
   {h3('view / info / show')} <pkg>[@version]    {c('shows lots of info. version defaults to "latest"')}
     """
-    
+
     _NVM = f"""{h2('nvm')}
   {h3('install')} [-s] <version>
     --lts[=<LTS NAME>]
@@ -6872,7 +6890,7 @@ def pandas(subject=None):
       df[df.Name.isin(['Gilad'])]
       gw[gw.ID.str.startswith('2')]
     """
-    
+
     _GROUPBY = f"""
     {h3('Group By')}
       df.groupby(by=['Name','Courses']).mean() / .max() / .min()
@@ -6994,7 +7012,7 @@ def pdb(subject=None):
     _ARGS = f"""{h2('a')}[rgs]
     Argument list of current function
     """
-    
+
     _BREAK = f"""{h2('b')}[reak]
     List all breaks
     {h3('b ' + i('[filename:]lineno | function [, condition]'))}
@@ -7002,11 +7020,11 @@ def pdb(subject=None):
       {i('break myfile:15')}
       {i('break add_numbers')}
     """
-    
+
     _WHERE = f"""{h2('w[here] | bt')}
     Stack trace
     """
-    
+
     _ALIAS = f"""{h2('alias / unalias')}
     {i('define:')}
     alias pi for k in %1.__dict__.keys(): print("%1.",k,"=",%1.__dict__[k])
@@ -7015,7 +7033,7 @@ def pdb(subject=None):
     {i('nesting:')}
     alias ps pi self
     """
-    
+
     _CONFIG = f"""{h2('Configuration')}
     Lowest priority first:
     setup.cfg or .ipdb in project working dir
@@ -7025,7 +7043,7 @@ def pdb(subject=None):
     _CONTINUE = f"""{h2('c')}[ont[inue]]
     Stop at next bp
     """
-    
+
     _CLEAR = f"""{h2('cl')}[ear]
     Clear all breakpoints (confirm first)
     {h3('clear ' + i('bpnumber [bpnumber...]'))}
@@ -7033,11 +7051,11 @@ def pdb(subject=None):
     {h3('clear ' + i('filename:lineno'))}
     Clearing cannot be undone, whereas disabling can
     """
-    
+
     _DOWN = f"""{h2('d')}[own] {i('[count]')}
     Move down (newer) the stack trace (default 1)
     """
-    
+
     _DISABLE = f"""{h2('disable / enable')} {i('bpnumber [bpnumber...]')}
     Can be re-enabled / re-disabled
     """
@@ -7113,7 +7131,7 @@ def pdb(subject=None):
   python -m pdb -c continue script.py   # lets the program run normally
   /%bash
     """
-    
+
     _MISC = f"""{h2('misc')}
     %python
     def execfile(fname, glob, loc=None, compiler=None):
@@ -7171,7 +7189,7 @@ def pdbpp(subject=None):
        hf_unhide              {c("Enables up and down through hidden frames")}
        hf_hide                {c('Disables')}
     """
-    
+
     _CONFIG = f"""{h2('config')}  
     {c('.pdbrc.py in home dir')}
     %python
@@ -7191,7 +7209,7 @@ def pdbpp(subject=None):
         def setup(self, pdb): ...  # called on Pdb init
     /%python
     """
-    
+
     _INLINE = f"""{h2('inline use')}
     {h3('programmatically')}
       pdb.xpm()               {c('Inside except, start from where exc happened')}
@@ -7210,7 +7228,7 @@ def pdbpp(subject=None):
       break_on_setattr('bar', condition=predicate)(Foo)
       /%python
     """
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -7231,6 +7249,7 @@ def pudb(subject=None):
         return f"""{h1('pudb')}
 
   """
+
 
 @syntax
 def pip(subject=None):
@@ -7268,7 +7287,7 @@ def pip(subject=None):
 
     pip install ./pip-21.1.1.tar.gz --user --ignore-requires-python --no-build-isolation --no-clean --retries 1 --timeout 10 --disable-pip-version-check
     """
-    
+
     _SEARCH = f"""{h2('search')}"""
     _DOWNLOAD = f"""{h2('download')} [options] [pkg]
     {h3('pkg')}
@@ -7348,7 +7367,7 @@ def poetry(subject=None):
     cd myproject && git init && gh repo create
     /%bash
     """
-    
+
     _ADD = f"""{h2('add')} [-D, --dev] [-e, --editable] [-E, --extras EXTRAS...] [-G, --group GROUP ("defalut")] [--optional]
       [--python PYTHON] [--platform PLATFORM] [--source SOURCE] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
     
@@ -7356,13 +7375,13 @@ def poetry(subject=None):
     
     --lock      {c('Do not perform operations (only update the lockfile).')}
     """
-    
+
     _BUILD = f"""{h2('build')} [-f wheel|sdist]
     Creates a ./dist/ dir with PROJECT-0.1.0.tar.gz and -py3-none-any.whl
     that can be pip install --user ./PROJECT-...whl
     or pip install -e setup.py extracted from the .tar.gz
     """
-    
+
     _CONFIG = f"""{h2('config')} [--list] [--unset] [--local] [<key>] [<value1>] ... [<valueN>]
     cache-dir = "/home/gilad/.cache/pypoetry"
     experimental.new-installer = true
@@ -7376,7 +7395,7 @@ def poetry(subject=None):
     {h3('Examples')}
       poetry config pypi-token.pypi my-token    {c('or POETRY_PYPI_TOKEN_PYPI env var')}
     """
-    
+
     _ENV = f"""{h2('env')}
     env info [-p]              {c('Displays information about the current environment.')}
     env list [--full-path]     {c('Lists all virtualenvs associated with the current project.')}
@@ -7389,7 +7408,7 @@ def poetry(subject=None):
     . "$(poetry env info -p)"/bin/activate     [c]activates venv[/c]
     /%bash
     """
-    
+
     _INSTALL = f"""{h2('install')} [PACKAGE] [--with WITH...] [--without WITHOUT...] [--only ONLY...] [--default]
       [--sync] [--dry-run] [--remove-untracked] [-E, --extras EXTRAS...]
     
@@ -7405,7 +7424,7 @@ def poetry(subject=None):
 
     Shows information about packages.
     """
-    
+
     _PUBLISH = f"""{h2('publish')}
     %bash
     poetry publish -u giladbarnea --build --dry-run
@@ -7449,7 +7468,7 @@ def poetry(subject=None):
     generate-setup-file = true
     /%toml
     """
-    
+
     _UPDATE = f"""{h2('update')} [--no-dev] [--dry-run] [--lock] [package...]
     Resolve latest versions of deps and write exact versions to poetry.lock.
     """
@@ -8153,7 +8172,7 @@ def python(subject=None):
     c
   /%ipython
     """
-    
+
     _DOCTEST = f"""{h2('doctest')} [-h] [-v] [-f, --fail-fast] [-o OPTION...] file [file...]
   {h3('Programmatically')}
     {h4('Dynamically, so `python3 file.py` runs the doctests:')}
@@ -8202,7 +8221,7 @@ def python(subject=None):
     REPORT_CDIFF
     REPORT_NDIFF
     """
-    
+
     _ENV = f"""{h2('Environment Variables')}
   {c('https://docs.python.org/3/using/cmdline.html#environment-variables')}
 
@@ -8292,7 +8311,7 @@ def python(subject=None):
     __doc__: Optional[str]
     /%python
     """
-    
+
     __LOGGING_FORMATTER = f"""{h3('Formatter(')}
         %python
         fmt : str = None,
@@ -8615,7 +8634,7 @@ def python(subject=None):
         from zoneinfo import ZoneInfo
         ZoneInfo("America/Vancouver")
     """
-    
+
     if subject:
         # if subject == '_SUBPROCESS':
         #     from rich.table import Table
@@ -8625,7 +8644,7 @@ def python(subject=None):
         #     table.add_row('run()', 'Completed Process', 'yes', 'no', 'input')
         #     segments = con.render(table)
         #     return ''.join(seg.text for seg in segments)
-        
+
         frame = inspect.currentframe()
         return frame.f_locals[subject]
     else:
@@ -8815,7 +8834,7 @@ def rich_(subject=None):
         value: bool = True     # Pretty print value
         /%python
     )"""
-    
+
     _CONSOLE = f"""{h3('console.Console(')}
             %python
             highlight = True,
@@ -8935,6 +8954,7 @@ def rich_(subject=None):
     .extract(...)
     .from_exception(...)
         """
+
 
 @alias('rg')
 def ripgrep(subject=None):
@@ -9133,7 +9153,7 @@ def s3(subject=None):
       o.upload_fileobj()
 
     """
-    
+
     _STREAMING_BODY = f"""{h2('botocore.response.StreamingBody')}    {c(f"body = o.get()['Body']")}
 
       body.close()
@@ -9144,7 +9164,7 @@ def s3(subject=None):
       body.set_socket_timeout()
 
     """
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -9572,6 +9592,7 @@ def snap(subject=None):
     --classic
         """
 
+
 @syntax
 def sphinx(subject=None):
     _EXTENSIONS = f"""{h2('Extensions')}
@@ -9608,6 +9629,7 @@ def sphinx(subject=None):
   
   {_EXTENSIONS}
   """
+
 
 @syntax
 def sqlalchemy(subject=None):
@@ -9676,7 +9698,7 @@ def sqlalchemy(subject=None):
     meta.reflect(bind=engine)
     meta.tables{c(': dict[str, Table]')}
     """
-    
+
     _TABLE = f"""{h2('Table')}
     {h3('properties')}
       t.columns{c(': Column[]')}
@@ -9706,7 +9728,7 @@ def sqlalchemy(subject=None):
       t.select(whereclause=None, **params) {c('→ selectable.Select')}
       t.update(dml, whereclause=None, values=None, inline=False, **kwargs)
     """
-    
+
     _COLUMN = f"""{h2('Column')}
     {h3('properties')}
       c.table{c(': Table')}
@@ -9755,7 +9777,7 @@ def sqlalchemy(subject=None):
       c.unique_params(*optionaldict, **kwargs)
 
     """
-    
+
     _PRIMARY_KEY_CONSTRAINT = f"""{h2('PrimaryKeyConstraint')}
 
     """
@@ -9907,6 +9929,7 @@ def sxhkd(subject=None):
       bspc node --resize $d1 $dx $dy || bspc node --resize $d2 $dx $dy                    
   """
 
+
 @syntax
 def tar(subject=None):
     return f"""{h1('tar')} [option...] [file...]
@@ -9931,6 +9954,7 @@ def traceback(subject=None):
     {c('https://docs.python.org/3/library/traceback.html')}
     traceback.extract_stack(f=None, limit=None) {c('→ StackSummary')}
     """
+
 
 @syntax
 def tree(subject=None):
@@ -10303,7 +10327,7 @@ def typescript(subject=None):
       /%ts
       
     """
-    
+
     _IMPORT = _EXPORT = _MODULES = _NAMESPACES = f"""{h1('import / export / modules / namespaces')}
     {c('https://www.typescriptlang.org/docs/handbook/modules.html')}
     {c('https://www.typescriptlang.org/docs/handbook/namespaces.html')}
@@ -10911,7 +10935,7 @@ def xonsh(subject=None):
     continue here:
     https://xon.sh/tutorial.html#python-evaluation-with
     """
-    
+
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -10920,6 +10944,7 @@ def xonsh(subject=None):
 
   {_ENVIRONMENT}
     """
+
 
 @syntax
 def xprop(subject=None):
@@ -10956,6 +10981,7 @@ def xprop(subject=None):
     xprop -root | grep '_NET_SUPPORTED(ATOM)'
     
   """
+
 
 def xvkbd(subject=None):
     if subject:
@@ -11021,6 +11047,7 @@ def yarn(subject=None):
     
 
   """
+
 
 @syntax
 def youtube_dl(subject=None):
@@ -11230,7 +11257,7 @@ def zsh(subject=None):
     zle accept-line
     zle -N <function>   {c('Looks like $BUFFER, $LBUFFER, $CURSOR available in function (sudo plugin)')}
     """
-    
+
     _MISC = f"""{h2('zsh misc.')}
     {h3('print')}
       {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
@@ -11264,7 +11291,7 @@ def zsh(subject=None):
       autoload -U add-zsh-hook
       autoload -Uz compinit
     """
-    
+
     _ZPARSEOPTS = f"""{h2('zparseopts')} [ -D -E -F -K -M ] [ -a array ] [ -A assoc ] [ - ] spec ...
     {c('https://xpmo.gitlab.io/post/using-zparseopts/')}
     {c('man zshmodules')}
@@ -11359,7 +11386,7 @@ def zsh(subject=None):
     bindkey "\e"man <function>
     /%bash
     """
-    
+
     _HOOKS = f"""{h2('add-zsh-hook, or general hooks')}
     {c('https://zsh.sourceforge.io/Doc/Release/Functions.html')}
     {h3('add-zsh-hook')} HOOK FUNCTION
