@@ -3,24 +3,18 @@
 get_main_topics() is called to popuplate MAIN_TOPICS.
 """
 import inspect
+import itertools as it
 import logging
-import re
 import sys
-# from functools import wraps
 from collections import defaultdict
 from typing import Callable, Collection
 
 import click
 
-# import search
-# import prompt
 from manuals.common.click_extension import unrequired_opt
-# brightprint = lambda s, *colors: cprint(s, 'bright white', *colors)
 from manuals.common.types import ManFn
-# from more_termcolor import cprint
+from manuals.consts import SUB_TOPIC_RE
 from manuals.formatting import h2
-
-SUB_TOPIC_RE = re.compile(r'_[A-Z0-9_]*\s*=\s*(rf|fr|f)["\']{3}')
 
 
 def get_unused_subtopics(undecorated_main_topic_fn) -> list[str]:
@@ -52,24 +46,28 @@ def draw_out_decorated_fn(fn: ManFn) -> Callable:
 def populate_main_topics() -> dict[str, ManFn]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `manuals` module"""
     from . import manuals
+    from ._man import manuals as private_manuals
+    def iter_module_manuals(module):
+        for _main_topic in dir(module):
+            if _main_topic in module.EXCLUDE:
+                continue
+            _manual: ManFn = getattr(module, _main_topic)
+            if not inspect.isfunction(_manual):
+                continue
+            if _main_topic.endswith('_'):  # inspect_()
+                _name = _main_topic[:-1]
+            else:
+                _name = _main_topic
+            yield _name, _manual
+
     main_topics = dict()
-    for main_topic in dir(manuals):
-        if main_topic in manuals.EXCLUDE:
-            continue
-        manual: ManFn = getattr(manuals, main_topic)
-        if not inspect.isfunction(manual):
-            continue
-        
-        if main_topic.endswith('_'):  # inspect_()
-            name = main_topic[:-1]
-        else:
-            name = main_topic
-        
+    for name, manual in it.chain(iter_module_manuals(manuals),
+                                 iter_module_manuals(private_manuals)):
         ## dont draw_out_wrapped_fn because then syntax() isn't called
         main_topics[name] = manual
         if alias := getattr(manual, 'alias', None):
             main_topics[alias] = manual
-    
+
     return main_topics
 
 
@@ -89,7 +87,7 @@ def populate_sub_topics(*, print_unused_subtopics=False) -> TSubTopics:
     Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
     all_sub_topics: TSubTopics = defaultdict(set)
     for name, main_topic in MAIN_TOPICS.items():
-        
+
         # sub_topic_var_names = [n for n in draw_out_decorated_fn(main_topic_fn).__code__.co_varnames if n.isupper()]
         # draw_out_decorated_fn is necessary because MAIN_TOPICS has to store the fns in the wrapped form (to call them later)
         setattr(main_topic, 'sub_topics', set())
@@ -97,22 +95,22 @@ def populate_sub_topics(*, print_unused_subtopics=False) -> TSubTopics:
         sub_topic_var_names = get_sub_topic_var_names(undecorated_main_topic_fn)
         if not sub_topic_var_names:
             continue
-        
+
         if print_unused_subtopics:
             unused_subtopics = get_unused_subtopics(undecorated_main_topic_fn)
             if unused_subtopics:
                 spaces = ' ' * (max(map(len, MAIN_TOPICS.keys())) - len(name))
                 print(f"{name!r} doesn't print:{spaces}{', '.join(unused_subtopics)}")
-        
+
         for sub_topic_var_name in sub_topic_var_names:
             ## DONT account for dunder __ARGUMENTS, it's being handled by get_sub_topic().
             #   If handled here, eventually bash('_ARGUMENTS') is called which errors.
             #   likewise: if f'_{sub_topic}' in manual.sub_topics:
-            
+
             sub_topic_var_name = sub_topic_var_name.strip().lower()[1:]
             main_topic.sub_topics.add(sub_topic_var_name)
             all_sub_topics[sub_topic_var_name].add(main_topic)
-    
+
     return all_sub_topics
 
 
@@ -131,11 +129,11 @@ def fuzzy_find_topic(topic: str,
     for maybes, is_last in search.iter_maybes(topic, collection, criterion='substring'):
         if not maybes:
             continue
-        
+
         kwargs = dict(Ep='Edit manuals.py with pycharm',
                       Ec='Edit manuals.py with vscode',
                       Em='Edit manuals.py with micro')
-        
+
         if is_last and raise_if_exhausted:
             kwargs.update(flowopts='quit')
         else:
@@ -197,15 +195,15 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
     if main_topic not in MAIN_TOPICS:
         print(f"[info] Unknown main topic: {main_topic!r}. Fuzzy finding among MAIN_TOPICS...")
         main_topic = fuzzy_find_topic(main_topic, MAIN_TOPICS, raise_if_exhausted=True)
-    
+
     manual: ManFn = MAIN_TOPICS[main_topic]
     if sub_topic in manual.sub_topics:
         return manual(f'_{sub_topic.upper()}')
-    
+
     if f'_{sub_topic}' in manual.sub_topics:
         # mm bash syntax → manual.sub_topics has '_syntax' → pass '__SYNTAX'
         return manual(f'__{sub_topic.upper()}')
-    
+
     try:
         # sometimes functions have alias logic under 'if subject:' clause, for example bash
         # has 'subject.startswith('<')'. so maybe sub_topic works
@@ -220,14 +218,14 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
                                                  P=f"print '{main_topic}' w/o subtopic")
         if key == 'P':
             return manual()
-        
+
         if chosen_sub_topic is not None:
             return manual(f'_{chosen_sub_topic.upper()}')
-        
+
         if sub_topic in SUB_TOPICS:
             print(f"[info] '{sub_topic}' isn't a sub topic of '{main_topic}', but it belongs to these topics:")
             return print_manual(sub_topic)
-        
+
         print(f"[info] '{sub_topic}' doesn't belong to any topic. Searching among all SUB_TOPICS...")
         key, sub_topic = fuzzy_find_topic(sub_topic,
                                           SUB_TOPICS,
@@ -235,7 +233,7 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
                                           P=f"print '{main_topic}' w/o subtopic")
         if key == 'P':
             return manual()
-        
+
         return manual(f'_{sub_topic.upper()}')
 
 
@@ -255,11 +253,11 @@ def print_manual(topic: str, sub_topic=None):
         #     .replace('[c]', '[dim]')
         # return console.print(sub_topic_str)
         return print(sub_topic_str)
-    
+
     # ** Passed only one arg; could be main or sub. Maybe main?
     if topic in MAIN_TOPICS:
         return print(MAIN_TOPICS[topic]())
-    
+
     # ** Not a main topic. Maybe it's a precise sub topic, i.e. "diff"
     sub_topic_key = None
     if topic in SUB_TOPICS:
@@ -276,7 +274,7 @@ def print_manual(topic: str, sub_topic=None):
         if len(SUB_TOPICS[sub_topic_key]) > 1:
             from manuals import prompt
             manuals: list[ManFn] = list(SUB_TOPICS[sub_topic_key])  # for index
-            
+
             # TODO (bugs):
             #  (1) If an ALIAS of a subtopic is the same as a SUBTOPIC of another main topic,
             #    this is called (shouldn't). Aliases aren't subtopics. (uncomment asyncio # _SUBPROCESS = _SUBPROCESSES)
@@ -288,11 +286,11 @@ def print_manual(topic: str, sub_topic=None):
                                         flowopts='quit'
                                         )
             return print(manuals[idx](f'_{sub_topic_key.upper()}'))
-        
+
         ## Unique subtopic
         manual, *_ = SUB_TOPICS[sub_topic_key]
         return print(manual(f'_{sub_topic_key.upper()}'))
-    
+
     # ** Not a precise subtopic. find something precise, either a main or sub topic
     key, topic = fuzzy_find_topic(topic,
                                   set(MAIN_TOPICS.keys()) | set(SUB_TOPICS.keys()),
@@ -325,5 +323,5 @@ def get_topic(main_topic, sub_topic, list_topics_or_subtopics, print_unused_subt
                 print(title)
                 [print(f' · {sub}') for sub in sorted(MAIN_TOPICS[main_name].sub_topics)]
         return
-    
+
     print_manual(main_topic, sub_topic)
