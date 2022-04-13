@@ -128,3 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 src/
+
+# private repo
+/manuals/_man/
