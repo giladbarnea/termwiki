@@ -1,10 +1,10 @@
+from __future__ import annotations
+import ast
+from ast import parse, unparse
 import inspect
 import re
 from functools import wraps
-from pathlib import Path
-import os
 from typing import Literal, Type, Union
-from textwrap import indent,dedent
 from pygments import highlight as pygments_highlight
 # noinspection PyUnresolvedReferences
 from pygments.formatters import TerminalTrueColorFormatter
@@ -152,7 +152,6 @@ def syntax(_fn_or_style: Union[ManFn, Style] = None, **default_styles):
     Inline `%python native` takes precedence over decorator args.
     """
     default_style = None
-    
     def wrap(fn: ManFn):
         @wraps(fn)  # necessary for str() to display wrapped fn and not syntax()
         def morewrap(subject=None):
@@ -268,6 +267,31 @@ def rich(manual: ManFn):
         return marked_down
 
     return wrap
+
+
+def optional_subject(manual: ManFn):
+    @wraps(manual)
+    def decorate(subject=None):
+        if not subject:
+            return manual()
+        fnsrc = inspect.getsource(manual)
+        parsed: ast.Module = parse(fnsrc)
+        # noinspection PyTypeChecker
+        fndef: ast.FunctionDef = parsed.body[0]
+        nod: ast.Assign
+        varnames: list[ast.Name]
+        for nod in fndef.body:
+            if not isinstance(nod, ast.Assign):
+                continue
+            # noinspection PyTypeChecker
+            varnames = nod.targets
+            for varname in varnames:
+                if varname.id == subject:
+                    return eval(unparse(nod.value))
+
+        return manual()
+
+    return decorate
 
 
 EXCLUDE = set(locals()) | {'EXCLUDE'}
@@ -463,7 +487,6 @@ def anxiety(subject=None):
       {h3('4. Negative Visualization')} (worst case + imagine how I'd handle, prob ok. stoicism?)  
     """
 
-
 @syntax
 def apt(subject=None):
     _LIST = f"""{h2('list')} [GLOB]                        {c('list packages based on package names')}
@@ -539,6 +562,14 @@ def apt(subject=None):
     apt-cache [options] show pkg...
   """
 
+@optional_subject
+def asm():
+    _PRODUCTS = f"""{h2('products')}
+    HAHAHA
+    """
+    return f"""{h1('asm')}
+  {_PRODUCTS}
+    """
 
 @syntax('friendly')
 @alias('aio')
@@ -4960,7 +4991,9 @@ def kitty(subject=None):
     --class <CLS>			{c('WM_CLASS class')}
     --name <NAME>			{c('WM_CLASS name')}
     """
-    
+    _MISC = f"""{h2('Misc')}
+    kitty +kitten ssh some-hostname-to-connect-to
+    """    
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -4976,6 +5009,7 @@ def kitty(subject=None):
   {_MARKS}
   {_HINTS}
   {_PANEL}
+  {_MISC}
   """
 
 
