@@ -5564,6 +5564,10 @@ def jq(subject=None):
     %bash
     # Limit max depth to 1
     jq 'del(.[]?[]?[]?)'
+
+    {{ items: [ ... ] }} | jq '.items[]|{{device:.device_id,user_id}}'
+
+    jq '.items[]|{{device:.device_id,user_id,description,type,is_router:.product_data.RouterSecure.is_router}}'
     /%bash
     """
     if subject:
@@ -5571,6 +5575,7 @@ def jq(subject=None):
         return frame.f_locals[subject]
     else:
         return f"""{h1('jq')}
+    {_EXAMPLES}
   
   """
 
@@ -11393,15 +11398,16 @@ def zsh(subject=None):
       add-zsh-hook chpwd chpwd_dirhistory    {c('dirhistory plugin')}
       {c('Available hooks:')}
       chpwd             {c('Current dir changed')}
-      preexec           {c('Before command is executed')}
+      preexec           {c('After command is read, before it is executed')}
       precmd            {c('After command executed, before prompt is displayed')}
-      periodic          {c('Every time you display a prompt (?), every $PERIOD seconds')}
-      zshaddhistory     {c('Just before line is added to history')}
+      periodic          {c('Every time you display a prompt (?), every $PERIOD seconds. periodic_functions')}
+      zshaddhistory     {c('Executed when a history line has been read interactively, but before it is executed.')}
+                          {c('Exit 1 prevents saving to file. Exit 2 saves to internal history, but not to file.')}
       zshexit           {c('Just before zsh exits')}
       zsh_directory_name    {c('directory name conversion by Dynamic named directories')}
     
     {h3('Hook arrays')}
-      precmd_functions preexec_functions zshexit_functions
+      precmd_functions preexec_functions zshexit_functions periodic_functions
       {c('Examples:')}
       precmd_functions+=(my_precmd_function)
       _p9k_precmd
