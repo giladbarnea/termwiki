@@ -2773,6 +2773,22 @@ def cython(subject=None):
   {_BUILD}
   """
 
+@syntax
+def dendron(subject=None):
+    _LINKS = f"""{h2('Links')}
+  Named:
+  [[Conclude the Tutorial|tutorial.5-conclusion]]
+  
+  Inline ref:
+  ![[tutorial#welcome-to-dendron:#*]]
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('dendron')}
+  {_LINKS}
+  """
 
 @syntax
 def desktop(subject=None):

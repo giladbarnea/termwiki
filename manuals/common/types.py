@@ -1,7 +1,7 @@
 from typing import Protocol, Literal
 
 Style = Literal['default', 'algol_nu', 'friendly', 'fruity', 'inkpot', 'monokai', 'native', 'solarized-dark']
-Language = Literal['ahk', 'bash', 'css', 'docker', 'ini', 'ipython', 'js', 'json', 'mysql', 'python', 'rst', 'sass', 'toml', 'ts']
+Language = Literal['ahk', 'bash', 'css', 'docker', 'ini', 'ipython', 'js', 'json', 'md', 'mysql', 'python', 'rst', 'sass', 'toml', 'ts']
 
 class ManFn(Protocol):
     sub_topics: set[str]

@@ -17,6 +17,7 @@ from pygments.lexers import (
     IniLexer,
     JavascriptLexer,
     JsonLexer,
+    MarkdownLexer,
     MySqlLexer,
     PythonLexer,
     RstLexer,
@@ -55,6 +56,8 @@ def __get_lexer_ctor(lang: Language) -> Type[Lexer]:
         return JavascriptLexer
     if lang == 'json':
         return JsonLexer
+    if lang in ('md', 'markdown'):
+        return MarkdownLexer
     if lang == 'mysql':
         return MySqlLexer
     if lang == 'python':
@@ -80,7 +83,7 @@ def _get_lexer(lang: Language):
     return lexers[lang]
 
 
-def __get_color_formatter(style: Style = None):
+def __get_color_formatter(style: Style):
     # default
     # friendly (less bright than native. ipython default)
     # native (like defualt with dark bg)
@@ -89,8 +92,6 @@ def __get_color_formatter(style: Style = None):
     # inkpot
     # monokai (good for ts)
     # fruity
-    if style is None:
-        style = 'monokai'
     global formatters
     formatter = formatters.get(style)
     if formatter is None:
@@ -103,10 +104,10 @@ def __get_color_formatter(style: Style = None):
 def _highlight(text: str, lang: Language, style: Style = None) -> str:
     # print(f'{lang = !r} | {style = !r}')
     lexer = _get_lexer(lang)
-    if style is None:
-        if lang == 'js':
+    if not style:
+        if lang in 'js':
             style = 'default'
-        elif lang in ('ts', 'bash', 'ipython', 'json'):
+        else:
             style = 'monokai'
     formatter = __get_color_formatter(style)
     highlighted = pygments_highlight(text, lexer, formatter)
@@ -115,11 +116,11 @@ def _highlight(text: str, lang: Language, style: Style = None) -> str:
 
 # *** Decorators
 
-def alias(_alias: str):
+def alias(_alias: str) -> Callable[[ManFn], ManFn]:
     """Sets `fn.alias = _alias` to decorated function.
     Used when populating MAIN_TOPICS as an additional key to function."""
 
-    def wrap(fn: ManFn):
+    def wrap(fn: ManFn) -> ManFn:
         fn.alias = _alias
         return fn
 
