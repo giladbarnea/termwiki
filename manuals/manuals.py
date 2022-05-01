@@ -190,16 +190,22 @@ def altair(subject=None):
     {_MISC}
     """
 
-
+@alias('stress')
 def anxiety(subject=None):
-    return f"""{h1('Anxiety')}
+    _BREATH = _BREATHING = f"""{h2('Breathing Techniques')}
+    {h2('Physiological Sigh (Huberman)')}
+      {c('https://youtu.be/ntfcfJ28eiU?t=1877')}
+      1 deep (rather quick) inhale, 1 quick inhale, 1 long exhale. 
+    """
+    return f"""{h1('Anxiety / Stress')}
     {h2('Mark Manson: 5 Quick Ways to Get Rid of Anxiety')}
       {c('https://www.youtube.com/watch?v=m6rcjY8YHJc')}
       Emotions are expressed in body and bad feelz can become habits.
       {h3('1. Breath')}: diaphragm, belly, maybe hold
       {h3('2. Meditate')}
       {h3('3. Talk to someone')}: repeated thoughts in head amplify. Sharing stops repetition.  
-      {h3('4. Negative Visualization')} (worst case + imagine how I'd handle, prob ok. stoicism?)  
+      {h3('4. Negative Visualization')} (worst case + imagine how I'd handle, prob ok. stoicism?)
+    {_BREATH}  
     """
 
 
@@ -1098,15 +1104,43 @@ def bash(subject=None):
       -R
 
     {h2('chmod')} {c('[OPTION]... MODE[,MODE]... FILE...')}
-      recursively: chmod 777 */*.py
+      recursively: chmod 777 */*.py 
       {h3('MODE')}
         ugo   {c('user, group, other')}
         4     {c('read')}
         2     {c('write')}
         1     {c('execute')}
-
-        chmod 756 → [rwx][r-x][rw-]
-                    user  grp  othr
+        
+        {h4('For dirs:')}
+        r     {c('View listing')}
+        w     {c('Edit listing (create, rename or delete files)')}
+        x     {c('Resolve listing ("enter" or "go through" directory)')}
+        
+        {h4('Dirs vs files:')}
+        Given dir/file.txt:
+        %bash
+        chmod 000 dir/file.txt
+        cat dir/file.txt          # error    
+        rm dir/file.txt           # fine, because like `del dir['file.txt']`, we're only interfacing with the dir 
+        echo "hi" > dir/file.txt  # fine, because like `dir['file.txt'] = "hi"`
+        
+        chmod -w dir
+        cat dir/file.txt          # fine
+        rm dir/file.txt           # error
+        
+        chmod -x dir
+        ls dir                    # fine
+        cd dir                    # error
+        cat dir/file.txt          # error, because like `print(dir['file'])`; to read, we need dir to resolve file ref to actual file
+        /%bash
+        
+        {h4('Examples:')}
+        %bash
+        chmod 756        # [rwx][r-x][rw-]
+                         # user  grp  othr
+        chmod u+x,g-w,o=r       # add execute to user, remove write from group, set other to read
+        chmod -w dir            # remove write from dir
+        /%bash
 
     {h2('chown')} {c('[OPTION]... [OWNER][:GROUP] FILE...')}
       chown gilad:gilad -R .git
@@ -1259,6 +1293,8 @@ def bash(subject=None):
         # Single line
           compdef _git git.my-commits=git-log
           compdef cmd1=cmd2                     # apply completions of cmd2 to cmd1
+          compdef proc.killgrep=pgrep           # same
+          compdef _pgrep proc.killgrep          # same
           compdef _my_comp_fn my_fn
           compdef '_my_comp_fn arg1 arg2' my_fn
 
@@ -2734,6 +2770,7 @@ def cython(subject=None):
     else:
         return f"""{h1('cython')}
   {_CYTHONIZE}
+  {_BUILD}
   """
 
 
@@ -3452,20 +3489,46 @@ def ffmpeg(subject=None):
     ffmpeg -i vid.mkv-map 0:s:0 vid.srt
     """
     _AUDIO = f"""{h2('Audio')}
-    {h3('reduce filesize')}
-    ffmpeg -i input.mp3 -map 0:a:0 -b:a 96k output.mp3
+    {h3('Analyze volume')}
+      ffmpeg -i input.mp3 -af "volumedetect" -f null /dev/null    {c('add -vn -sn -dn if video')}
 
-    {h3('compress')}
-    ffmpeg -i input.mp3 -filter_complex 'compand=attacks=0:points=3/1' output.mp3
-    compand=attacks=0:points=-30/-900|-20/-20|0/0|20/20
-    compand=attacks=0:points=-80/-900|-45/-15|-27/-9|-5/-5|20/20
-    compand=attacks=0:points=-80/-900|-45/-15|-27/-9|0/-7|20/-7:gain=5
+    {h3('Volume gain')}
+      -af "volume=5db"
+      -af "acompressor=...:makeup=5"    {c('1 to 64, default 1')}
 
-    attacks, decays, soft-knees, gain, volume, delay, release
+    {h3('Reduce filesize')}
+      ffmpeg -i input.mp3 -map 0:a:0 -b:a 96k output.mp3
 
-    {h3('remove audio track')}
-    ffmpeg -i vid.mp4 -c:v copy -an vid-no-audio.mp4
+    {h3('Compress')}
+      {i('acompressor')}
+        {c('https://ffmpeg.org/ffmpeg-all.html#acompressor')}
+        -af "acompressor=threshold=0.9:ratio=20:attack=0.01:release=1:knee=1"
+
+      {i('compand')}
+        ffmpeg -i input.mp3 -filter_complex 'compand=attacks=0:points=3/1' output.mp3
+        compand=attacks=0:points=-30/-900|-20/-20|0/0|20/20
+        compand=attacks=0:points=-80/-900|-45/-15|-27/-9|-5/-5|20/20
+        compand=attacks=0:points=-80/-900|-45/-15|-27/-9|0/-7|20/-7:gain=5
+
+        attacks, decays, soft-knees, gain, volume, delay, release
+
+      {i('dynaudnorm')}
+        {c('https://ffmpeg.org/ffmpeg-all.html#dynaudnorm')}
+        p, peak       {c('0 to 1')}
+        m, maxgain    {c('1.0 to 100.0. Default 10.0')}
+        g, gaussize   {c('3 to 301, only odd numbers. Default 31. Larger = more smoothing.')}
+        f, framelen   {c('10 to 8000 ms. Default 5000.')}
+        s, compress   {c('0.0 to 30.0. Default 0.0. Smaller = more compression.')}
+        t, threshold  {c('Frames below this value are ignored. Default 0 (nothing ignored).')}
+        r, targetrms  {c("0.0 to 1.0. Default 0.0 (disabled). Honor frame's root mean square across frames, more uniform.")}
+        ...
+
+        ffmpeg -i input.m4a -af "dynaudnorm=p=1:m=100:s=12:g=15:r=1" output.m4a
+
+    {h3('Remove audio track')}
+      ffmpeg -i vid.mp4 -c:v copy -an vid-no-audio.mp4
     """
+
     __CONCAT = f"""{h3('Concat')}
       {c('Has to convert to .ts first')}
       ffmpeg -i vid1.mp4 -c copy -bsf:v h264_mp4toannexb -f mpegts tmp1.ts && \\
@@ -6507,6 +6570,47 @@ def netstat(subject=None):
         
         """
 
+def networks(subject=None):
+    _TL = f"""{h2('Transport Layer')}
+    Web servers listen on 80 or 443.
+    SSH servers listen on 22, FTP servers on 21.
+    If my Chrome was allocated 65535, that's how you know which process the received packet belongs to.
+    GitHub Copilot suggested:
+    TCP (Transmission Control Protocol) is a connection-oriented protocol.
+    UDP (User Datagram Protocol) is a connectionless protocol.
+    Gittik says both are responsible for connecting the ports on both sides.
+    """
+
+    _NAT = f"""{h2('Network Address Translation (NAT)')}
+  Gateway hides private network behind a public IP address.
+  Router manages private network; modem connects to ISP.
+  Local IP: 10.0.01, 10.0.0.2, ... or 192.168.0.101, 192.168.0.102 
+  Default gateway IP: 10.0.0.138, 192.168.0.1
+  Router IP: something real, e.g 89.139.162.170
+  localhost: 127.0.0.1
+  
+  {h3('Subnets')}
+    Gateway defines subnets.
+    10.0.0.0/24    {c('First 24 bits (10.0.0) are constant, last 8 bits vary (last 0)')}
+      10.0.0.1, 10.0.0.2, ..., 10.0.0.255  {c('2^8 = 256')}
+      Subnet mask: 255.255.255.0
+      If IP & mask == subnet, then target device is on the same local subnet. E.g:
+      10.0.0.1 wants to reach 10.0.0.2, then 
+      255.255.255.0 & 10.0.0.2 == 10.0.0.0 == subnet
+      Otherwise, we ask gateway to forward the packet to the target device. 
+    
+    10.0.0.0/16    {c('First 16 bits (10.0) are constant, last 16 bits vary (last 0.0)')}
+      10.0.0.1, 10.0.8.14
+      Subnet mask: 255.255.0.0
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('networks')}
+  {_NAT}
+  {_TL}
+  """
 
 @syntax
 def node(subject=None):
@@ -8414,6 +8518,7 @@ def python(subject=None):
     {h3('getLogger(name=None)')}
       {c('Returns Logger.manager.getLogger(name) if name else root')}
     """
+
     _MAGIC = _DUNDER = f"""{h2('Magic / Dunder methods')}
     {h3('__dict__ dir / vars / inspect.getmembers')}
     dir(Console) == inspect.getmembers(Console)
@@ -8524,6 +8629,15 @@ def python(subject=None):
         >>> re.match(r'(.(?!notes))*', 'hello-notes-hi')
         {i(c("hello"))}
 
+    """
+    _SOCKETS = f"""{h2('sockets')}
+  {h3('Examples')}
+    %python
+    import socket
+    server = socket.socket()
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # clear port for use on process exit / crash
+    server.bind(('0.0.0.0', 8080)) # 0.0.0.0 means all interfaces (everyone)
+    /%python
     """
     _SUBPROCESS = _POPEN = f"""{h2('subprocess')}
 
@@ -8658,6 +8772,8 @@ def python(subject=None):
 
   {_CMD}
   
+  {_COMPILE}
+  
   {_CONTEXTMANAGER}
   
   {_DATE}
@@ -8685,6 +8801,8 @@ def python(subject=None):
   {_PATHLIB}
 
   {_REGEX}
+  
+  {_SOCKETS}
 
   {_SUBPROCESS}
   
@@ -11094,8 +11212,8 @@ def youtube_dl(subject=None):
     --mark-watched
     
     {h3('Playlist')}
-      --yes-playlist             {c('Download playlist even if url points to vid')}
-      --playlist-start=15        {c('Download starting from part ⟨PART⟩')}
+      --{{yes,no}}-playlist             {c('Download playlist even if url points to vid')}
+      --playlist-{{start,end}}=15        {c('Download starting from part ⟨PART⟩')}
       --playlist-items '1-3,7,10-13'
       --flat-playlist            {c('only list playlist files, dont download')}
   
@@ -11127,7 +11245,15 @@ def youtube_dl(subject=None):
     youtube-dl {literal_backslash}
                $(cat /home/gilad/.config/youtube-dl/config | tr $'{literal_linebreak}' ' ') {literal_backslash}
                'PLNmW52ef0uwtUY4OFRF0eV1mlT5lKhe_j'
+    
+    command ls *.mp4 | map 'nosuffix="${{item%.*}}"; [[ ! -f "${{nosuffix}}.mkv" ]] && ffmpeg -i "${{nosuffix}}.mp4" -i "${{nosuffix}}.m4a" -c copy "${{nosuffix}}.mkv"'
     /%bash
+    
+    %python
+    from pathlib import Path, os
+    for mp4 in Path('.').glob('**/*.mp4'):
+        os.system(f'ffmpeg -i "{{mp4}}" -i {{mp4.with_suffix(".m4a")}} -c copy {{mp4.with_suffix(".mkv")}}')
+    /%python
     """
 
 

@@ -260,6 +260,17 @@ def rich(manual: ManFn):
 
 
 def optional_subject(manual: ManFn):
+    """Allows manual to be called with or without a subject,
+    and does the 'return local subject var if specified else the whole manual' thing automatically.
+
+    Example::
+
+        @optional_subject
+        def django():
+            _ADMIN = "django admin"
+            return f"Django
+                {_ADMIN}"
+    """
     @wraps(manual)
     def decorate(subject=None):
         if not subject:
