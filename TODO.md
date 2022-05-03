@@ -24,11 +24,14 @@
   - [ ] properties
     - [ ] alias
     - [ ] sub_topics
-  
+- [ ] Infinite topic tree:
+  - [  ] a `python` **submodule** is a topic, and it contains functions which are subtopics etc
+
 # Bugs
 - [ ] `mm bash --list` prints `_args` and `_arguments` as separate. should display `_args, _arguments`
 - [ ] `mm regex --list` errors because regex is a subtopic, should warn and print subtopic instead
 - [ ] `mm cmdl` shows one "Did you mean any of these? [0] cmd", and only after selection shows "Exists in several topics". Should sublist topics in first screen "cmd:\n[0]python cmd" etc
+- [ ] `mm --doctor` says `pytest` doesn't print `_CONFTEST` even though it's a substring of `pytest.config`
 
 # Separate man files
 - support a python / markdown hybrid? https://github.com/lark-parser/lark

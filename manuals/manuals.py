@@ -192,20 +192,60 @@ def altair(subject=None):
 
 @alias('stress')
 def anxiety(subject=None):
-    _BREATH = _BREATHING = f"""{h2('Breathing Techniques')}
-    {h2('Physiological Sigh (Huberman)')}
-      {c('https://youtu.be/ntfcfJ28eiU?t=1877')}
-      1 deep (rather quick) inhale, 1 quick inhale, 1 long exhale. 
-    """
-    return f"""{h1('Anxiety / Stress')}
-    {h2('Mark Manson: 5 Quick Ways to Get Rid of Anxiety')}
+    _TECHNIQUES = f"""{h2('Techniques')}
+    {h3('Mark Manson: 5 Quick Ways to Get Rid of Anxiety')}
       {c('https://www.youtube.com/watch?v=m6rcjY8YHJc')}
       Emotions are expressed in body and bad feelz can become habits.
-      {h3('1. Breath')}: diaphragm, belly, maybe hold
-      {h3('2. Meditate')}
-      {h3('3. Talk to someone')}: repeated thoughts in head amplify. Sharing stops repetition.  
-      {h3('4. Negative Visualization')} (worst case + imagine how I'd handle, prob ok. stoicism?)
-    {_BREATH}  
+      1. Breath: diaphragm, belly, maybe hold
+      2. Meditate
+      3. Talk to someone: repeated thoughts in head amplify. Sharing stops repetition.  
+      4. Negative Visualization (worst case + imagine how I'd handle, prob ok. stoicism?)
+
+    {h3('Breathing Techniques')}
+      {h4('Physiological Sigh (Huberman Stress & Anxiety #10)')}
+        {c('https://youtu.be/ntfcfJ28eiU?t=1877')}
+        1 deep (rather quick) inhale, 1 quick inhale, 1 long exhale. 
+    """
+
+    _DIET = _SUPPLEMENTS = f"""{h2('Diet / Supplements')}
+    {h4('Theanine')}
+      {c('https://examine.com/supplements/theanine/')}
+      · Increases relaxation          {c('Evidence: 3/4, effect: notable, consistency: very high (4)')}
+      · Decreases anxiety             {c('Evidence: 3/4, effect: minor,   consistency: low (8)')}
+      · Increases attention           {c('Evidence: 2/4, effect: minor,   consistency: very high (7)')}
+      · Decreases blood pressure      {c('Evidence: 2/4, effect: minor,   consistency: low (4)')}
+      · Increases sleep quality       {c('Evidence: 2/4, effect: minor,   consistency: very high (3)')}
+      · Decreases stress              {c('Evidence: 1/4, effect: notable, consistency: very high (2)')}
+      · Increases executive function  {c('Evidence: 1/4, effect: minor,   consistency: high (3)')}
+      · Executive function            {c('Evidence: 1/4, effect: minor,   consistency: high (3)')}
+      · Decreases HDL                 {c('Evidence: 1/4, effect: minor,   consistency: 1 study')}
+      · Helps fall asleep and depth of sleep
+      · Increases GABA
+      · Reduces task-completion anxiety (not good for procrastination)
+
+      Green tea: 6.5 mg/g (25 mg/cup), but 2.5x caffeine.
+      Researches with 200~400 mg/day, one positive with 50 mg. 
+      Has to be >= caffeine.
+
+    {h4('Ashwagandha')}
+      {c('https://examine.com/supplements/ashwagandha/')}
+      · Lowers anxiety          {c('Evidence: 3/4, effect: notable, consistency: very high (9)')}
+      · Increases testosterone  {c('Evidence: 3/4, effect: minor,   consistency: very high (7)')}
+      · Lowers cortisol         {c('Evidence: 2/4, effect: notable, consistency: very high (6)')}
+      · Lowers stress           {c('Evidence: 2/4, effect: notable, consistency: very high (5)')}
+      · Lowers fatigue          {c('Evidence: 2/4, effect: minor,   consistency: very high (4)')}
+      · Helps sleep
+      · Enhances GABA
+      · Antioxidant (+ glutathione peroxidase and superoxide dismutase; - lipid peroxidation) 
+      · Lowers cholesterol (up to 10%)
+
+      250-600+ mg/day
+    """
+
+    return f"""{h1('Anxiety / Stress')}
+    {_TECHNIQUES}
+
+    {_DIET}  
     """
 
 
@@ -1896,23 +1936,31 @@ def bash(subject=None):
     %bash 1
     sed -i '/# HIST_STAMPS="mm\/dd\/yyyy"/ a HISTSIZE=1000000' ~/.zshrc
 
-  {h2('Print specific line')}
-    %bash 1
+  {h2('Print')}
+    %bash
+    # Print specific line
     sed -n 10p /path/to/file
+    sed -n "1,8 p" file.txt
 
-  {h2('Print line num of match')}
-    %bash 1
+    # Print between two patterns
+    sed -n '/function docstring/,/local filepath/p' inspect.sh
+    
+    # Print from pattern +4 next lines
+    sed -n '/function docstring/,+4p' inspect.sh
+    
+    # Print line num of match
     cat -n /path/to/file | sed -n '/MATCH/p' | cut -d ' ' -f 1 | head -1 | xargs | cut -d ' ' -f 1
 
-  {h2('match.group(1)')}
-    %bash 2
+    # match.group(1)
     # syspy=/usr/local/bin/python3.9 -> /usr/local/bin/python3.9
-    alias | grep "syspy" | sed -n "s/syspy=\(.*\)/\1/p"
+    alias | grep "syspy" | sed -n "s/syspy=\(.*\)/\\1/p"
+    /%bash
 
-  {h2('Delete line from file')}
+  {h2('Delete')}
     %bash
     sed 'Nd' file                         # sed '1d' file | sed '1,3d' file
     sed '$d' file                         # last line
+    sed '1d;$d' file                      # first and last lines
     sed '2,4!d' file                      # all except lines 2 to 4
     sed '2;4d' file                       # only 2 and 4
     sed '/^$/d' file                      # empty lines
@@ -2769,6 +2817,7 @@ def cython(subject=None):
         return frame.f_locals[subject]
     else:
         return f"""{h1('cython')}
+  {c('https://www.peterbaumgartner.com/blog/intro-to-just-enough-cython-to-be-useful/')}        
   {_CYTHONIZE}
   {_BUILD}
   """
@@ -4714,7 +4763,7 @@ def kitty(subject=None):
       --override, -o <OPTION>	{c('-o background=gray')}
     """
 
-    _MARKER = _MARKS = f"""{h2('Marks')}
+    _MARKERS = _MARKS = f"""{h2('Marks')}
     {c('https://sw.kovidgoyal.net/kitty/marks/')}
     
     {h4('actions')}
@@ -4776,7 +4825,7 @@ def kitty(subject=None):
     _PANEL = f"""{h2('Panel')}
     {c('https://sw.kovidgoyal.net/kitty/kittens/panel/')}
 
-    kitty +kitten panel --lines=5 sh -c 'printf "\n\n\nHello, world."; sleep 5s'
+    kitty +kitten panel --lines=5 sh -c 'printf "{literal_linebreak * 3}Hello, world."; sleep 5s'
     
     --lines <LINES>			{c('default 1')}
     --columns <LINES>			{c('default 20')}
@@ -4801,7 +4850,7 @@ def kitty(subject=None):
   {_MOUSE}
   {_KEYBOARD}
   {_LAUNCH}
-  {_MARKS}
+  {_MARKERS}
   {_HINTS}
   {_PANEL}
   {_MISC}
@@ -6560,6 +6609,18 @@ def mysql(subject=None):
   {_UNION}
     """
 
+@syntax
+@alias('nc')
+def netcat(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('netcat / nc')}
+  nc -l 8000            nc 127.0.0.1 8000
+  Hello!                Hello!
+  Hey there.            Hey there.
+  """
 
 @syntax
 def netstat(subject=None):
@@ -8141,7 +8202,7 @@ def python(subject=None):
     {h2('compile')}
     
     """
-    _CTXMGR = _CTXMANAGER = _CONTEXTMANAGER = f"""{h2('Context Manager')}
+    _CONTEXTMANAGER = _CTXMGR = _CTXMANAGER = f"""{h2('Context Manager')}
     {h3('typing.Generator')}(Iterator[T_co], Generic[T_co, T_contra, V_co])
       %python
       # Generator[YieldType, SendType, ReturnType]
@@ -8649,10 +8710,23 @@ def python(subject=None):
     _SOCKETS = f"""{h2('sockets')}
   {h3('Examples')}
     %python
-    import socket
-    server = socket.socket()
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # clear port for use on process exit / crash
-    server.bind(('0.0.0.0', 8080)) # 0.0.0.0 means all interfaces (everyone)
+    import socket                                       conn = socket.socket()
+    server = socket.socket()                            conn.connect(('127.09.0.1', 8000))
+    # clear port for use on process exit / crash:       conn.getpeername()  # ('127.0.0.1', 8000)
+    server.setsockopt(socket.SOL_SOCKET,                conn.getsockname()  # ('127.0.0.1', 65535)
+                      socket.SO_REUSEADDR,              conn.sendall(b'Hello!')
+                      1)                                conn.recv(1024)     # b'Hey there.'
+    # 0.0.0.0 means all interfaces (everyone)           conn.close()
+    server.bind(('0.0.0.0', 8000))
+    server.listen(1000)
+    client, address = server.accept()
+    client.getpeername()  # ('127.0.0.1', 65535)
+    client.getsockname()  # ('127.0.0.1', 8000)
+    client.recv(1024)     # b'Hello!'
+    client.sendall(b'Hey there.')
+    client.close()
+    server.close()
+    
     /%python
     """
     _SUBPROCESS = _POPEN = f"""{h2('subprocess')}
@@ -8730,6 +8804,10 @@ def python(subject=None):
                 b = Popen(["b"], stdin=a.stdout, stdout=outfile)
             a.stdin.write(b"input data")
         statuses = [a.wait(), b.wait()] # both a.stdin/stdout are closed already
+    """
+    _TRACEBACK = f"""{h2('traceback')}
+    {c('https://docs.python.org/3/library/traceback.html')}
+    traceback.extract_stack(f=None, limit=None) {c('→ StackSummary')}
     """
     _VERSIONS = _CHANGELOG = f"""{h2('versions')}
     {h3('3.9')}
@@ -8821,6 +8899,8 @@ def python(subject=None):
   {_SOCKETS}
 
   {_SUBPROCESS}
+  
+  {_TRACEBACK}
   
   {_VERSIONS}
         """
@@ -9927,6 +10007,7 @@ def sqlalchemy(subject=None):
         return f"""{h1('sqlalchemy')}
   {_ENGINE}
   {_RESULT_PROXY}
+  {_PRIMARY_KEY_CONSTRAINT}
   {_META}
   {_TABLE}
   {_COLUMN}
@@ -10088,14 +10169,6 @@ def tar(subject=None):
 
 
 @syntax
-def traceback(subject=None):
-    return f"""{h1('traceback')}
-    {c('https://docs.python.org/3/library/traceback.html')}
-    traceback.extract_stack(f=None, limit=None) {c('→ StackSummary')}
-    """
-
-
-@syntax
 def tree(subject=None):
     if subject:
         frame = inspect.currentframe()
@@ -10126,6 +10199,19 @@ def tree(subject=None):
     --sort <name|version|size|mtime|ctime>
   """
 
+def trich(subject=None):
+    _DIET = _SUPPLEMENTS = f"""{h2('Diet / Supplements')}
+    {h4('N-Acetylcysteine (NAC)')}
+      {c('https://examine.com/supplements/n-acetylcysteine/')}
+      Evidence: 2/4, effect: minor
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('Trichotillomania')}
+  {_DIET}
+  """
 
 @syntax
 @alias('ts')
@@ -11623,6 +11709,8 @@ def zsh(subject=None):
         return f"""{h1('zsh')}
   {c('http://zsh.sourceforge.net/Guide/zshguide04.html')}
 
+  {_ARRAY}
+  
   {_MISC}
   
   {_ZLE}
@@ -11632,6 +11720,8 @@ def zsh(subject=None):
   {_BINDKEY}
   
   {_HOOKS}
+  
+  {_SETOPT}
   
   {_ZPARSEOPTS}
   """
