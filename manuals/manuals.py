@@ -1866,6 +1866,11 @@ def bash(subject=None):
 
       $ printf %q $'\n'
       $'\n'
+    
+    {h2('Directives')}
+      printf %04d 42    # 0042
+      printf "% 4d" 42  #   42
+      printf "% 4s" hi  #   hi
     """
 
     _PS = _PKILL = _PGREP = _KILL = _SIGNAL = f"""{h1('Processes / Signals')}
@@ -10711,23 +10716,30 @@ def vagrant(subject=None):
 
 def vim(subject=None):
     _MODES = f"""{h2('Modes')}
-    normal → insert    A, a, C, I, i, O, o, S, s
-    normal → command   :
-    normal → command   v
-    any → normal       Esc
+    normal -> insert    A, a, C, I, i, O, o, S, s
+    normal -> command   :
+    normal -> command   v
+    any -> normal       Esc
     """
     _MOVEMENT = f"""{h2('Movement')}
     Keeps you in normal mode.
-    {h3('Character   Motion         Units')}
+    {h3('Character   Motion  Units')}
     h . . . . . ← . . . characters
     l . . . . . → . . . characters
     j . . . . . ↓ . . . lines
     k . . . . . ↑ . . . lines
 
+    :line_number
     $ . . . . . → . . . lines {c('(move to end of line)')}
     ^ . . . . . → . . . lines {c('(first non-blank char of line)')}
     g_  . . . . → . . . lines {c('(last non-blank)')}
     0 . . . . . ← . . . lines {c('(first char of line)')}
+
+    i . . . . . . . . . inside
+    a . . . . . . . . . around
+
+    ) . . . . . → . . . sentence
+    ( . . . . . ← . . . sentence
 
     b . . . . . ← . . . words
     B . . . . . ← . . . words
@@ -10736,21 +10748,23 @@ def vim(subject=None):
     e . . . . . → . . . Forward to the end of word inclusive
     E . . . . . → . . . Forward to the end of WORD inclusive
 
-    t<char> . . → . . . Till before <char> to the right
-    T<char> . . ← . . . Till before <char> to the left
-    f<char> . . → . . . Until <char> to the right
-    F<char> . . ← . . . Until <char> to the left
+    t{bg("<char>")} . . → . . . Till before <char> to the right
+    T{bg("<char>")} . . ← . . . Till before <char> to the left
+    f{bg("<char>")} . . → . . . Until <char> to the right
+    F{bg("<char>")} . . ← . . . Until <char> to the left
 
     ; . . . . . → . . . Repeat latest f, t, F or T times foward
     , . . . . . ← . . . Repeat latest f, t, F or T times backward
 
+    }} . . . . . → . . . paragraphs
+    {{ . . . . . ← . . . paragraphs
     < . . . . . ← . . . paragraphs
     > . . . . . → . . . paragraphs
-    
+
     H . . . . . ↑ . . . Top of screen
     M . . . . . . . . . Middle of screen
     L . . . . . ↓ . . . Bottom of screen
-    
+
     ctrl-d . .  ↓ . . . 1/2 screen
     ctrl-u . .  ↑ . . . 1/2 screen
     ctrl-b . .  ← . . . 1/2 screen
@@ -10763,9 +10777,21 @@ def vim(subject=None):
     zz  scroll the line with the cursor to the center of the screen
     zt  scroll the line with the cursor to the top
     zb  scroll the line with the cursor to the bottom
-
     """
     _MOVEMENT = re.sub(r'(?<=[^.])(\. )+', lambda match: black(match.group()), _MOVEMENT)
+    _VERBS = f"""{h2('Verbs')}
+    c     {c('Change')}
+    d     {c('Delete')}
+    y     {c('Yank (copy)')}
+    v     {c('Visually select (V for line vs. character)')}
+    p     {c('Paste')}
+    u     {c('Undo')}
+    g~    {c('Swap case')}
+    gu    {c('To lowercase')}
+    gU    {c('To uppercase')}
+    <     {c('Shift left')}
+    >     {c('Shift right')}
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -10773,49 +10799,45 @@ def vim(subject=None):
         return f"""{h1('vim')}
   {c('https://factorpad.com/tech/vim-cheat-sheet.html')}
   {c('https://www.fprintf.net/vimCheatSheet.html')}
-  Command structure:    {i('[count][operator]motion')}
+  {c('https://danielmiessler.com/study/vim/#files')} <- very friendly
+  Command structure:    {i('[count][operator]movement')}
 
   {h2('Counts')}
-    A count requires an operator and / or a motion.
+    A count requires an operator and / or a movement.
     1-9 are normal counts; 0 moves cursor to first col of line
 
   {_MODES}
-  {h2('Operators')}
-    c     {c('Change')}
-    d     {c('Delete')}
-    g~    {c('Swap case')}
-    gu    {c('To lowercase')}
-    gU    {c('To uppercase')}
-    y     {c('Yank (copy)')}
-    p     {c('Paste')}
-    u     {c('Undo')}
-    <     {c('Shift left')}
-    >     {c('Shift right')}
+
+  {_VERBS}
 
   {_MOVEMENT}
 
   {h2('Insertion')}
-    i    {c('Insert text before the cursor')}
-    I    {c('Insert text before the first character in the line')}
-    a    {c('Append text after the cursor')}
-    A    {c('Append text at the end of the line')}
-    o    {c('Insert new command line below the current one')}
-    O    {c('Insert new command line above the current one')}
-  
+    i    {c('Insert before cursor')}
+    I    {c('Insert before first character in line')}
+    a    {c('Append after cursor')}
+    A    {c('Append at end of line')}
+    o    {c('Open new line below current one')}
+    O    {c('Open new line above current one')}
+    r    {c('Replace 1 char under cursor')}
+    R    {c('Replace char under cursor and keep typing')}
+    s    {c('Substitute from where you are to the next command (noun)')}
+    S    {c('Substitute the entire current line')}
+
   {h2('Delete and Insert')}
     ctrl-h       {c('While in Insert mode: delete character before the cursor')}
     ctrl-w       {c('While in Insert mode: delete word before the cursor')}
-    d<motion>    {c('Delete text that <motion> moves over')}
+    d{bg("<movement>")}  {c('Delete text that <movement> moves over')}
     dd           {c('Delete line')}
     D            {c('Delete characters under the cursor until the end of the line')}
-    c<motion>    {c('Delete <motion> text and start insert')}
+    c{bg("<movement>")}  {c('Delete <movement> text and start insert')}
     cc           {c('Delete line and start insert')}
     C            {c('Delete to the end of the line and start insert')}
-    r<char>      {c('Replace the character under the cursor with <char>')}
+    r{bg("<char>")}      {c('Replace the character under the cursor with <char>')}
     R            {c('Enter replace mode: Each character replaces existing one')}
     x            {c('Delete count characters under and after the cursor')}
     X            {c('Delete count characters before the cursor')}
-  
+
   {h2('Examples')}
     yiw    {c('yank current word (excluding surrounding whitespace)')}
     yaw    {c('yank current word (including leading or trailing whitespace)')}
@@ -10823,7 +10845,8 @@ def vim(subject=None):
     yfx    {c('yank from the current cursor position up to and including the character (Find x)')}
     yTx    {c('yank backward up to character')}
     yFx    {c('backward through character')}
-  
+    ct?    {c('change up to question mark')}
+
   {h2('Registers')}
     :h registers    {c('help')}
     "*              {c('system clipboard; so `"*y$` copies to line end to sys clpbrd, `"*p` pastes')}
@@ -11479,9 +11502,102 @@ def zsh(subject=None):
     print -l ${{(s.:.)PATH}}
     
     # Joining
-    arr=(one two three); echo ${{(j.:.)arr}}    # one:two:three
+    arr=(one two three)
+    ${{(j.:.)arr}}       # one:two:three
+    ${{(j. and .)arr}}   # one and two and three
+    
+    # Z'ing
+    ?
+    
+    # Indexing
+    ${{arr[1,2]}}        # one two
     /%bash
     """
+
+    _VARS = _EXPANSION = f"""{h2('Variables / Strings / Parameter Expansion')}
+    {c('https://zsh.sourceforge.io/Doc/Release/Expansion.html#Parameter-Expansion-Flags')}
+    
+    #
+    %
+    @   {c('Split into an array')}
+    A   {c('Array expansion')}
+        %bash 1
+        ❯ ${{${{(A)name}}[1]}}
+    a   {c('Sort in array index order')}
+    a0  {c('Sort in reverse index order')}
+    b   {c('Backslash pattern matching characters')}
+        %bash
+        ❯ name='${{(@)name}}'
+        ❯ ${{(b)name}}
+        ${{\(@\)name}}
+        /%bash
+    c   {c('Count characters in an array, as if elements space separated (With ${#name})')}
+    C   {c('Capitalize resulting words')}
+    D   {c('Expand ~ in elements')}
+    E   {c('Single word shell expansion')}
+    f   {c(f'Split expansion at newlines. Shorthand for ‘ps:{literal_linebreak}:’')}
+    F   {c(f'Join array words with newline. Shorthand for ‘pj:{literal_linebreak}:’')}
+    g:opts:   {c('Process escape sequences like the echo builtin')}
+    i   {c('Sort case-insensitively. May be combined with ‘n’ or ‘O’.')}
+    k   {c('Keys of array. Can be combined with ‘v’.')}
+    L   {c('To lowercase')}
+    n   {c('Sort numbers. May be combined with ‘i’ or ‘O’.')}
+    o   {c('Sort ascending order')}
+    O   {c('Sort descending order')}
+    P   {c('Value of parameter is interpreted as a parameter name')}
+        %bash
+        ❯ foo=bar
+        ❯ bar=baz
+        ❯ ${{(P)foo}}
+        baz
+        /%bash    
+    q   {c('Quote')}
+        %bash
+        ❯ name='hi "bye"'
+        ❯ ${{(q)name}}
+        hi{literal_backslash} {literal_backslash}"bye{literal_backslash}"
+        ❯ ${{(qq)name}}    
+        'hi "bye"'
+        ❯ ${{(qqq)name}}   
+        "hi {literal_backslash}"bye{literal_backslash}""
+        ❯ ${{(qqqq)name}}
+        $'hi "bye"'
+        ❯ ${{(q-)name}}   # minimal single quoting
+        ❯ ${{(q+)name}}   # extended minimal quoting, unprintable characters rendered $’...’
+        /%bash    
+    Q   {c('Remove one level of quoting')}
+        %bash
+        ❯ name='hi "bye"'
+        ❯ ${{(Q)name}}
+        hi bye
+        ❯ ${{(Qq)name}}
+        hi "bye"
+        /%bash    
+    t   {c('Type of parameter')}
+        local         {c('local parameters')}
+        left          {c('left justified parameters')}
+        right_blanks  {c('right justified parameters with leading blanks')}
+        right_zeros   {c('right justified parameters with leading zeros')}
+        lower         {c('parameters whose value is converted to all lower case when it is expanded')}
+        upper         {c('parameters whose value is converted to all upper case when it is expanded')}
+        readonly      {c('readonly parameters')}
+        tag           {c('tagged parameters')}
+        export        {c('exported parameters')}
+        unique        {c('arrays which keep only the first occurrence of duplicated values')}
+        hide          {c('parameters with the ‘hide’ flag')}
+        hideval       {c('parameters with the ‘hideval’ flag')}
+        special       {c('special parameters defined by the shell')}   
+    P   {c('Only first occurrence of each unique word')}        
+    U   {c('To uppercase')}
+    v   {c('Values of array. Can be combined with ‘k’.')}
+    V   {c('Make special characters visible')}
+    w   {c('Count words in array or string. May be combined with ‘s’ to set word delimiter (With ${#name})')}
+    W   {c('Like w but also counts empty words between delimiters')}
+    X   {c('Something about errors')}
+    z   {c('Split result into words based on shell parsing (i.e. taking into account any quoting.)')}
+    0   {c(f'Split result on null bytes. Shorthand for ‘ps:{literal_backslash}0:’')}
+    """
+
     _ZLE = f"""{h2('zle')} - Z-Shell Line Editor
     {c('https://web.cs.elte.hu/zsh-manual/zsh_14.html')}
     {c('https://github.com/mskar/setup/blob/5d9dddd447a05e8d866b9c09b06a085f02e41bd3/.zshrc#L686')}
@@ -11490,32 +11606,31 @@ def zsh(subject=None):
     zle accept-line
     zle -N <function>   {c('Looks like $BUFFER, $LBUFFER, $CURSOR available in function (sudo plugin)')}
     """
-
+    _PRINT = f"""{h3('print')}
+    {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
+    {h4('options')}
+      -a            {c('Only with -c/-C; col incr first')}
+      -b            {c('Recognize escape sequences defined for bindkey')}
+      -C COLS       {c('Print in COLS columns (row incr first unless -a)')}
+      -c            {c('Print in columns (row incr first unless -a)')}
+      -D            {c('Treat args as path, replace with ~')}
+      -i            {c('With -o/-O, sort case insensitively')}
+      -m            {c('First arg is a filter (pattern) to remove args that dont match it')}
+      -n            {c('No newline at end')}
+      -N            {c('Null-terminated and separated arguments')}
+      -o            {c('Sort ascending')}
+      -O            {c('Sort descending')}
+      -p            {c('Print to input of the coprocess')}
+      -P            {c('Prompt expansion')}
+      -r            {c('Ignore echo escpae conventions')}
+      -R            {c('Emulate echo')}
+      -s            {c('Store in history instead of stdout. Can many args.')}
+      -S            {c('Store in history instead of stdout. Only one arg allowed.')}
+      -u FILEDESC   {c('Print to file descriptor FILEDESC')}
+      -v VARNAME    {c('Store printed result as val of VARNAME')}
+      -z            {c('Put args in editing buffer, space-separated')}
+    """
     _MISC = f"""{h2('zsh misc.')}
-    {h3('print')}
-      {c('http://zsh.sourceforge.net/Guide/zshguide03.html#l33')}
-      {h4('options')}
-        -a            {c('Only with -c/-C; col incr first')}
-        -b            {c('Recognize escape sequences defined for bindkey')}
-        -C COLS       {c('Print in COLS columns (row incr first unless -a)')}
-        -c            {c('Print in columns (row incr first unless -a)')}
-        -D            {c('Treat args as path, replace with ~')}
-        -i            {c('With -o/-O, sort case insensitively')}
-        -m            {c('First arg is a filter (pattern) to remove args that dont match it')}
-        -n            {c('No newline at end')}
-        -N            {c('Null-terminated and separated arguments')}
-        -o            {c('Sort ascending')}
-        -O            {c('Sort descending')}
-        -p            {c('Print to input of the coprocess')}
-        -P            {c('Prompt expansion')}
-        -r            {c('Ignore echo escpae conventions')}
-        -R            {c('Emulate echo')}
-        -s            {c('Store in history instead of stdout. Can many args.')}
-        -S            {c('Store in history instead of stdout. Only one arg allowed.')}
-        -u FILEDESC   {c('Print to file descriptor FILEDESC')}
-        -v VARNAME    {c('Store printed result as val of VARNAME')}
-        -z            {c('Put args in editing buffer, space-separated')}
-    
     {h3('emulate')}
       emulate -L zsh
       emulate -RL zsh
@@ -11580,12 +11695,17 @@ def zsh(subject=None):
     
       
       ############################
-      
       zparseopts -D -E - f:=fname
       foo -f myname     # fname[1]: -f | fname[2]: myname
     
       
       ############################
+      
+      zparseopts -D -E - f+:=fname
+      foo -f name1 -f name2     # fname=( -f name1 -f name2 )
+    
+      
+      ############################      
       
       zmodload zsh/zutil
       zparseopts -D -E -F - a:=arg_val -arg:=arg_val f=flag -flag=flag {literal_backslash}
@@ -11709,6 +11829,8 @@ def zsh(subject=None):
         return f"""{h1('zsh')}
   {c('http://zsh.sourceforge.net/Guide/zshguide04.html')}
 
+  {_STRING}
+  
   {_ARRAY}
   
   {_MISC}
