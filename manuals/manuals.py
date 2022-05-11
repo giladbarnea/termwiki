@@ -8499,17 +8499,22 @@ def python(subject=None):
           except ValueError as ve:
               print("ValueError:", ve)
               yield float('nan')
-      
       /%python
+      
       %python
       >>> c = coro(10)
       >>> next(c)
       0
-      >>> c.send('Hello!')            # sent = 'Hello!'
+      >>> c.send('Hello!')            # 12| sent = 'Hello!'
       1
-      >>> c.throw(ValueError, "foo")  # ValueError: foo
+      >>> c.throw(ValueError, "foo")
       nan
+          # --> 11| sent = yield i
+          # --> 14| ValueError: foo
       >>> c.throw(ValueError, "me again")
+      ValueError: me again
+          # During handling of the above exception, another exception occurred:
+          # --> 15| yield float('nan')
       /%python    
     """
     _IMPORT = _MODULE = f"""{h2('Import System')}
