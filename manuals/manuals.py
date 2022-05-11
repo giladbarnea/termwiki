@@ -3534,9 +3534,14 @@ def ffmpeg(subject=None):
     {h3('between audio formats')}
     ffmpeg -i song.m4a -acodec lame_enc -aq 2 song.mp3
 
-    {h3('mp4 to gif')}
+    {h3('to gif')}
     ffmpeg -i vid.mp4 -f gif -s 960x540 -r 10 vid.gif
+    
+    # With palette (slow, large, high quality)
     ffmpeg -i vid.mp4 -filter_complex '[0:v] fps=30,scale=480:-1,split [a][b];[a] palettegen [p];[b][p] paletteuse' vid.gif
+    # or:
+    ffmpeg -i vid.mp4 -vf palettegen palette.png && {literal_backslash}
+    ffmpeg -i vid.mp4 -i palette.png -filter_complex 'split[s0][s1];[s0]palettegen=max_colors=32[p];[s1][p]paletteuse=dither=bayer' vid.gif
 
     {h3('video to audio')}
     ffmpeg -i input-video.avi -vn -acodec copy output-audio.aac
@@ -4088,8 +4093,9 @@ def git(subject=None):
     git config --global user.name giladbarnea
     git config --global user.email giladbrn@gmail.com
     
-    cd ~/ && printf '.idea\\n.vscode\\n.directory' > .gitignore_global
     git config --global core.excludesfile ~/.gitignore_global
+
+    git config --global pack.threads "6"
 
     {h3('credential')}
       {c('man gitcredentials')}
@@ -8205,22 +8211,7 @@ def python(subject=None):
     {h2('compile')}
     
     """
-    _CONTEXTMANAGER = _CTXMGR = _CTXMANAGER = f"""{h2('Context Manager')}
-    {h3('typing.Generator')}(Iterator[T_co], Generic[T_co, T_contra, V_co])
-      %python
-      # Generator[YieldType, SendType, ReturnType]
-      
-      def generatr() -> Generator[int, float, str]:
-          # `yield` blocks execution until `next(gen)` or `gen.send(value)` are called.
-          # Both `next(gen)` and `gen.send(value)` return whatever's on the right hand side of `yield`.
-          # Only `gen.send(value)` sets value to the var on the left hand side of `yield` (with `next` it's None).
-          # Return value is accessible via `StopIteration.value`.
-          sent = yield 0
-          round_send = round(sent)
-          sent = yield round_send
-          return sent
-      /%python
-    
+    _CONTEXTMANAGER = _CTXMGR = _CTXMANAGER = f"""{h2('Context Manager')}    
     {h3('contextlib.contextmanager')}(func) -> _GeneratorContextManager
       %python
       # _GeneratorContextManager returns `next(gen)` on enter, and calls `next(gen)` on exit.
@@ -8237,6 +8228,9 @@ def python(subject=None):
       with gen_ctx_mgr as yielded:
           print(yielded)    # "a"
       /%python
+    
+    {h4('See also')}
+      python generators
     """
     _DATE = _DATETIME = _TIME = _TZ = f"""{h2('date / datetime / time / timezone')}
   {h3('strftime')}(format)
@@ -8487,6 +8481,37 @@ def python(subject=None):
       10:>03d           {c('010')}
       f"{{mystr: >5}}"  {c('Like mystr.rjust(5)')}
     """
+    _GENERATORS = f"""{h2('Generators')}
+    {h3('typing.Generator')}(Iterator[T_co], Generic[T_co, T_contra, V_co])
+      %python --line-numbers
+      # Generator[YieldType, SendType, ReturnType]
+      
+      def coro() -> Generator[int, float, str]:
+          # `yield` blocks execution until `next(gen)` or `gen.send(value)` are called.
+          # Both `next(gen)` and `gen.send(value)` return whatever's on the right hand side of `yield`.
+          # Only `gen.send(value)` sets value to the var on the left hand side of `yield` (with `next` it's None).
+          # When function returns, a `StopIteration` exception is raised.
+          # Return value is accessible via `StopIteration.value` (or `StopIteration.args[0]`).
+          try:
+              for i in range(n):
+                  sent = yield 1
+                  print(f'{{sent = !r}}')
+          except ValueError as ve:
+              print("ValueError:", ve)
+              yield float('nan')
+      
+      /%python
+      %python
+      >>> c = coro(10)
+      >>> next(c)
+      0
+      >>> c.send('Hello!')            # sent = 'Hello!'
+      1
+      >>> c.throw(ValueError, "foo")  # ValueError: foo
+      nan
+      >>> c.throw(ValueError, "me again")
+      /%python    
+    """
     _IMPORT = _MODULE = f"""{h2('Import System')}
     {c("https://docs.python.org/3/reference/import.html")}
     %python
@@ -8662,10 +8687,10 @@ def python(subject=None):
 
     {h3('Groups')}
       {c('Find doubled words')}
-      >>> p = re.compile('\b(\w+)\s+\1\b')         {c('The')} \1 means "result of first group" {c('')}
+      >>> p = re.compile('\b(\w+)\s+\1\b')         {c(f'The {literal_backslash}1 means "result of first group"')}
       >>> p.search('Paris in the the spring').group()
       {c('the the')}
-
+      
     {h3('Non-capturing groups')}
       {c('capturing:')}
       >>> m = re.match("([abc])+", "abc")
@@ -8691,7 +8716,62 @@ def python(subject=None):
       >>> re.match(r'(?P<first>\w+) (?P<last>\w+)', 'Jane Doe')
       >>> m.groupdict()
       {i(c("{'first': 'Jane', 'last': 'Doe'}"))}
+    
+    {h3('Conditional groups')} (?(N/name)yes-pattern|no-pattern)    
+      {c('Numbered: if (1) matched, expect c, else expect d')}
+      >>> pattern = re.compile('(a)?b(?(1)c|d)')
+      >>> re.match(pattern, 'abc')
+      {c("<re.Match object; span=(0, 3), match='abc'>")}
+      >>> re.match(pattern, 'bc')   # None
+      >>> re.match(pattern, 'abd')  # None
+      >>> re.match(pattern, 'bd')
+      {c("<re.Match object; span=(0, 2), match='bd'>")}
+      
+      {c('Named: if <test> matched, expect c, else expect d')}
+      >>> pattern = re.compile('(?P<test>a)?b(?(test)c|d)')
+      >>> pattern.match('abc')
+      {c("<re.Match object; span=(0, 3), match='abc'>")}
+      >>> pattern.match('abd') # None
+      >>> pattern.match('bd')
+      {c("<re.Match object; span=(0, 2), match='bd'>")}
+    
+      {c('Comma-separated one,two,three, no matter the order')}
+      >>> pattern = re.compile(r'\b'
+                               r'(?:'
+                                 r'(?:(one)|(two)|(three))(?:,|\b)'
+                               r'){{3,}}'
+                               r'(?(1)|(?!))'
+                               r'(?(2)|(?!))'
+                               r'(?(3)|(?!))')      
+      >>> pattern.match('one,two,three')    {c('# <re.Match...>')}
+      >>> pattern.match('two,three,one')    {c('# <re.Match...>')}
+    
+    {h3('Match.expand')}
+      >>> re.search(r'w(.*)m', 'awesome').expand(r'[\1]')
+      {c('"[eso]"')}
+    
+    {h3('Backreference')}
+      {c('Referring to value of previously-defined group:')}
+      >>> re.match(r'(?P<first>\w+) (?P<last>\w+) (?P=last)', 'Jane Doe Doe')
+      >>> m.groupdict()
+      {i(c("{'first': 'Jane', 'last': 'Doe'}"))}
+      >>> re.sub(r'(\w+),(\w+)', r'\2,\1', 'good,bad 42,24')
+      {i(c("'bad,good 24,42'"))}
+      >>> re.sub(r'\[(\d+)\]', r'(\g<1>5)', '[52] apples and [31] mangoes')
+      {i(c("'(525) apples and (315) mangoes'"))}
+      >>> re.sub(r'(?P<fw>\w+),(?P<sw>\w+)', r'\g<sw>,\g<fw>', 'good,bad 42,24')
+      {i(c("'bad,good 24,42'"))}
+      >>> re.sub(r'\b(?P<dup>\w+)( (?P=dup))+\b', r'\g<dup>', 'aa a a a 42 f_1 f_1 f_13.14')
+      {i(c("'aa a 42 f_1 f_13.14'"))}
 
+    {h3('Flags')}
+      {c("For group:")}    
+      >>> re.findall('(?i:PYTHON)', 'python is great')
+      {c("['python']")}
+      {c("For whole regex:")}    
+      >>> re.findall('(?i)PYTHON', 'python is great')
+      {c("['python']")}    
+    
     {h3('Look')}
       {h4('behind')}
         (?<!a)b
@@ -8708,6 +8788,14 @@ def python(subject=None):
         {i(c("hello-"))}
         >>> re.match(r'(.(?!notes))*', 'hello-notes-hi')
         {i(c("hello"))}
+      
+      {h4('assertion')}
+        {c('Matches, but does not consume. Order does not matter.')}
+        >>> pattern = '(?=.*hi)(?=.*you)'
+        >>> re.match(pattern, 'hi how are you?')
+        {c("<re.Match object; span=(0, 0), match=''>")}
+        >>> re.match(pattern, 'you are how? hi!')
+        {c("<re.Match object; span=(0, 0), match=''>")}
 
     """
     _SOCKETS = f"""{h2('sockets')}
@@ -10886,6 +10974,24 @@ def vipe(subject=None):
     eval "$cmd"
     """
 
+@syntax
+def wget(subject=None):
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('wget')}
+%bash
+# Download a whole website
+wget {literal_backslash}
+  --recursive {literal_backslash}
+  --domains example.com {literal_backslash}
+  --page-requisites {literal_backslash}
+  --html-extension {literal_backslash}
+  --convert-links {literal_backslash}
+  "www.example.org"  
+/%bash
+  """
 
 @alias('wmc')
 def wmctrl(subject=None):
