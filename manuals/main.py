@@ -14,7 +14,7 @@ import click
 from manuals.common.click_extension import unrequired_opt
 from manuals.common.types import ManFn
 from manuals.consts import SUB_TOPIC_RE
-from manuals.formatting import h2
+from manuals.colors import h2
 
 
 def get_unused_subtopics(undecorated_main_topic_fn) -> list[str]:

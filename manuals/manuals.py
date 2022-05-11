@@ -4,30 +4,28 @@ import inspect
 import re
 
 from manuals.consts import literal_linebreak, literal_backslash
-from manuals.decorators import rich, syntax, optional_subject, alias
-from manuals.formatting import h1, h2, h3, h4, h5, b, c, i, black, bg
+from manuals.decorators import syntax, alias
+from manuals.colors import h1, h2, h3, h4, h5, b, c, i, black, bg
 
 EXCLUDE = set(locals()) | {'EXCLUDE'}
 
 
-# *** Manuals
-
-@rich
-def wow(subject=None):
-    _ADD = f"""{h2('add')} [-D, --dev] [-e, --editable] [-E, --extras EXTRAS...] [-G, --group GROUP ("defalut")] [--optional]
-      [--python PYTHON] [--platform PLATFORM] [--source SOURCE] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
-
-    Adds required packages to your pyproject.toml and installs them.
-
-    --lock      {c('Do not perform operations (only update the lockfile).')}
-    """
-    if subject:
-        frame = inspect.currentframe()
-        return frame.f_locals[subject]
-    else:
-        return f"""# r
-    {_ADD}
-    """
+# @rich
+# def wow(subject=None):
+#     _ADD = f"""{h2('add')} [-D, --dev] [-e, --editable] [-E, --extras EXTRAS...] [-G, --group GROUP ("defalut")] [--optional]
+#       [--python PYTHON] [--platform PLATFORM] [--source SOURCE] [--allow-prereleases] [--dry-run] [--lock] <NAME>...
+#
+#     Adds required packages to your pyproject.toml and installs them.
+#
+#     --lock      {c('Do not perform operations (only update the lockfile).')}
+#     """
+#     if subject:
+#         frame = inspect.currentframe()
+#         return frame.f_locals[subject]
+#     else:
+#         return f"""# r
+#     {_ADD}
+#     """
 
 
 def adhd(subject=None):
@@ -8138,7 +8136,7 @@ def python(subject=None):
     {h4('.set_defaults(...)')}
 
     {h4('add_subparsers(...)')}
-      %python friendly
+      %python friendly --line-numbers
       >>> subparsers: _SubParsersAction = argument_parser.add_subparsers()
       >>> checkout = subparsers.add_parser('checkout', aliases=['co'])
       >>> checkout.add_argument('foo')

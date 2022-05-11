@@ -19,13 +19,7 @@
 
 - [ ] `rich` markup (e.g. `[i]...[/]`)
   - [ ] see `rich/examples/log.py`
-- [ ] migrate to `prompt-toolkit`? or `rich.Prompt`?
-- [ ] Topic class
-  - [ ] properties
-    - [ ] alias
-    - [ ] sub_topics
-- [ ] Infinite topic tree:
-  - [  ] a `python` **submodule** is a topic, and it contains functions which are subtopics etc
+- [ ] migrate to `prompt-toolkit`? or `rich/Textual`?
 
 # Bugs
 - [ ] `mm bash --list` prints `_args` and `_arguments` as separate. should display `_args, _arguments`
@@ -33,6 +27,23 @@
 - [ ] `mm cmdl` shows one "Did you mean any of these? [0] cmd", and only after selection shows "Exists in several topics". Should sublist topics in first screen "cmd:\n[0]python cmd" etc
 - [ ] `mm --doctor` says `pytest` doesn't print `_CONFTEST` even though it's a substring of `pytest.config`
 
-# Separate man files
-- support a python / markdown hybrid? https://github.com/lark-parser/lark
-- [Scanner class](https://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/)
+---
+
+# Separate man files a.k.a Infinite topic tree
+## Markdown / Python hybrid
+- https://github.com/lark-parser/lark
+- https://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/
+### Inline gifs / images
+- `gif-for-cli`
+  - linux / macos.
+  - `pip install gif-for-cli; gif-for-cli ./foo.gif -c █`
+  - looks kinda bad, takes time to cache
+- kitty icat
+  - `kitty icat --align=left ./foo.gif`
+  - perfect
+## Brain dump
+- a `python` **submodule** is a topic, and it contains functions which are subtopics etc
+- aliases for everything, even subtopics. like rst directives?
+- (sub)topics can reference other (sub)topics (simple `import` maybe? or directive?)
+- "See also: blabla" is clickable (`Textual`)
+- in README.md: "optimized for zero mental overhead, specifically when getting to the info"
