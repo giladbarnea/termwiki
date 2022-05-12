@@ -1,7 +1,9 @@
-from manuals.colors import h4, c
+from manuals.colors import c
+
+
 def numeric():
     return f"""
-{h4('If returns NotImplemented, __r<op>__ is invoked (except __pow__):')}
+{c('If returns NotImplemented, __r<op>__ is invoked (except __pow__):')}
 __add__(self, other)           {c('+        ')}  __radd__(self, other)
 __sub__(self, other)           {c('-        ')}  __rsub__(self, other)
 __mul__(self, other)           {c('*        ')}  __rmul__(self, other)
@@ -17,7 +19,7 @@ __and__(self, other)           {c('&        ')}  __rand__(self, other)
 __xor__(self, other)           {c('^        ')}  __rxor__(self, other)
 __or__(self, other)            {c('|        ')}  __ror__(self, other)
 
-{h4('x += y <=> x = x.__iadd__(y). Otherwise, x.__[r]add__(y):')}
+{c('x += y <=> x = x.__iadd__(y). Otherwise, x.__[r]add__(y):')}
 __iadd__(self, other)          __imod__(self, other)
 __isub__(self, other)          __ipow__(self, other[, modulo])
 __imul__(self, other)          __ilshift__(self, other)

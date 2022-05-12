@@ -36,6 +36,7 @@ def get_unused_subtopics(undecorated_main_topic_fn) -> list[str]:
 
 
 def draw_out_decorated_fn(fn: ManFn) -> Callable:
+    # todo: use inspect.unwrap(), or fn.__wrapped__
     closure: tuple = fn.__closure__
     if not closure:
         # non-decorated functions' closure is None

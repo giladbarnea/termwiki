@@ -25,7 +25,7 @@ from pygments.lexers import (
     )
 
 from manuals.common.types import ManFn, Style, Language
-from manuals.consts import SYNTAX_HIGHLIGHT_START_RE, LANGS, SYNTAX_HIGHLIGHT_END_RE, WHITESPACE_RE, COLOR_RE
+from manuals.consts import SYNTAX_HIGHLIGHT_START_RE, LANGS, SYNTAX_HIGHLIGHT_END_RE, WHITESPACE_RE, COLOR_RE, IMPORT_RE
 from manuals.ipython_lexer import IPython3Lexer
 
 # https://help.farbox.com/pygments.html     <- previews of all styles
@@ -127,16 +127,17 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
     default_style = None
 
     def decorator(manual: ManFn):
+        manual.__handled_directives__ = True
         @wraps(manual)
-        def manual_that_handles_directives(subject=None):
+        def manual_that_handles_directives(subject=None) -> str:
 
             try:
                 ret = manual(subject)
             except TypeError as te:
                 if te.args and re.search(r'takes \d+ positional arguments but \d+ was given', te.args[0]):
                     ret = manual()
-                    import logging
-                    logging.warning('syntax() | ignored TypeError not enough pos arguments given')
+                    # import logging
+                    # logging.warning('syntax() | ignored TypeError not enough pos arguments given')
                 else:
                     raise
 
@@ -149,6 +150,7 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                 except IndexError:
                     break
                 if match := SYNTAX_HIGHLIGHT_START_RE.fullmatch(line.strip()):
+                    # ** `%mysql ...`:
                     groupdict = match.groupdict()
                     lang = groupdict['lang']
                     lines_to_highlight = groupdict['count'] and int(groupdict['count'])
@@ -214,7 +216,26 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                                 idx = j
                                 break
                             j += 1
-                else: # no SYNTAX_HIGHLIGHT_START_RE match
+
+                elif match := IMPORT_RE.fullmatch(line.strip()):
+                    # ** `%import ...`:
+                    from importlib import import_module
+                    groupdict = match.groupdict()
+                    import_path = groupdict['import_path']
+                    import_path, _, imported_manual_name = import_path.rpartition('.')
+                    full_import_path = 'manuals.man.' + import_path.removeprefix('manuals.man.')
+                    module = import_module(full_import_path)
+                    imported_manual = getattr(module, imported_manual_name)
+                    if hasattr(imported_manual, '__handled_directives__'):
+                        imported_text = imported_manual()
+                    else:
+                        directives_handling_imported_manual = syntax(imported_manual)
+                        imported_text = directives_handling_imported_manual()
+                    indent_level = _get_indent_level(line)
+                    indented_imported_text = indent(imported_text + '\n', ' ' * indent_level)
+                    highlighted_strs.append(indented_imported_text)
+
+                else: # regular line, no directives (SYNTAX_HIGHLIGHT_START_RE or IMPORT_RE)
                     highlighted_strs.append(line + '\n')
                 idx += 1
             stripped = ''.join(highlighted_strs).strip()
@@ -230,5 +251,5 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
         default_style = _manual_or_style
         return decorator
 
-    # e.g. `@syntax(python='friendly')` → **default_styles has value
+    # e.g. `@syntax(python='friendly')`, so `**default_styles` has value
     return decorator
