@@ -126,9 +126,9 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
     """
     default_style = None
 
-    def wrap(manual: ManFn):
+    def decorator(manual: ManFn):
         @wraps(manual)
-        def morewrap(subject=None):
+        def manual_that_handles_directives(subject=None):
 
             try:
                 ret = manual(subject)
@@ -146,7 +146,7 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
             while True:
                 try:
                     line = lines[idx]
-                except IndexError as e:
+                except IndexError:
                     break
                 if match := HIGHLIGHT_START_RE.fullmatch(line.strip()):
                     groupdict = match.groupdict()
@@ -164,8 +164,9 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                         else:
                             style = default_style  # may be None
 
-                    j = idx + 1
-                    if lines_to_highlight:  # e.g.: `%mysql 1`
+                    # * `%mysql 1`:
+                    if lines_to_highlight:
+                        # looks like this breaks %mysql 3 --line-numbers
                         for k in range(lines_to_highlight):
                             text = lines[idx + 1]
                             highlighted = _syntax_highlight(text, lang, style)
@@ -173,13 +174,18 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                             idx += 1
                         else:
                             idx += 1
-                            continue  # big while
+                            continue  # outer while
 
+                    # * `%mysql [friendly] [--line-numbers]`:
+                    # idx is where %python directive.
+                    # Keep incrementing j until we hit closing /%python.
+                    # Then highlight idx+1:j.
+                    j = idx + 1
                     while True:
                         try:
-                            nextline = lines[j]
-                        except IndexError as e:
-                            # no /%python → _syntax_highlight only first line
+                            next_line = lines[j]
+                        except IndexError:
+                            # no closing /%python -> _syntax_highlight only first line
                             # TODO: in setuppy, under setup(), first line not closing %bash doesnt work
                             #  Consider highlighting until end of string (better behavior and maybe solves this bug?)
                             text = lines[idx + 1]
@@ -189,9 +195,10 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                                 # highlighted = f'{j + 1}. {highlighted}'
                             highlighted_strs.append(highlighted)
                             idx = j
-                            break
+                            break # inner while
                         else:
-                            if HIGHLIGHT_END_RE.fullmatch(nextline.strip()):
+                            # If next_line is a closing /%python, break inner while
+                            if HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
                                 text = '\n'.join(lines[idx + 1:j])
                                 indent_level = _get_indent_level(text)
                                 dedented_text = dedent(text)
@@ -205,21 +212,21 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                                 idx = j
                                 break
                             j += 1
-                else:
+                else: # no HIGHLIGHT_START_RE match
                     highlighted_strs.append(line + '\n')
                 idx += 1
             stripped = ''.join(highlighted_strs).strip()
             return stripped
 
-        return morewrap
+        return manual_that_handles_directives
 
     if _manual_or_style is not None:
         if callable(_manual_or_style):
             # e.g. naked `@syntax`
-            return wrap(_manual_or_style)
+            return decorator(_manual_or_style)
         # e.g. `@syntax(python='friendly')`
         default_style = _manual_or_style
-        return wrap
+        return decorator
 
     # e.g. `@syntax(python='friendly')` → **default_styles has value
-    return wrap
+    return decorator
