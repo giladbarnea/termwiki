@@ -47,3 +47,4 @@
 - (sub)topics can reference other (sub)topics (simple `import` maybe? or directive?)
 - "See also: blabla" is clickable (`Textual`)
 - in README.md: "optimized for zero mental overhead, specifically when getting to the info"
+- mouseclick or kb shortcut to collapse / expand subtopics when shown
