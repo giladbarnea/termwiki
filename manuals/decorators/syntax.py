@@ -197,17 +197,19 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                             idx = j
                             break # inner while
                         else:
-                            # If next_line is a closing /%python, break inner while
                             if HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
                                 text = '\n'.join(lines[idx + 1:j])
-                                indent_level = _get_indent_level(text)
-                                dedented_text = dedent(text)
-                                highlighted = _syntax_highlight(dedented_text, lang, style)
-
                                 if enumerate_lines:
+                                    # pygments adds color codes to start of line, even if
+                                    # it's indented. Tighten this up before adding line numbers.
+                                    indent_level = _get_indent_level(text)
+                                    dedented_text = dedent(text)
                                     ljust = len(str(j - (idx + 1)))
+                                    highlighted = _syntax_highlight(dedented_text, lang, style)
                                     highlighted = _enumerate_lines(highlighted, ljust=ljust)
-                                highlighted = indent(highlighted, ' ' * indent_level)
+                                    highlighted = indent(highlighted, ' ' * indent_level)
+                                else:
+                                    highlighted = _syntax_highlight(text, lang, style)
                                 highlighted_strs.append(highlighted)
                                 idx = j
                                 break
