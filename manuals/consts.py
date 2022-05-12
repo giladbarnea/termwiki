@@ -12,17 +12,17 @@ pipe_sep_langs = "|".join(LANGS)
 pipe_sep_styles = "|".join(Style.__args__)
 
 
-HIGHLIGHT_START_RE = re.compile( # works for 1-5
+SYNTAX_HIGHLIGHT_START_RE = re.compile( # works for 1-5
         f'%(?P<lang>{pipe_sep_langs}) ?'
         f'((?P<count>\d) *|(?P<line_numbers>--line-numbers) *|(?P<style>{pipe_sep_styles}) *)*'
         )
-# print(HIGHLIGHT_START_RE.fullmatch('%python 2 --line-numbers'))  # 1
-# print(HIGHLIGHT_START_RE.fullmatch('%python --line-numbers 2'))  # 2
-# print(HIGHLIGHT_START_RE.fullmatch('%python --line-numbers'))    # 3
-# print(HIGHLIGHT_START_RE.fullmatch('%python 2'))                 # 4
-# print(HIGHLIGHT_START_RE.fullmatch('%python'))                   # 5
+# print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python 2 --line-numbers'))  # 1
+# print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python --line-numbers 2'))  # 2
+# print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python --line-numbers'))    # 3
+# print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python 2'))                 # 4
+# print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python'))                   # 5
 
-HIGHLIGHT_END_RE = re.compile(f'/%({pipe_sep_langs})')
+SYNTAX_HIGHLIGHT_END_RE = re.compile(f'/%({pipe_sep_langs})')
 SUB_TOPIC_RE = re.compile(r'_[A-Z\d_]*\s*=\s*(rf|fr|f)["\']{3}')
 WHITESPACE_RE = re.compile(r'\s+')
 COLOR_RE = re.compile(r'(\x1b\[(?:\d;?)*m)')

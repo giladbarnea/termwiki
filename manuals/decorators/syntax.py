@@ -25,7 +25,7 @@ from pygments.lexers import (
     )
 
 from manuals.common.types import ManFn, Style, Language
-from manuals.consts import HIGHLIGHT_START_RE, LANGS, HIGHLIGHT_END_RE, WHITESPACE_RE, COLOR_RE
+from manuals.consts import SYNTAX_HIGHLIGHT_START_RE, LANGS, SYNTAX_HIGHLIGHT_END_RE, WHITESPACE_RE, COLOR_RE
 from manuals.ipython_lexer import IPython3Lexer
 
 # https://help.farbox.com/pygments.html     <- previews of all styles
@@ -148,7 +148,7 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                     line = lines[idx]
                 except IndexError:
                     break
-                if match := HIGHLIGHT_START_RE.fullmatch(line.strip()):
+                if match := SYNTAX_HIGHLIGHT_START_RE.fullmatch(line.strip()):
                     groupdict = match.groupdict()
                     lang = groupdict['lang']
                     lines_to_highlight = groupdict['count'] and int(groupdict['count'])
@@ -197,7 +197,7 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                             idx = j
                             break # inner while
                         else:
-                            if HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
+                            if SYNTAX_HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
                                 text = '\n'.join(lines[idx + 1:j])
                                 if enumerate_lines:
                                     # pygments adds color codes to start of line, even if
@@ -214,7 +214,7 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                                 idx = j
                                 break
                             j += 1
-                else: # no HIGHLIGHT_START_RE match
+                else: # no SYNTAX_HIGHLIGHT_START_RE match
                     highlighted_strs.append(line + '\n')
                 idx += 1
             stripped = ''.join(highlighted_strs).strip()
