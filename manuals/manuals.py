@@ -8517,18 +8517,8 @@ def python(subject=None):
           # --> 15| yield float('nan')
       /%python    
     """
-    _IMPORT = _MODULE = f"""{h2('Import System')}
+    _IMPORT = _MODULE = f"""{h2('Import System / Modules')}
     {c("https://docs.python.org/3/reference/import.html")}
-    %python
-    __name__: str   # '__main__'
-    __loader__: SourceFileLoader
-    __package__: Optional[?]
-    __spec__: Optional[?]
-    __path__
-    __file__: str   # '/home/gilad/.config/JetBrains/PyCharm2021.2/scratches/scratch_32.py'
-    __cached__: Optional[?]
-    __doc__: Optional[str]
-    /%python
     """
 
     __LOGGING_FORMATTER = f"""{h3('Formatter(')}
@@ -8629,16 +8619,40 @@ def python(subject=None):
       {c('Returns Logger.manager.getLogger(name) if name else root')}
     """
 
-    _MAGIC = _DUNDER = f"""{h2('Magic / Dunder methods')}
+    _MAGIC = _DUNDER = _DATAMODEL = f"""{h2('Magic / Dunder / Data Model')}
+    {c('https://docs.python.org/3/reference/datamodel.html')}
+    {h3('Module dunders')}
+      %python
+      __doc__: Optional[str]
+      __name__: str   # '__main__'
+      __loader__: SourceFileLoader
+      __package__: Optional[?]
+      __spec__: Optional[?]
+      __path__
+      __file__: str   # '/abs/path/to/file.py'
+      __cached__: Optional[?]
+      __annotations__: dict
+      /%python    
+    
+    {h3('Comparison')}
+      Returning NotImplemented (also from numeric methods) makes interpreter
+      try the __r<op>__ method on the operands.
+    
+    {h3('Custom classes')}
+      Instance methods, not static methods, have __self__ attr (and __func__?)
+    
+    {h3('Numeric')}
+      %import python.datamodel.numeric
+    
     {h3('__dict__ dir / vars / inspect.getmembers')}
-    dir(Console) == inspect.getmembers(Console)
-    vars(Console) == set(Console.__dict__)
-    dir(Console) > vars(Console)    # True
-    dir(Console) - vars(Console)    # '__class__', '__delattr__', '__dir__', '__eq__', '__format__', '__ge__',
-                                    # '__getattribute__', '__gt__', '__hash__', '__init_subclass__', '__le__',
-                                    # '__lt__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__setattr__',
-                                    # '__sizeof__', '__str__', '__subclasshook__'
-    inspect.isroutine(Console) ==
+      dir(Console) == inspect.getmembers(Console)
+      vars(Console) == set(Console.__dict__)
+      dir(Console) > vars(Console)    # True
+      dir(Console) - vars(Console)    # '__class__', '__delattr__', '__dir__', '__eq__', '__format__', '__ge__',
+                                      # '__getattribute__', '__gt__', '__hash__', '__init_subclass__', '__le__',
+                                      # '__lt__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__setattr__',
+                                      # '__sizeof__', '__str__', '__subclasshook__'
+      inspect.isroutine(Console) ==
     """
     _OPEN = rf"""{h2(f'with open(path, mode="rt" {c("default")}, errors=None)')}
   {h2('mode')}
