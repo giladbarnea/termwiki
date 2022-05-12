@@ -166,11 +166,6 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
 
                     j = idx + 1
                     if lines_to_highlight:  # e.g.: `%mysql 1`
-                        # if lang in default_styles:
-                        #    # precedence to `@syntax(python='friendly')` over `@syntax('friendly')`
-                        #    style = default_styles.get(lang)
-                        # else:
-                        #    style = default_style  # may be None
                         for k in range(lines_to_highlight):
                             text = lines[idx + 1]
                             highlighted = _syntax_highlight(text, lang, style)
@@ -179,17 +174,6 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                         else:
                             idx += 1
                             continue  # big while
-
-                    # e.g.: either `%mysql` (second_arg is None) or `%mysql friendly`
-                    # if second_arg:
-                    #     # give precedence to `%mysql friendly` over `**default_styles` or `@syntax('friendly')`
-                    #     style = second_arg
-                    # else:
-                    #     if lang in default_styles:
-                    #         # precedence to `@syntax(python='friendly')` over `@syntax('friendly')`
-                    #         style = default_styles.get(lang)
-                    #     else:
-                    #         style = default_style  # may be None
 
                     while True:
                         try:
