@@ -8516,7 +8516,7 @@ def python(subject=None):
           # --> 15| yield float('nan')
       /%python    
     """
-    _IMPORT = _MODULE = _PACKAGE = f"""{h2('Import System / Module / Package')}
+    _IMPORT = _MODULES = _PACKAGES = f"""{h2('Import System / Modules / Packages')}
     {c("https://docs.python.org/3/reference/import.html")}
     sys.modules[__name__].__class__ = VerboseModule
     """
@@ -8619,40 +8619,169 @@ def python(subject=None):
       {c('Returns Logger.manager.getLogger(name) if name else root')}
     """
 
-    _MAGIC = _DUNDER = _DATAMODEL = f"""{h2('Magic / Dunder / Data Model')}
+    _MAGIC = _DUNDER = _DATAMODEL = _DESCRIPTORS = f"""{h2('Magic / Dunder / Data Model / Descriptors')}
     {c('https://docs.python.org/3/reference/datamodel.html')}
-    {h3('Module dunders')}
+    {c('Plain list: pygments/lexers/python.py:266')}    
+    {bg(i('3.2. The standard type hierarchy'))}
+    
+      {h3('Callable special attributes')}
+        __doc__: str?                       __code__
+        __name__: str                       __globals__: dict {c('of defining module. Read-only')}
+        __qualname__: str                   __dict__
+        __module__: str?                    __closure__: tuple[cell]? {c('Read-only')}
+        __annotations__: dict {c('"return" key')}  __get__
+        __defaults__: tuple? {c('values')}         __call__
+        __kwdefaults__: dict
+      
+      {h3('Module special attributes')}
+        {c('https://docs.python.org/3/reference/import.html#import-related-module-attributes')}
+        __doc__: str?
+        __annotations__: dict
+        __builtins__: module
+        __file__: str {c("'/abs/path/to/file.py'")}
+        __name__: str {c("'__main__' or 'manuals.decorators.syntax'. Unique")}
+        __loader__: SourceFileLoader
+        __spec__: ModuleSpec? {c('__spec__.parent is a fallback for __package__')}
+        __path__: list[str] {c("Unset for non-packages. ['/home/gilad/dev/manuals/manuals/decorators']")}
+        __cached__: str? {c(".pyc file")}
+        __package__: str? {c('if module is package: __package__ == __name__;')}
+                                   {c("otherwise, if top level: __package__ == '', else: 'manuals.decorators'")}
+                                   {c("see https://peps.python.org/pep-0366/")}
+      
+      {h3('Custom classes')}
+        Instance methods, not static methods, have __self__ attr (and __func__?)
+    
+    {bg(i('3.3. Special method names'))}
+    {c('https://docs.python.org/3/reference/datamodel.html#special-method-names')}
+    
+      {h3('3.3.1. Basic customization')}
+        __new__, __init__, ...
+        {h4('Comparison')}
+          Returning NotImplemented (also from numeric methods) makes interpreter
+          try the __r<op>__ method on the operands.
+      
+      {h3('3.3.2. Customizing attribute access')}
+        __getattribute__, __getattr__, __setattr__, __delattr__, __dir__
+        %python
+        def __getattribute__(self, key): # pseudo-code
+            if key in self.__dict__:
+                return self.__dict__[key]
+            for cls in self.__class__.__mro__:
+                if key in cls.__dict__:
+                    value = cls.__dict__[key]
+                    if hasattr(value, '__get__'):
+                        return value.__get__(self, self.__class__)
+                    return value
+            # Raising AttributeError or propagating super().__getattribute__(key) here does:
+            if hasattr(self, '__getattr__'):
+                return self.__getattr__(key)
+            raise AttributeError(key)
+        /%python
+      
+      {h3('3.3.2.2. Descriptors')}
+        %python
+        __get__(self, instance: T | None, owner: Type[T] = None)
+          # 'instance' is None if accessed via the class (not instance).
+        __set__(self, instance: T | None, value)
+        __delete__(self, instance: T | None)
+        /%python
+        
+        {h4('Bound / Unbound Methods')}
+          %python
+          >>> class A: pass
+          >>> def f(self):
+          ...     print('f: ', self)
+          >>> a = A()
+          # This:
+          >>> A.f = f
+          # Is equivalent to this:
+          >>> a.f = f.__get__(a, A)
+          >>> a.f
+          <bound method f of <A object at 0x...>>
+          >>> a.f()
+          f:  <A object at 0x...>
+          # This won't work; a.f() will TypeError (missing self):
+          >>> a.f = f
+          /%python
+        
+        {h4('@property')}
+          %python
+          >>> class Property:
+          ...     def __init__(self, f):
+          ...         self.f = f
+          ...         self.f_setter = None
+          ...     def __get__(self, instance, owner):
+          ...         if instance is None: return self
+          ...         return self.f(instance)
+          ...     def __set__(self, instance, value):
+          ...         self.f_setter(instance, value)
+          ...     def setter(self, f):
+          ...         self.f_setter = f
+          ...         return self # Otherwise, x is set to None
+          >>> class A:
+          ...     _x = 42
+          ...     @Property
+          ...     def x(self):
+          ...         return self._x
+          ...     @x.setter
+          ...     def x(self, value):
+          ...         self._x = value
+          # Note: a.__dict__['x'] raises KeyError
+          /%python
+      
+      {h3('3.3.8. Numeric')}
+        %import python.datamodel.numeric
+    
+    {bg(i('__dict__ dir / vars / inspect.getmembers'))}
       %python
-      __doc__: Optional[str]
-      __name__: str   # '__main__'
-      __loader__: SourceFileLoader
-      __package__: Optional[?]
-      __spec__: Optional[?]
-      __path__
-      __file__: str   # '/abs/path/to/file.py'
-      __cached__: Optional[?]
-      __annotations__: dict
-      /%python    
-    
-    {h3('Comparison')}
-      Returning NotImplemented (also from numeric methods) makes interpreter
-      try the __r<op>__ method on the operands.
-    
-    {h3('Custom classes')}
-      Instance methods, not static methods, have __self__ attr (and __func__?)
-    
-    {h3('Numeric')}
-      %import python.datamodel.numeric
-    
-    {h3('__dict__ dir / vars / inspect.getmembers')}
-      dir(Console) == inspect.getmembers(Console)
-      vars(Console) == set(Console.__dict__)
-      dir(Console) > vars(Console)    # True
-      dir(Console) - vars(Console)    # '__class__', '__delattr__', '__dir__', '__eq__', '__format__', '__ge__',
-                                      # '__getattribute__', '__gt__', '__hash__', '__init_subclass__', '__le__',
-                                      # '__lt__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__setattr__',
-                                      # '__sizeof__', '__str__', '__subclasshook__'
-      inspect.isroutine(Console) ==
+      >>> dir(Console) == inspect.getmembers(Console) # True
+      >>> vars(Console) == set(Console.__dict__) # True
+      >>> dir(Console) > vars(Console) # True
+      >>> dir(Console) - vars(Console)
+          '__class__', '__delattr__', '__dir__', '__eq__', '__format__', '__ge__',
+          '__getattribute__', '__gt__', '__hash__', '__init_subclass__', '__le__',
+          '__lt__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__setattr__',
+          '__sizeof__', '__str__', '__subclasshook__'
+      >>> inspect.isroutine(Console) ==
+      /%python
+    """
+
+    _MRO = f"""{h2('MRO')}
+    %python
+    >>> class A: 
+    >>>   x=1
+    >>>   def f(self):
+    >>>     print('A')
+    >>> class B(A): 
+    >>>   x=2
+    >>>   def f(self):
+    >>>     print('B')
+    >>>     super().f()
+    >>> class C(A): 
+    >>>   x=3
+    >>>   def f(self):
+    >>>     print('C')
+    >>>     super().f()
+    >>> class D(B, C): 
+    >>>   def f(self):
+    >>>     print('D')
+    >>>     super().f()
+    >>> d = D()
+    >>> d.x
+    2
+    >>> D.__mro__ # breadth-first
+    (D, B, C, A, object)
+    >>> class E(C, B): pass
+    >>> E().x
+    3
+    >>> E.__mro__
+    (E, C, B, A, object)
+    >>> d.f()
+    D
+    B
+    C
+    A
+    /%python
     """
     _OPEN = rf"""{h2(f'with open(path, mode="rt" {c("default")}, errors=None)')}
   {h2('mode')}
