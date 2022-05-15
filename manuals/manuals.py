@@ -338,7 +338,7 @@ def asyncio(subject=None):
       Always creates a new event loop and closes it at the end.
       Should ideally only be called once.
 
-    {h3('aio.create_task(coro, name=None)')} {c('→ Task')}
+    {h3('aio.create_task(coro, name=None)')} {c('-> Task')}
       {c('Wrap the coroutine into a Task and schedule its execution.')}
 
        The task is executed in the loop returned by get_running_loop().
@@ -372,7 +372,7 @@ def asyncio(subject=None):
       {c('Monitor for completion.')}
 
     {h3('Misc')}
-      aio.current_task() {c('→ Task')}
+      aio.current_task() {c('-> Task')}
       aio.all_tasks()                 {c('Return all tasks for an event loop.')}
       aio.Task
       aio.run_coroutine_threadsafe()  {c('Schedule a coroutine from another OS thread.')}
@@ -392,7 +392,7 @@ def asyncio(subject=None):
     _LOOP = f"""{h2('Event Loop')}
     {c('https://docs.python.org/3/library/asyncio-eventloop.html#running-and-stopping-the-loop')}
 
-    {h3('aio.get_running_loop()')} {c('→ AbstractEventLoop')}
+    {h3('aio.get_running_loop()')} {c('-> AbstractEventLoop')}
       {c('Return the running event loop in the current OS thread.')}
 
       Can only be called from a coroutine or a callback.
@@ -402,7 +402,7 @@ def asyncio(subject=None):
         loop = get_running_loop()
         end_time = loop.time() + 5.0
 
-    {h3('aio.get_event_loop()')} {c('→ AbstractEventLoop')}
+    {h3('aio.get_event_loop()')} {c('-> AbstractEventLoop')}
       {c('Get the current event loop (use get_running_loop() when possible).')}
 
       If there is no current event loop set in the current OS thread, the OS thread is main,
@@ -411,13 +411,13 @@ def asyncio(subject=None):
     {h3('aio.set_event_loop(loop)')}
       {c('Set loop as a current event loop for the current OS thread.')}
 
-    {h3('aio.new_event_loop()')} {c('→ AbstractEventLoop')}
+    {h3('aio.new_event_loop()')} {c('-> AbstractEventLoop')}
       {c('Create a new event loop object.')}
     """
     _STREAMS = f"""{h2('Streams')}
     {c('https://docs.python.org/3/library/asyncio-stream.html#streams')}
 
-    {c('coroutine')} {h3('aio.open_connection(host=None, port=None, **kwargs)')} {c('→ (StreamReader, StreamWriter)')}
+    {c('coroutine')} {h3('aio.open_connection(host=None, port=None, **kwargs)')} {c('-> (StreamReader, StreamWriter)')}
       **kwargs are passed to loop.create_connection() (besides protocol_factory), so:
 
           ssl {c('= None')}
@@ -540,7 +540,7 @@ def bash(subject=None):
       /%bash
 
     {h2('Get by index')}
-      ${{#}}                  {c('get number of args (myfn "hello world" indeed → 2)')}
+      ${{#}}                  {c('get number of args (myfn "hello world" indeed -> 2)')}
       ${{*:2}} {c('or')} ${{@:2}}      {c('2nd and following pos args')}
       ${{*:2:3}}              {c('three pos args, starting from 2nd')}
       ${{2}}                  {c('2nd arg exactly')}
@@ -920,16 +920,16 @@ def bash(subject=None):
     Display information about command type.
 
     no flag       {c("print type and content of would be used.")}
-                  {c("  type -f cd → cd is a function; cd () {{...}}")}
+                  {c("  type -f cd -> cd is a function; cd () {{...}}")}
     -t            {c("(only bash?) output alias, keyword, function, builtin, file, or nothing (1)")}
     -a            {c("display all locations, including content.")}
-                  {c("  type -f cd → cd is a function; cd () {{...}}; cd is a shell builtin")}
+                  {c("  type -f cd -> cd is a function; cd () {{...}}; cd is a shell builtin")}
     -f            {c("suppress custom function lookup")}
-                  {c("  type -f cd → cd is a shell builtin")}
-                  {c("  type -f log → not found (1)")}
+                  {c("  type -f cd -> cd is a shell builtin")}
+                  {c("  type -f log -> not found (1)")}
     -P            {c("(only bash?) search PATH, output disk file")}
-                  {c("  type -P ls → /bin/ls (even if overridden or aliased)")}
-    -p            {c("output disk file, restricted to -t → 'function'")}
+                  {c("  type -P ls -> /bin/ls (even if overridden or aliased)")}
+    -p            {c("output disk file, restricted to -t -> 'function'")}
     -w            {c("(only zsh?) print command type. type -w syspy -> 'syspy: alias'")}
 
     see {bg('declare')}
@@ -1555,7 +1555,7 @@ def bash(subject=None):
     -depth      {c('depth-first')}
     -s          {c('lexicographical order (alphabetical within each dir)')}
     -empty
-    -exec[dir] {i('UTIL [argument ...]')} "{{}}" "[;|+]"      {c(f'{{}} is replaced by file path (containing dir path with {i("execdir")}). ";" → for each, "+" → for as many (?)')}
+    -exec[dir] {i('UTIL [argument ...]')} "{{}}" "[;|+]"      {c(f'{{}} is replaced by file path (containing dir path with {i("execdir")}). ";" -> for each, "+" -> for as many (?)')}
 
     {h2('times')} {c('-a accessed, -c created, -m modified')}
       -[a|c|m]time {i('n[smhdw]')}     {c('-atime -1h30m')}
@@ -2455,7 +2455,7 @@ def click_(subject=None):
         def info(shout):  # Pass either
 
         @click.option('--shout', is_flag=True)
-        def info(shout):  # --shout → True
+        def info(shout):  # --shout -> True
         /%python
 
       {h4('Feature Switches')}            {c('Multiple options')}
@@ -3684,12 +3684,12 @@ def firestore(subject=None):
     _COLLECTION_REF = f"""{h2('CollectionReference')}
     cities_ref = db.collection('cities')
 
-    {h3(f'document({c("document_id")})')} {c('→ DocumentReference')}
+    {h3(f'document({c("document_id")})')} {c('-> DocumentReference')}
 
-    {h3('add()')} {c('→ (Timestamp, DocumentReference)')}
+    {h3('add()')} {c('-> (Timestamp, DocumentReference)')}
       created, ref = cities_ref.add(city.to_dict())
 
-    {h3('stream()')} {c('→ Generator[DocumentSnapshot]')}
+    {h3('stream()')} {c('-> Generator[DocumentSnapshot]')}
       %python
       docs = cities_ref.stream()
       for doc in docs:
@@ -3739,7 +3739,7 @@ def firestore(subject=None):
       .id {c(': str')}
       .parent {c(': CollectionReference')}
 
-    {h3(f'get()')} {c('→ DocumentSnapshot')}
+    {h3(f'get()')} {c('-> DocumentSnapshot')}
       {c("ok if doc doesn't exist (use snapshot.exists)")}
 
       doc = washington_ref.get()
@@ -3750,17 +3750,17 @@ def firestore(subject=None):
       {c('···')}
       washington_ref.get('key.nested')
 
-    {h3(f'create({c("doc_data : dict")})')} {c('→ WriteResult')}
+    {h3(f'create({c("doc_data : dict")})')} {c('-> WriteResult')}
       {c("if doc exists, raises AlreadyExists")}
 
-    {h3(f'set({c("doc_data : dict")})')} {c('→ WriteResult')}
+    {h3(f'set({c("doc_data : dict")})')} {c('-> WriteResult')}
       {c("if doc exists, overwrites. if it doesn't, creates it")}
       {c("'doc.data' delimited doesn't work here")}
 
       washington_ref.set(city.to_dict())
       washington_ref.set(dict(..., merge=True))  {c('update or field or create if missing')}
 
-    {h3(f'update({c("field_updates : dict")})')} {c('→ WriteResult')}
+    {h3(f'update({c("field_updates : dict")})')} {c('-> WriteResult')}
       {c("if doc doesn't exist, raises NotFound")}
       {c("if key doesn't exist, creates it")}
 
@@ -3783,7 +3783,7 @@ def firestore(subject=None):
       .reference {c(': DocumentReference')}
 
     snapshot.to_dict()
-    snapshot.get({c('field_path')}) {c("→ DocumentReference  (KeyError if doesn't exist)")}
+    snapshot.get({c('field_path')}) {c("-> DocumentReference  (KeyError if doesn't exist)")}
     """
     _DOCUMENT_SNAP = _DOCUMENT_SNAPSHOT
     _DOC_SNAP = _DOCUMENT_SNAPSHOT
@@ -3806,9 +3806,9 @@ def firestore(subject=None):
     """
 
     _QUERY = f"""{h2('Query')}        {c("CollectionReference.where(...)")}
-    stream() {c('→ Generator[DocumentSnapshot]')}
-    select({c("field_paths")}) {c('→ Query')}
-    where({c("field_path, op_string, value")}) {c('→ Query')}
+    stream() {c('-> Generator[DocumentSnapshot]')}
+    select({c("field_paths")}) {c('-> Query')}
+    where({c("field_path, op_string, value")}) {c('-> Query')}
     """
 
     _BATCH = f"""{h2('Batch')}
@@ -5032,32 +5032,32 @@ def inspect_(subject=None):
 
     _INSPECT = f"""
     {c('https://docs.python.org/3/library/inspect.html')}
-    inspect.getcurrentframe() {c('→ frame')}
-    inspect.getargs(code{c(': code')}) {c('→ Arguments')}
-    inspect.getfile(obj{c(': object')}) {c('→ Arguments')}
-    inspect.getargvalues(frame{c(': frame')}) {c('→ ArgInfo')}
-    inspect.getcallargs(function{c(': function')}) {c('→ dict')}
-    inspect.getclosurevars(function{c(': function')}) {c('→ ClosureVars')}
-    inspect.getframeinfo(frame{c(': frame')}, ctx) {c('→ Traceback    # like FrameInfo, no ".frame" attr')}
-    inspect.getfullargspec(function{c(': function')}) {c('→ FullArgSpec')}
-    inspect.getinnerframes(tb, ctx) {c('→ ???')}
-    inspect.getlineno(frame) {c('→ ???')}
-    inspect.getmembers(object) {c('→ List[Any]')}
-    inspect.getmodulename(path{c(': str')}) {c('→ str')}
-    inspect.getouterframes(frame{c(': frame')}, ctx) {c('→ List[FrameInfo]')}
-    inspect.signature(function{c(': function')}) {c('→ Signature')}
-    inspect.stack() {c('→ List[FrameInfo]')}
+    inspect.getcurrentframe() {c('-> frame')}
+    inspect.getargs(code{c(': code')}) {c('-> Arguments')}
+    inspect.getfile(obj{c(': object')}) {c('-> Arguments')}
+    inspect.getargvalues(frame{c(': frame')}) {c('-> ArgInfo')}
+    inspect.getcallargs(function{c(': function')}) {c('-> dict')}
+    inspect.getclosurevars(function{c(': function')}) {c('-> ClosureVars')}
+    inspect.getframeinfo(frame{c(': frame')}, ctx) {c('-> Traceback    # like FrameInfo, no ".frame" attr')}
+    inspect.getfullargspec(function{c(': function')}) {c('-> FullArgSpec')}
+    inspect.getinnerframes(tb, ctx) {c('-> ???')}
+    inspect.getlineno(frame) {c('-> ???')}
+    inspect.getmembers(object) {c('-> List[Any]')}
+    inspect.getmodulename(path{c(': str')}) {c('-> str')}
+    inspect.getouterframes(frame{c(': frame')}, ctx) {c('-> List[FrameInfo]')}
+    inspect.signature(function{c(': function')}) {c('-> Signature')}
+    inspect.stack() {c('-> List[FrameInfo]')}
     """
     _STACK_SUMMARY = f"""{h2('StackSummary')} {c(': List[FrameSummary]    # traceback.extract_stack()')}
     ss.extract(frame_gen, *, limit=None, lookup_lines=True, capture_locals=False) {c('Create a StackSummary from a traceback or stack object.')}
     ss.format() {c('Format the stack ready for printing')}
     """
     _FRAME_SUMMARY = f"""{h2('FrameSummary')}    {c('# traceback.extract_stack()[0]')}
-    fs.filename {c('→ str')}
-    fs.line {c('→ str (e.g "stack=tb.extract_stack()")')}
-    fs.lineno {c('→ int')}
-    fs.locals {c('→ int')}
-    fs.name {c('→ str (e.g "run_code")')}
+    fs.filename {c('-> str')}
+    fs.line {c('-> str (e.g "stack=tb.extract_stack()")')}
+    fs.lineno {c('-> int')}
+    fs.locals {c('-> int')}
+    fs.name {c('-> str (e.g "run_code")')}
     """
 
     if subject:
@@ -5116,9 +5116,8 @@ def ipython(subject=None):
       In [8]: show $PATH
       /%ipython
       A Python string
-      %ipython
+      %ipython 1
       In [9]: show $$PATH
-      /%ipython
       /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
 
     {h3('Examples')}
@@ -5176,7 +5175,7 @@ def ipython(subject=None):
     --[no-]automagic
     --[no-]pdb          [don't] call on exception
     --[no-]pprint
-    --autocall=(0|1|2)  2: lone str → str(); 1: only if args (str 43 works, str doesnt call)
+    --autocall=(0|1|2)  2: lone str -> str(); 1: only if args (str 43 works, str doesnt call)
 
     """
 
@@ -5360,7 +5359,7 @@ def ipython(subject=None):
       {h3('Methods')}
         ip.define_macro()
         ip.enable_matplotlib()
-        ip.get_local_scope(stack_depth: int) {c('→ dict')}
+        ip.get_local_scope(stack_depth: int) {c('-> dict')}
       
       {h3('Objects')}
         ip.extension_manager
@@ -6260,7 +6259,7 @@ def micro(subject=None):
 
 def moment(subject=None):
     return f"""{h1('moment')}
-  {h2('moment')} {c('→ Moment')}
+  {h2('moment')} {c('-> Moment')}
 
     m.date(*args)    {c("Moment ctor args")}
     m.now()
@@ -6272,15 +6271,15 @@ def moment(subject=None):
     {h4('date')} can be datetime or str
     {h4('formula')} can be py "%d-%m-%Y" or js "DD-MM-YYYY"
 
-    M.date  {c(f"→ datetime.datetime(1970, 1, 1, 0, 0, {i('[tzinfo=<UTC>]')})")}
-    M.datetime  {c(f"→ datetime.datetime(1970, 1, 1, 0, 0, {i('[tzinfo=<UTC>]')})")}
-    M.day, M.minute[s], M.month, M.second[s], M.year {c(f"→ int")}
-    M.[add sub]({i('hours=5')}) {c(f"→ Moment (inplace)")}
-    M.zero {c(f"→ Moment (inplace)")}
-    M.epoch({i("rounding=True")}, {i("miliseconds=False")})  {c(f"→ int")}
-    M.format({"'DD/MM/YY'"})  {c(f"→ '01/01/70'")}
-    M.now()  {c(f"→ Moment")}
-    M.replace({i("year=1980")})  {c(f"→ Moment (inplace)")}
+    M.date  {c(f"-> datetime.datetime(1970, 1, 1, 0, 0, {i('[tzinfo=<UTC>]')})")}
+    M.datetime  {c(f"-> datetime.datetime(1970, 1, 1, 0, 0, {i('[tzinfo=<UTC>]')})")}
+    M.day, M.minute[s], M.month, M.second[s], M.year {c(f"-> int")}
+    M.[add sub]({i('hours=5')}) {c(f"-> Moment (inplace)")}
+    M.zero {c(f"-> Moment (inplace)")}
+    M.epoch({i("rounding=True")}, {i("miliseconds=False")})  {c(f"-> int")}
+    M.format({"'DD/MM/YY'"})  {c(f"-> '01/01/70'")}
+    M.now()  {c(f"-> Moment")}
+    M.replace({i("year=1980")})  {c(f"-> Moment (inplace)")}
         """
 
 
@@ -6343,8 +6342,8 @@ def mongo(subject=None):
     _DB = f"""{h2('db')}
     {c('https://docs.mongodb.com/manual/reference/method/js-database/')}
     getCollectionInfos(filter, nameOnly, authorizedCollections)
-    getCollectionNames(){c(' → str[]')}
-    getCollection(name){c(' → Collection')}
+    getCollectionNames(){c(' -> str[]')}
+    getCollection(name){c(' -> Collection')}
     """
 
     __QUERY = f"""{h3('Query Operators')}
@@ -7047,33 +7046,33 @@ def pandas(subject=None):
         df.iloc[:2, 0]                  {c('A series of Names column (only first 2)')}
 
       {h4('Scalars / primitives')}
-        df.Name[0] → str                 {c("'Gilad'")}
-        df.loc[0].Name → str             {c("'Gilad'")}
-        df.loc[0, 'Name'] → str          {c("'Gilad'")}
-        df.iloc[0, 0] → str              {c("'Gilad'")}
-        df.iloc[0, :1].Name → str        {c("'Gilad'")}
-        df.columns[0] → str              {c("'Name'")}
-        df.columns.format() → List[str]  {c("['Name', 'Grade', 'Courses']")}
+        df.Name[0] -> str                 {c("'Gilad'")}
+        df.loc[0].Name -> str             {c("'Gilad'")}
+        df.loc[0, 'Name'] -> str          {c("'Gilad'")}
+        df.iloc[0, 0] -> str              {c("'Gilad'")}
+        df.iloc[0, :1].Name -> str        {c("'Gilad'")}
+        df.columns[0] -> str              {c("'Name'")}
+        df.columns.format() -> List[str]  {c("['Name', 'Grade', 'Courses']")}
     """
     _MANIPULATING = f"""
     {h3('Manipulating')}
       {h2('DataFrame')}
-        df.agg(sum) → Series                 {c('df.agg((Series) → scalar))')}
-        df.agg([sum, min]) → DataFrame
-        df.agg({{'Grades': sum}}) → Series     {c('returns Series regardless of dict len')}
-        df.agg(func, axis=[0|'index' or 1|'columns']) → Series   {c('0|index: vertical, 1|columns: horizontal (only single func)')}
+        df.agg(sum) -> Series                 {c('df.agg((Series) -> scalar))')}
+        df.agg([sum, min]) -> DataFrame
+        df.agg({{'Grades': sum}}) -> Series     {c('returns Series regardless of dict len')}
+        df.agg(func, axis=[0|'index' or 1|'columns']) -> Series   {c('0|index: vertical, 1|columns: horizontal (only single func)')}
 
-        df.apply(sum, axis=0) → Series
-        df.apply([sum, min], axis=0) → DataFrame
+        df.apply(sum, axis=0) -> Series
+        df.apply([sum, min], axis=0) -> DataFrame
         {c('Compare with applymap, aggregate, transform')}
 
       {h2('Series')}
-        series.agg(sum) → scalar             {c('agg((Series) → scalar)')}
-        series.agg([sum, min]) → Series
+        series.agg(sum) -> scalar             {c('agg((Series) -> scalar)')}
+        series.agg([sum, min]) -> Series
 
-        series.apply(lambda x:x**2) → Series   {c('apply((scalar) → scalar)')}
-        series.apply(lambda x,y:x**y, y=100) → Series
-        series.apply([lambda x:x**2]) → DataFrame
+        series.apply(lambda x:x**2) -> Series   {c('apply((scalar) -> scalar)')}
+        series.apply(lambda x,y:x**y, y=100) -> Series
+        series.apply([lambda x:x**2]) -> DataFrame
     """
     _FILTERING = f"""
     {h3('Filtering')}
@@ -7112,9 +7111,9 @@ def pandas(subject=None):
       df['avg'] = df.mean(axis=1)       {c('Calculate average across columns (horizontally)')}
 
       [df|series].mask(cond, other, inplace=False)      {c('Replace values where cond is True')}
-        cond: (original_frame) → boolean NDFrame (same len)
+        cond: (original_frame) -> boolean NDFrame (same len)
         cond: boolean NDFrame (same len)
-        other: (original_frame) → Union[NDFrame, scalar]
+        other: (original_frame) -> Union[NDFrame, scalar]
         other: NDFrame
         other: scalar
 
@@ -7155,10 +7154,10 @@ def pandas(subject=None):
       {h4('orient')}{c(': str = None')}
         |   value   |               json content structure
         |- - - - -  | - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        | 'split'   | {{index → [index], columns → [columns], data → [values]}}
-        | 'records' | [{{column → value}}, ... , {{column → value}}]
-        | 'index'   | {{index → {{column → value}}}}
-        | 'columns' | {{column → {{index → value}}}}
+        | 'split'   | {{index -> [index], columns -> [columns], data -> [values]}}
+        | 'records' | [{{column -> value}}, ... , {{column -> value}}]
+        | 'index'   | {{index -> {{column -> value}}}}
+        | 'columns' | {{column -> {{index -> value}}}}
         | 'values'  | just the values array. depends on the {i('typ')} kwarg.
 
       {h4('typ')}{c(': str = "frame"')}
@@ -8273,55 +8272,55 @@ def python(subject=None):
   {h3('time')}
     %python 1
     import time
-    time.time() {c('→ 1600000000.8624794')}
-    time.time_ns() {c('→ 1600000000670609665')}
-    time.ctime([seconds since epoch]) {c("→ 'Sat Dec 19 20:10:39 2020'")}
+    time.time() {c('-> 1600000000.8624794')}
+    time.time_ns() {c('-> 1600000000670609665')}
+    time.ctime([seconds since epoch]) {c("-> 'Sat Dec 19 20:10:39 2020'")}
     time.strftime(<format>)
     time.sleep(s)
-    time.perf_counter() {c('→ 222349.809660548')}
-    time.perf_counter_ns() {c('→ 222398727158532')}
-    time.localtime([seconds since epoch]) {c('→ struct_time. If no `seconds` passed, do for current time')}
+    time.perf_counter() {c('-> 222349.809660548')}
+    time.perf_counter_ns() {c('-> 222398727158532')}
+    time.localtime([seconds since epoch]) {c('-> struct_time. If no `seconds` passed, do for current time')}
 
   {h3('datetime.date')}
     %python 1
     from datetime import date
-    date(2020, 12, 19) {c('→ datetime.date(2020, 12, 19)')}
+    date(2020, 12, 19) {c('-> datetime.date(2020, 12, 19)')}
     
     {h4('Static Methods')}
-      today = date.today() {c('→ date')}
-      date.fromtimestamp(1600000000) {c('→ date')}
-      date.fromisoformat("2021-10-18") {c('→ date')}
+      today = date.today() {c('-> date')}
+      date.fromtimestamp(1600000000) {c('-> date')}
+      date.fromisoformat("2021-10-18") {c('-> date')}
     
     {h4('Instance Methods / Attrs')}
-      today.day, .month, .year {c('→ int')}
-      today.ctime() {c('→ "Wed Sep  2 00:00:00 2020"')}
-      today.isoformat() {c('→ "2020-12-30"')}
-      today.strftime(format) {c('→ "2020-12-30"')}
+      today.day, .month, .year {c('-> int')}
+      today.ctime() {c('-> "Wed Sep  2 00:00:00 2020"')}
+      today.isoformat() {c('-> "2020-12-30"')}
+      today.strftime(format) {c('-> "2020-12-30"')}
   
   {h3('datetime.datetime')}
     %python 1
     from datetime import datetime as dt
-    dt(2020, 12, 19) {c('→ datetime.datetime(2020, 12, 19, 0, 0)')}
+    dt(2020, 12, 19) {c('-> datetime.datetime(2020, 12, 19, 0, 0)')}
     dt(2020, 12, 19{c('[, 23, 45, 10, 999999, tzinfo]')})
 
-    now = dt.now() {c('→ datetime.datetime(2020, 12, 19, 6, 12, 57, 938731)')}
+    now = dt.now() {c('-> datetime.datetime(2020, 12, 19, 6, 12, 57, 938731)')}
     
     {h4('Instance Methods / Attrs')}
-      now.microsecond, .second, .minute, .hour, .day, .month, .year {c('→ int')}
-      now.astimezone() {c('→ datetime')}
-      now.isoformat() {c('→ "2020-09-02T17:37:29.960461"')}
-      now.isoweekday() {c('→ int (Monday is 1)')}
-      now.date() {c('→ date')}
-      now.time() {c('→ datetime.time')}
-      now.ctime() {c('→ "Wed Sep  2 17:37:29 2020"')}
-      now.timestamp() {c('→ float (1599057449.960461)')}
-      now.timetz() {c('→ datetime.time')}
+      now.microsecond, .second, .minute, .hour, .day, .month, .year {c('-> int')}
+      now.astimezone() {c('-> datetime')}
+      now.isoformat() {c('-> "2020-09-02T17:37:29.960461"')}
+      now.isoweekday() {c('-> int (Monday is 1)')}
+      now.date() {c('-> date')}
+      now.time() {c('-> datetime.time')}
+      now.ctime() {c('-> "Wed Sep  2 17:37:29 2020"')}
+      now.timestamp() {c('-> float (1599057449.960461)')}
+      now.timetz() {c('-> datetime.time')}
     
     {h4('Static Methods')}
-      utcnow = dt.utcnow() {c('→ datetime (utc)')}
-      now = dt.now() {c('→ datetime (local)')}
-      dt.fromtimestamp(1600000000) {c('→ datetime')}
-      dt.fromisoformat('2021-10-18T12:31:33') {c('→ datetime')}
+      utcnow = dt.utcnow() {c('-> datetime (utc)')}
+      now = dt.now() {c('-> datetime (local)')}
+      dt.fromtimestamp(1600000000) {c('-> datetime')}
+      dt.fromisoformat('2021-10-18T12:31:33') {c('-> datetime')}
   
     """
     _DECORATORS = f"""{h2('Decorators')}
@@ -8517,8 +8516,9 @@ def python(subject=None):
           # --> 15| yield float('nan')
       /%python    
     """
-    _IMPORT = _MODULE = f"""{h2('Import System / Modules')}
+    _IMPORT = _MODULE = _PACKAGE = f"""{h2('Import System / Module / Package')}
     {c("https://docs.python.org/3/reference/import.html")}
+    sys.modules[__name__].__class__ = VerboseModule
     """
 
     __LOGGING_FORMATTER = f"""{h3('Formatter(')}
@@ -8545,9 +8545,9 @@ def python(subject=None):
         name : str, 
         
         # self.levelname = getLevelName(level)
-        # 'INFO' → 20
-        # 20 → 'INFO'
-        # 'foo' → 'Level foo'
+        # 'INFO' -> 20
+        # 20 -> 'INFO'
+        # 'foo' -> 'Level foo'
         level : str | int,
         
         pathname, 
@@ -8699,10 +8699,10 @@ def python(subject=None):
     _REGEX = rf"""{h2('Regex')}
 
     {h3('Nuances')}
-      re.match("([abc])+", "ab{b('c')}").groups() → ({b('"c"')},)
-      re.match("([abc])?", "{b('a')}bc").groups() → ({b('"a"')},)
-      re.match("([abc]+)", "{b('abc')}").groups() → ({b('"abc"')},)
-      re.match("([abc]?)", "{b('a')}bc").groups() → ({b('"a"')},)
+      re.match("([abc])+", "ab{b('c')}").groups() -> ({b('"c"')},)
+      re.match("([abc])?", "{b('a')}bc").groups() -> ({b('"a"')},)
+      re.match("([abc]+)", "{b('abc')}").groups() -> ({b('"abc"')},)
+      re.match("([abc]?)", "{b('a')}bc").groups() -> ({b('"a"')},)
 
     {h3('Groups')}
       {c('Find doubled words')}
@@ -8917,7 +8917,7 @@ def python(subject=None):
     """
     _TRACEBACK = f"""{h2('traceback')}
     {c('https://docs.python.org/3/library/traceback.html')}
-    traceback.extract_stack(f=None, limit=None) {c('→ StackSummary')}
+    traceback.extract_stack(f=None, limit=None) {c('-> StackSummary')}
     """
     _VERSIONS = _CHANGELOG = f"""{h2('versions')}
     {h3('3.9')}
@@ -9439,22 +9439,22 @@ def s3(subject=None):
     b.upload_fileobj()
     b.wait_until_exists()
     b.wait_until_not_exists()
-    b.objects {c('→ s3.Bucket.objectsCollectionManager')}
+    b.objects {c('-> s3.Bucket.objectsCollectionManager')}
 
     """
     _OBJECTS_COLLECTION = f"""{h2('s3.Bucket.objectsCollection')}    {c(f"b.objects.all()")}
 
-      all() {c('→ s3.Bucket.objectsCollection')}
+      all() {c('-> s3.Bucket.objectsCollection')}
       delete()
-      filter() {c('→ s3.Bucket.objectsCollection')}
-      limit() {c('→ s3.Bucket.objectsCollection')}
-      pages() {c('→ generator')}
-      page_size() {c('→ s3.Bucket.objectsCollection')}
-      list(objectsCollection) {c('→ List[s3.ObjectSummary]')}
+      filter() {c('-> s3.Bucket.objectsCollection')}
+      limit() {c('-> s3.Bucket.objectsCollection')}
+      pages() {c('-> generator')}
+      page_size() {c('-> s3.Bucket.objectsCollection')}
+      list(objectsCollection) {c('-> List[s3.ObjectSummary]')}
 
     {h2('s3.Bucket.objectsCollectionManager extends s3.Bucket.objectsCollection')}    {c(f"b.objects")}
 
-      iterator() {c('→ s3.Bucket.objectsCollection')}
+      iterator() {c('-> s3.Bucket.objectsCollection')}
 
     """
     _OBJECT_SUMMARY = f"""{h2('s3.ObjectSummary')}    {c(f"os = list(b.objects.all())[0]")}
@@ -9464,8 +9464,8 @@ def s3(subject=None):
       os.size
       os.copy_from()
       os.delete()
-      os.get() {c('→ dict')}
-        get()['Body'] {c('→ botocore.response.StreamingBody')}
+      os.get() {c('-> dict')}
+        get()['Body'] {c('-> botocore.response.StreamingBody')}
       os.load()
       os.put()
       os.wait_until_exists()
@@ -9486,10 +9486,10 @@ def s3(subject=None):
     _STREAMING_BODY = f"""{h2('botocore.response.StreamingBody')}    {c(f"body = o.get()['Body']")}
 
       body.close()
-      body.iter_chunks() {c("→ Generator['bytes']")}
-      body.iter_lines() {c("→ Generator['bytes']")}
-      body.next() {c('→ bytes')}
-      body.read() {c('→ bytes')}
+      body.iter_chunks() {c("-> Generator['bytes']")}
+      body.iter_lines() {c("-> Generator['bytes']")}
+      body.next() {c('-> bytes')}
+      body.read() {c('-> bytes')}
       body.set_socket_timeout()
 
     """
@@ -9963,7 +9963,7 @@ def sphinx(subject=None):
 @syntax
 def sqlalchemy(subject=None):
     _ENGINE = f"""{h2('engine')}
-    {h3('eng.execute(object_, *multiparams, **params)')} {c('→ ResultProxy')}
+    {h3('eng.execute(object_, *multiparams, **params)')} {c('-> ResultProxy')}
       {h4('object_')} can be:
         str
         ClauseElement that's an .Executable
@@ -10009,14 +10009,14 @@ def sqlalchemy(subject=None):
 
     {h3('methods')}
       res.close()
-      res.fetchall() {c('→ List')}
+      res.fetchall() {c('-> List')}
       res.fetchmany(size=None)
       res.fetchone()
       res.first()
-      res.keys() {c('→ List[str]')}
+      res.keys() {c('-> List[str]')}
       res.last_inserted_params()
       res.last_updated_params()
-      res.lastrow_has_defaults() {c('→ bool')}
+      res.lastrow_has_defaults() {c('-> bool')}
       res.next()
       res.process_rows(rows)
       res.scalar()
@@ -10050,11 +10050,11 @@ def sqlalchemy(subject=None):
       t.drop(bind=None, checkfirst=False)
       t.exists(bind=None)
       t.get_children(column_collections=True, schema_visitor=False, **kw)
-      t.insert(dml, values=None, inline=False, **kwargs) {c('→ dml.Insert')}
+      t.insert(dml, values=None, inline=False, **kwargs) {c('-> dml.Insert')}
       t.join(right, onclause=None, isouter=False, full=False)
       t.lateral(name=None)
       t.outerjoin(right, onclause=None, full=False)
-      t.select(whereclause=None, **params) {c('→ selectable.Select')}
+      t.select(whereclause=None, **params) {c('-> selectable.Select')}
       t.update(dml, whereclause=None, values=None, inline=False, **kwargs)
     """
 
@@ -10364,7 +10364,7 @@ def typescript(subject=None):
       {h3('#hardPrivacy')}
         · uniquely scoped to containing class ("strong" this)
         · accessing on any other type then `this` throws a TypeError
-        · inaccessible outside the class (new C().#foo → SyntaxError, new C()["#foo"] → undefined)
+        · inaccessible outside the class (new C().#foo -> SyntaxError, new C()["#foo"] -> undefined)
       
       {h3('export * as ns')}
         %ts
@@ -10538,7 +10538,7 @@ def typescript(subject=None):
       Trumps "exclude" even if specified there
 
     {h4('"include"')}
-      "files" specified → union of both.
+      "files" specified -> union of both.
       "outDir" is excluded as long as "exclude" is not specified
       Files in "include" can be filtered with "exclude".
 
@@ -10560,12 +10560,12 @@ def typescript(subject=None):
     {h4('"paths"')}
       Map paths to {i("baseUrl")}. (baseUrl: "." means where tsconfig.json is).
       The mapped path is appended to {i("baseUrl")} when it's a non-relative name.
-        This means {i("folder1/file2")} → {i("baseUrl/folder1/file2")}
+        This means {i("folder1/file2")} -> {i("baseUrl/folder1/file2")}
       Values in arrays are fallbacks; if file doesn't exist, move to next.
       Examples:
         "jquery" : ["node_modules/jquery/dist/jquery"]. This means importing "jquery" actually imports the long path.
-        "*" : ["*"]   {i("<moduleName> → <baseUrl>/<moduleName>")}
-        "*" : ["generated/*"]   {i("<moduleName> → <baseUrl>/generated/<moduleName>")}
+        "*" : ["*"]   {i("<moduleName> -> <baseUrl>/<moduleName>")}
+        "*" : ["generated/*"]   {i("<moduleName> -> <baseUrl>/generated/<moduleName>")}
     """
     _TYPES = f"""{h1('Utility Types')}
     {c('https://www.typescriptlang.org/docs/handbook/utility-types.html')}
@@ -10645,17 +10645,17 @@ def typescript(subject=None):
       %ts
       type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
       
-      type Unpacked<T> = T extends (infer U)[] ? U      // array of U? → U
-        : T extends (...args: any[]) => infer U ? U     // function that returns U? → U
-        : T extends Promise<infer U> ? U                // Promise of U? → U
-        : T;                                            // None of the above? → as-is
+      type Unpacked<T> = T extends (infer U)[] ? U      // array of U? -> U
+        : T extends (...args: any[]) => infer U ? U     // function that returns U? -> U
+        : T extends Promise<infer U> ? U                // Promise of U? -> U
+        : T;                                            // None of the above? -> as-is
 
-      // mult. candidates for type in co-variant positions → union
+      // mult. candidates for type in co-variant positions -> union
       type CoVariant<T> = T extends {{ a: infer U; b: infer U }} ? U : never;
       CoVariant< {{ a: string; b: string }} >       // string
       CoVariant< {{ a: string; b: number }} >       // string | number
       
-      // "" in contra-variant positions → intersection
+      // "" in contra-variant positions -> intersection
       type ContraVariant<T> = T extends {{ a: (x: infer U) => void; b: (x: infer U) => void }} ? U : never;
       ContraVariant< {{ a: (x: string) => void; b: (x: string) => void }} >     // string
       ContraVariant< {{ a: (x: string) => void; b: (x: number) => void }} >     // never (string & number = never)
@@ -11090,11 +11090,11 @@ def xdotool(subject=None):
   https://gitlab.com/cunidev/gestures/wikis/xdotool-list-of-key-codes
 
   {h2('Getters')}
-    getactivewindow {c(': WID → 98566151')}
-    getwindowfocus [-f] {c(': WID → 98566151. Prints currently focused window.')}
-    getwindowname <WID> {c(': str → "MyTool - myman.py"')}
-    getwindowpid <WID> {c(': PID → 9779')}
-    selectwindow {c(': WID → 98566151')}
+    getactivewindow {c(': WID -> 98566151')}
+    getwindowfocus [-f] {c(': WID -> 98566151. Prints currently focused window.')}
+    getwindowname <WID> {c(': str -> "MyTool - myman.py"')}
+    getwindowpid <WID> {c(': PID -> 9779')}
+    selectwindow {c(': WID -> 98566151')}
 
     getwindowgeometry [--shell] [window] {c('x, y, width, height, screen num. --shell suitable for eval')}
     getdisplaygeometry
@@ -11104,7 +11104,7 @@ def xdotool(subject=None):
     get_desktop
     get_desktop_for_window [window]
 
-  {h2('search')} {c('[options] REGEXP → WID ("71303175")')}
+  {h2('search')} {c('[options] REGEXP -> WID ("71303175")')}
     --class
     --classname
     --name
@@ -11380,7 +11380,7 @@ def xvkbd(subject=None):
                 -<val> +<val> for relative
       \m<digit>     mouse click
     {h3('modifiers')}
-      \S - Shift    {c(f'sometimes doesnt work e.g. "a{literal_backslash}Cb{literal_backslash}ScD{literal_backslash}CE" → a, Control+b, c, Shift+D, Control+Shift+E')}
+      \S - Shift    {c(f'sometimes doesnt work e.g. "a{literal_backslash}Cb{literal_backslash}ScD{literal_backslash}CE" -> a, Control+b, c, Shift+D, Control+Shift+E')}
       \C - Control
       \A - Alt
       \M - Meta

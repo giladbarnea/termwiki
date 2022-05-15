@@ -51,7 +51,7 @@ def option(*param_decls, **attrs):
     if attrs.get('metavar', _missing) is _missing \
             and attrs.get('type', _missing) is not _missing:
         try:
-            # changes click's default "BOOLEAN" to "BOOL", "INTEGER" → "INT"
+            # changes click's default "BOOLEAN" to "BOOL", "INTEGER" -> "INT"
             attrs['metavar'] = attrs['type'].__name__.upper()
         except AttributeError:
             # has no attribute __name__

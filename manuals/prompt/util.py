@@ -67,7 +67,7 @@ def safeslice(val: Union[str, int, slice]) -> slice:
         if isinstance(_val, slice):
             return _val
         # _stop = int(_val) + 1
-        return slice(int(_val))  # may raise TypeError → None
+        return slice(int(_val))  # may raise TypeError -> None
     
     if isinstance(val, str):
         val = val.strip()
@@ -94,7 +94,7 @@ def safeint(val: Union[str, int]) -> int:
     
     if isinstance(val, str):
         val = val.strip()
-    return int(val)  # may raise TypeError → None
+    return int(val)  # may raise TypeError -> None
 def to_int_or_slice(val):
     """Tries converting to int, then to slice if fails.
     Finally returns None if converting to slice fails as well"""

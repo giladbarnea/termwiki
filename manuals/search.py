@@ -72,7 +72,7 @@ class Matches(Generic[T]):
 			logging.debug(f'no self.matches -> returning None')
 			return None
 		ret = self.matches[self.best_score]
-		# print(paint.faint(f'Matches.best() → {len(ret)} matches with score: {self.best_score}'))
+		# print(paint.faint(f'Matches.best() -> {len(ret)} matches with score: {self.best_score}'))
 		return ret
 
 

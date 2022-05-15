@@ -29,7 +29,7 @@ This includes:
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
-
+# https://pygments.org/docs/lexerdevelopment/
 # Standard library
 import re
 

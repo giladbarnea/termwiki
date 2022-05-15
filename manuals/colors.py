@@ -1,10 +1,13 @@
 from more_termcolor import colors
 
+def box(text, *, width=None):
+    if width is None:
+        width = len(text) + 2
+    horizontal_bar = '─' * width
+    return '┌' + horizontal_bar + '┐\n│ ' + text + ' │\n└' + horizontal_bar + '┘'
 
 def h1(text, **kwargs):
-    h_width = len(text) + 2
-    h_bar = '─' * h_width
-    return '┌' + h_bar + '┐\n│ ' + colors.bold(text, 'ul', 'reverse', 'bright white', **kwargs) + ' │\n└' + h_bar + '┘'
+    return box(colors.bold(text, 'ul', 'reverse', 'bright white', **kwargs), width=len(text) + 2)
 
 
 def h2(text, **kwargs):
@@ -37,7 +40,7 @@ def b(text, **kwargs):
 
 
 def bg(text):
-    return f'\x1b[38;2;130;130;130;48;2;15;15;15m{text}\x1b[0m'
+    return f'\x1b[38;2;201;209;217;48;2;39;40;34m{text}\x1b[0m'
 
 
 def black(text, **kwargs):

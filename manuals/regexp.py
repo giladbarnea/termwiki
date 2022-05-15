@@ -44,7 +44,7 @@ def is_only_regex(val: str):
     if without_sqr_brackets == val:
         return False
     if without_sqr_brackets == '' or is_only_regex(without_sqr_brackets):
-        # '^[a-z]*$' → '^*$' → True
+        # '^[a-z]*$' -> '^*$' -> True
         return True
     return False
 

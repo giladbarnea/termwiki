@@ -2,6 +2,8 @@
 """
 get_main_topics() is called to popuplate MAIN_TOPICS.
 """
+from __future__ import annotations
+
 import inspect
 import itertools as it
 import logging
@@ -11,10 +13,10 @@ from typing import Callable, Collection
 
 import click
 
+from manuals.colors import h2
 from manuals.common.click_extension import unrequired_opt
 from manuals.common.types import ManFn
 from manuals.consts import SUB_TOPIC_RE
-from manuals.colors import h2
 
 
 def get_unused_subtopics(undecorated_main_topic_fn) -> list[str]:
@@ -164,6 +166,7 @@ def fuzzy_find_topic(topic: str,
 
 def get_sub_topic(main_topic: str, sub_topic: str) -> str:
     """
+    Function is called if both main_topic and sub_topic are specified.
     MAIN EXISTS?
      |      \
     yes     no
@@ -172,7 +175,7 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
      |        |     \
      |      found   nope
      |       /        \
-     |     /        KeyError!
+     |     /        KeyError
      |   /
     SUB IN MAIN's SUBS?
      |          \
@@ -182,7 +185,7 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
                    |         \
                 found       nope
                   |           \
-                [return]    SUB IN ANY MAIN's SUBS?
+                [return]    SUB IN ANY OTHER MAIN's SUBS?
                               |         \
                             yes         no
                              |           \
@@ -190,7 +193,7 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
                                           |       \
                                         found      nope
                                           |         \
-                                        [return]   KeyError!
+                                        [return]   KeyError
     """
     logging.debug(f"get_sub_topic({main_topic = !r}, {sub_topic = !r})")
     if main_topic not in MAIN_TOPICS:
@@ -210,13 +213,13 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
         # has 'subject.startswith('<')'. so maybe sub_topic works
         return manual(sub_topic)
     except KeyError:
-        print((f"[info] sub topic '{sub_topic}' isn't a sub topic of '{main_topic}'. "
-               f"Searching among '{main_topic}'s sub topics..."))
+        print(f"[info] sub topic {sub_topic!r} isn't a sub topic of {main_topic!r}. "
+              f"Searching among {main_topic!r}'s sub topics...")
         key, chosen_sub_topic = fuzzy_find_topic(sub_topic,
                                                  manual.sub_topics,
                                                  raise_if_exhausted=False,
                                                  # keep uppercase P so doesn't collide with topics
-                                                 P=f"print '{main_topic}' w/o subtopic")
+                                                 P=f"print {main_topic!r} w/o subtopic")
         if key == 'P':
             return manual()
 
@@ -224,28 +227,28 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
             return manual(f'_{chosen_sub_topic.upper()}')
 
         if sub_topic in SUB_TOPICS:
-            print(f"[info] '{sub_topic}' isn't a sub topic of '{main_topic}', but it belongs to these topics:")
+            print(f"[info] {sub_topic!r} isn't a sub topic of {main_topic!r}, but it belongs to these topics:")
             return print_manual(sub_topic)
 
-        print(f"[info] '{sub_topic}' doesn't belong to any topic. Searching among all SUB_TOPICS...")
+        print(f"[info] {sub_topic!r} doesn't belong to any topic. Searching among all SUB_TOPICS...")
         key, sub_topic = fuzzy_find_topic(sub_topic,
                                           SUB_TOPICS,
                                           raise_if_exhausted=True,
-                                          P=f"print '{main_topic}' w/o subtopic")
+                                          P=f"print {main_topic!r} without subtopic")
         if key == 'P':
             return manual()
 
         return manual(f'_{sub_topic.upper()}')
 
 
-def print_manual(topic: str, sub_topic=None):
-    """If passed correct topic(s), prints.
+def print_manual(main_topic: str, sub_topic=None):
+    """If passed correct main_topic(s), prints.
     If not correct, finds the correct with fuzzy search and calls itself."""
-    logging.debug(f"print_manual({repr(topic)}, {repr(sub_topic)})")
+    logging.debug(f"print_manual({main_topic!r}, {sub_topic!r})")
     if sub_topic:
-        # ** Passed both topic and sub_topic
-        sub_topic_str = get_sub_topic(topic, sub_topic)
-        # sub_topic_str = get_sub_topic(topic, sub_topic) \
+        # ** Passed both main_topic and sub_topic
+        sub_topic_str = get_sub_topic(main_topic, sub_topic)
+        # sub_topic_str = get_sub_topic(main_topic, sub_topic) \
         #     .replace('[h1]', '[bold underline reverse bright_white]') \
         #     .replace('[h2]', '[bold underline bright_white]') \
         #     .replace('[h3]', '[bold bright_white]') \
@@ -256,17 +259,17 @@ def print_manual(topic: str, sub_topic=None):
         return print(sub_topic_str)
 
     # ** Passed only one arg; could be main or sub. Maybe main?
-    if topic in MAIN_TOPICS:
-        return print(MAIN_TOPICS[topic]())
+    if main_topic in MAIN_TOPICS:
+        return print(MAIN_TOPICS[main_topic]())
 
-    # ** Not a main topic. Maybe it's a precise sub topic, i.e. "diff"
+    # ** Not a main main_topic. Maybe it's a precise sub main_topic, i.e. "diff"
     sub_topic_key = None
-    if topic in SUB_TOPICS:
-        sub_topic_key = topic
+    if main_topic in SUB_TOPICS:
+        sub_topic_key = main_topic
     else:
         for sub_topic in SUB_TOPICS:
             sub_topic_no_leading_underscore = sub_topic.removeprefix('_')
-            if topic == sub_topic_no_leading_underscore:
+            if main_topic == sub_topic_no_leading_underscore:
                 sub_topic_key = sub_topic
                 break
     if sub_topic_key:
@@ -277,10 +280,10 @@ def print_manual(topic: str, sub_topic=None):
             manuals: list[ManFn] = list(SUB_TOPICS[sub_topic_key])  # for index
 
             # TODO (bugs):
-            #  (1) If an ALIAS of a subtopic is the same as a SUBTOPIC of another main topic,
+            #  (1) If an ALIAS of a subtopic is the same as a SUBTOPIC of another main main_topic,
             #    this is called (shouldn't). Aliases aren't subtopics. (uncomment asyncio # _SUBPROCESS = _SUBPROCESSES)
             #  (2) main topics with both @alias and @syntax decors, that have the issue above ("(1)"), raise
-            #    a ValueError in igit prompt, because the same main topic function is passed here for each subtopic and subtopic alias.
+            #    a ValueError in igit prompt, because the same main main_topic function is passed here for each subtopic and subtopic alias.
             #  ValueError: ('NumOptions | __init__(opts) duplicate opts: ', ('<function asyncio at 0x7f5dab684ca0>', '<function asyncio at 0x7f5dab684ca0>', '<function python at 0x7f5dab669a60>'))
             idx, choice = prompt.choose(f"{sub_topic_key!r} exists in several topics, which one did you mean?",
                                         *[man.__qualname__ for man in manuals],
@@ -292,11 +295,11 @@ def print_manual(topic: str, sub_topic=None):
         manual, *_ = SUB_TOPICS[sub_topic_key]
         return print(manual(f'_{sub_topic_key.upper()}'))
 
-    # ** Not a precise subtopic. find something precise, either a main or sub topic
-    key, topic = fuzzy_find_topic(topic,
-                                  set(MAIN_TOPICS.keys()) | set(SUB_TOPICS.keys()),
-                                  raise_if_exhausted=True)
-    return print_manual(topic)
+    # ** Not a precise subtopic. find something precise, either a main or sub main_topic
+    key, main_topic = fuzzy_find_topic(main_topic,
+                                       set(MAIN_TOPICS.keys()) | set(SUB_TOPICS.keys()),
+                                       raise_if_exhausted=True)
+    return print_manual(main_topic)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
@@ -304,12 +307,12 @@ def print_manual(topic: str, sub_topic=None):
 @click.argument('sub_topic', required=False)
 @unrequired_opt('-l', '--list', 'list_topics_or_subtopics', is_flag=True, help="List main topic's sub topics if MAIN_TOPIC is provided, else list all main topics")
 @unrequired_opt('--doctor', 'print_unused_subtopics', is_flag=True, help="Print any subtopics that are skipped erroneously in a main topic's else clause")
-def get_topic(main_topic, sub_topic, list_topics_or_subtopics, print_unused_subtopics):
-    logging.debug(f'manuals.get_topic({main_topic = }, {sub_topic = }, {list_topics_or_subtopics = })')
-    if print_unused_subtopics:
+def get_topic(main_topic: str | None, sub_topic: str | None, list_topics_or_subtopics: bool = False, print_unused_subtopics: bool = False):
+    logging.debug(f'manuals.get_topic({main_topic = !r}, {sub_topic = !r}, {list_topics_or_subtopics = }, {print_unused_subtopics = })')
+    if print_unused_subtopics:  # mm --doctor
         populate_sub_topics(print_unused_subtopics=True)
         return
-    if list_topics_or_subtopics:
+    if list_topics_or_subtopics:  # mm [MAIN_TOPIC] -l, --list
         if main_topic:
             print(f"{h2(main_topic)}")
             [print(f' · {sub}') for sub in sorted(MAIN_TOPICS[main_topic].sub_topics)]
@@ -324,5 +327,11 @@ def get_topic(main_topic, sub_topic, list_topics_or_subtopics, print_unused_subt
                 print(title)
                 [print(f' · {sub}') for sub in sorted(MAIN_TOPICS[main_name].sub_topics)]
         return
+    if not main_topic:
+        print('Error: Must specify a topic.\n')
+        ctx = get_topic.context_class(get_topic)
+        print(get_topic.get_help(ctx))
+        return
 
+    # mm MAIN_TOPIC [SUB_TOPIC]
     print_manual(main_topic, sub_topic)

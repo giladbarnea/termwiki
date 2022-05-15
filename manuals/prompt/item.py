@@ -126,7 +126,7 @@ class MutableItem(Item):
     @property
     def is_yes_or_no(self):
         ret = bool(YES_OR_NO.fullmatch(self.identifier))
-        # darkprint(f'{repr(self)}.is_yes_or_no() → {ret}')
+        # darkprint(f'{repr(self)}.is_yes_or_no() -> {ret}')
         return ret
         # return self._is_yes_or_no
     
@@ -188,7 +188,7 @@ class FlowItem(Item):
     
     # @classmethod
     # def full_names(cls) -> set:
-    #     """→ {'continue', 'debug', 'quit'}"""
+    #     """-> {'continue', 'debug', 'quit'}"""
     #     return set(map(str.lower, FlowItem._member_names_))
     
     # @classmethod

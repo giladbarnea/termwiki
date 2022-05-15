@@ -185,7 +185,7 @@ def generic(prompt: str, *options: str, **kwargs: Union[str, tuple, bool]):
     """Most permissive, a simple wrapper for LexicPrompt. `options` are optional, `kwargs` are optional.
     Examples::
 
-        generic('This and that, continue?', 'yes', flowopts='quit', free_input=True) → [y], [q] (free input allowed)
+        generic('This and that, continue?', 'yes', flowopts='quit', free_input=True) -> [y], [q] (free input allowed)
     """
     
     return LexicPrompt(prompt, *options, **kwargs).answer
@@ -236,10 +236,10 @@ def confirm(prompt, **kwargs: Union[str, tuple, bool]) -> bool:
     If `options` contains any "special options", they are presented by key.
     Examples::
 
-        confirm('ice cream?', flowopts='quit') → [y], [n], [q]
-        confirm('pizza?', flowopts=True) → [y], [n], [c], [d], [q]
-        confirm('burger?', flowopts=('quit', 'debug')) → [y], [n], [q], [d]
-        confirm('proceed?') → [y], [n]
+        confirm('ice cream?', flowopts='quit') -> [y], [n], [q]
+        confirm('pizza?', flowopts=True) -> [y], [n], [c], [d], [q]
+        confirm('burger?', flowopts=('quit', 'debug')) -> [y], [n], [q], [d]
+        confirm('proceed?') -> [y], [n]
     """
     
     return Confirmation(prompt, 'yes', 'no', **kwargs).answer
