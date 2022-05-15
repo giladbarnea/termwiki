@@ -74,7 +74,7 @@ def altair(subject=None):
     /%python
     """
     _ENCODE = f"""
-  {h2('Chart.encode()')} {c('→ Chart')}
+  {h2('Chart.encode()')} {c('-> Chart')}
 
     Q   {c('Quantitative: numerical quantity (real-valued)')}
     N   {c('Nominal: Name / unordered categorical')}

@@ -201,12 +201,15 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
         main_topic = fuzzy_find_topic(main_topic, MAIN_TOPICS, raise_if_exhausted=True)
 
     manual: ManFn = MAIN_TOPICS[main_topic]
-    if sub_topic in manual.sub_topics:
-        return manual(f'_{sub_topic.upper()}')
-
-    if f'_{sub_topic}' in manual.sub_topics:
-        # mm bash syntax → manual.sub_topics has '_syntax' → pass '__SYNTAX'
-        return manual(f'__{sub_topic.upper()}')
+    for sub_topic_variation in (sub_topic,
+                                f'{sub_topic}s',
+                                f'_{sub_topic}',
+                                f'_{sub_topic}s'):
+        ## This accounts for 2 cases:
+        # 1. 'mm python descriptor', but correct is 'descriptors', so add 's'
+        # 2. 'mm bash while' -> manual.sub_topics has '_while' -> pass '__WHILE'
+        if sub_topic_variation in manual.sub_topics:
+            return manual(f'_{sub_topic_variation.upper()}')
 
     try:
         # sometimes functions have alias logic under 'if subject:' clause, for example bash
