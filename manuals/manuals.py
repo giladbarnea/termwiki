@@ -4437,7 +4437,15 @@ def git(subject=None):
       U             {c('updated but unmerged')}
       ??            {c('untracked')}
     """
-
+    _TAG = f"""{h2('tag')}
+    {c('List all tags:')}
+    ❯ git tag -l
+    
+    {c("Show tag I'm currently on:")}
+    ❯ git describe --tags --abbrev=0[ --exact-match]
+    ❯ git tag --points-at HEAD
+    ❯ git name-rev --tags --name-only $(git rev-parse HEAD)
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -4489,25 +4497,6 @@ def git(subject=None):
   {_STATUS}
     """
 
-
-@syntax
-def gitflow(subject=None):
-    return f"""{h2('git-flow')}
-  git flow init             {c('Initialize git-flow repository')}
-  git checkout develop      {c('Check out develop branch')}
-  git checkout hotfix       {c('Check out hotfix branch')}
-  git checkout release      {c('Check out release branch')}
-  git flow feature          {c('List existing feature branches')}
-  git flow hotfix           {c('List existing hotfix branches')}
-  git flow release          {c('List existing release branches')}
-  git flow feature start    {c('Start a new feature: gflfs <name>')}
-  git flow hotfix start     {c('Start a new hotfix: gflhs <version>')}
-  git flow release start    {c('Start a new release: gflrs <version>')}
-  git flow feature finish   {c('Finish feature: gflff <name>')}
-  git flow feature publish  {c('Publish feature: gflfp <name>')}
-  git flow hotfix finish    {c('Finish hotfix: gflhf <version>')}
-  git flow release finish   {c('Finish release: gflrf <version>')}
-  """
 
 
 @syntax
@@ -9186,12 +9175,11 @@ def restructured_text(subject=None):
   {c('https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html')}
   {bg('tip:')} export jupyter notebook to .rst to learn syntax
   
-  *emphasis*, **strong emphasis**, `interpreted text`, ``inline
-  literals``, standalone hyperlinks (http://www.python.org),
-  external hyperlinks (Python_), internal cross-references
-  (example_), footnote references ([1]_), citation references
-  ([CIT2002]_), substitution references (|example|), and _`inline
-  internal targets`.
+  *emphasis*, **strong emphasis**, `interpreted text`, ``inline literals``, 
+  standalone hyperlinks (http://www.python.org), external hyperlinks (Python_), 
+  internal cross-references (example_), footnote references ([1]_), 
+  citation references ([CIT2002]_), substitution references (|example|), 
+  and _`inline internal targets`.
 
   {h2('function(arg)')}
     :param arg: description
@@ -9243,7 +9231,7 @@ def restructured_text(subject=None):
     
       .. code-block:: ruby
     
-        print "Hello, World!\n"
+        print "Hello, World!{literal_linebreak}"
     
     {h3('click')}
       :class:`Option` or :class:`Argument`
