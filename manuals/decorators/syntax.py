@@ -87,8 +87,12 @@ def _get_color_formatter(style: Style):
 
 
 def _get_indent_level(text: str) -> int:
-    indent_level: int = min(map(lambda line: WHITESPACE_RE.match(_decolor(line)).span()[1],
-                                text.splitlines()))
+    def _get_single_line_indent_level(_line: str) -> int:
+        _decolored = _decolor(_line)
+        _whitespace_re_match = WHITESPACE_RE.match(_decolored)
+        _whitespace_re_match_span = _whitespace_re_match.span()
+        return _whitespace_re_match_span[1]
+    indent_level: int = min(map(_get_single_line_indent_level, text.splitlines()))
     return indent_level
 
 
@@ -177,8 +181,19 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                     import_path = groupdict['import_path']
                     import_path, _, imported_manual_name = import_path.rpartition('.')
                     full_import_path = 'manuals.man.' + import_path.removeprefix('manuals.man.')
-                    module = import_module(full_import_path)
-                    imported_manual = getattr(module, imported_manual_name)
+                    possible_import_paths = (
+                        (full_import_path, None), # absolute: import manuals.man.python.datamodel
+                        (f'.{imported_manual_name}', full_import_path), # relative: from manuals.man.python import datamodel
+                    )
+                    for import_name, import_package in possible_import_paths:
+                        imported = import_module(import_name, import_package)
+                        if hasattr(imported, imported_manual_name):
+                            imported_manual = getattr(imported, imported_manual_name)
+                            break
+                    else:
+                        print(f"[WARNING] {groupdict['import_path']} not found")
+                        continue
+
                     if hasattr(imported_manual, '__handled_directives__'):
                         imported_text = imported_manual()
                     else:
