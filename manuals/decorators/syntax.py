@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import re
 from functools import wraps
-from typing import Type
 from textwrap import dedent, indent
+from typing import Type
+
 from pygments import highlight as pygments_highlight
 from pygments.formatters import TerminalTrueColorFormatter
 from pygments.lexer import Lexer
@@ -32,22 +33,22 @@ from manuals.ipython_lexer import IPython3Lexer
 
 formatters: dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__)
 lexer_classes: dict[Language, Type[Lexer]] = {
-    'ahk': AutohotkeyLexer,
-    'bash': BashLexer,
-    'css': CssLexer,
-    'docker': DockerLexer,
-    'ini': IniLexer,
-    'ipython': IPython3Lexer,
-    'js': JavascriptLexer,
-    'json': JsonLexer,
-    'md': MarkdownLexer,
+    'ahk':      AutohotkeyLexer,
+    'bash':     BashLexer,
+    'css':      CssLexer,
+    'docker':   DockerLexer,
+    'ini':      IniLexer,
+    'ipython':  IPython3Lexer,
+    'js':       JavascriptLexer,
+    'json':     JsonLexer,
+    'md':       MarkdownLexer,
     'markdown': MarkdownLexer,
-    'mysql': MySqlLexer,
-    'python': PythonLexer,
-    'rst': RstLexer,
-    'sass': SassLexer,
-    'toml': TOMLLexer,
-    'ts': TypeScriptLexer,
+    'mysql':    MySqlLexer,
+    'python':   PythonLexer,
+    'rst':      RstLexer,
+    'sass':     SassLexer,
+    'toml':     TOMLLexer,
+    'ts':       TypeScriptLexer,
     }
 lexers: dict[Language, Lexer] = dict.fromkeys(LANGS)
 console = None
@@ -93,8 +94,8 @@ def _get_indent_level(text: str) -> int:
 
 def _enumerate_lines(text: str, *, ljust: int = 0) -> str:
     enumerated_text: str = '\n'.join([f'\x1b[90m{i: >{ljust}}｜\x1b[0m {line}'
-                                          for i, line
-                                          in enumerate(text.splitlines(), start=1)])
+                                      for i, line
+                                      in enumerate(text.splitlines(), start=1)])
     return enumerated_text
 
 
@@ -123,104 +124,56 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
         def foo(): ...
 
     Inline `%python native` takes precedence over decorator args.
+
+    **Flow:**
+
+    Outer while:
+
+    - line = lines[idx]; idx++. Break when idx == len(lines).
+    - If line matches %import:
+    - If line matches SYNTAX_HIGHLIGHT_START_RE:
+
+      - Get `lang` from line.
+      - Get `style` from line > kwargs > args.
+      - if `highlighted_lines_count` is specified (--line-numbers):
+
+        - Highlight respective lines starting from idx+1
+        - Set `idx` to the line after the last highlighted line and continue outer loop.
+
+      - if `highlighted_lines_count` is specified (--line-numbers):
+
     """
     default_style = None
 
     def decorator(manual: ManFn):
         manual.__handled_directives__ = True
+
         @wraps(manual)
         def manual_that_handles_directives(subject=None) -> str:
 
             try:
-                ret = manual(subject)
+                manual_content = manual(subject)
             except TypeError as te:
                 if te.args and re.search(r'takes \d+ positional arguments but \d+ was given', te.args[0]):
-                    ret = manual()
+                    manual_content = manual()
                     # import logging
                     # logging.warning('syntax() | ignored TypeError not enough pos arguments given')
                 else:
                     raise
 
-            lines = ret.splitlines()
+            lines = manual_content.splitlines()
             highlighted_strs = []
             idx = 0
             while True:
-                try:
-                    line = lines[idx]
-                except IndexError:
+                if idx == len(lines):
                     break
-                if match := SYNTAX_HIGHLIGHT_START_RE.fullmatch(line.strip()):
-                    # ** `%mysql ...`:
-                    groupdict = match.groupdict()
-                    lang = groupdict['lang']
-                    lines_to_highlight = groupdict['count'] and int(groupdict['count'])
-                    enumerate_lines = bool(groupdict['line_numbers'])
-                    # style precedence:
-                    # 1. %mysql friendly
-                    # 2. @syntax(python='friendly')
-                    # 3. @syntax('friendly')
-                    style = groupdict['style']
-                    if not style:
-                        if lang in default_styles:
-                            style = default_styles.get(lang)
-                        else:
-                            style = default_style  # may be None
+                line = lines[idx]
+                line_stripped = line.strip()
 
-                    # * `%mysql 1`:
-                    if lines_to_highlight:
-                        # looks like this breaks %mysql 3 --line-numbers
-                        for k in range(lines_to_highlight):
-                            text = lines[idx + 1]
-                            highlighted = _syntax_highlight(text, lang, style)
-                            highlighted_strs.append(highlighted)
-                            idx += 1
-                        else:
-                            idx += 1
-                            continue  # outer while
-
-                    # * `%mysql [friendly] [--line-numbers]`:
-                    # idx is where %python directive.
-                    # Keep incrementing j until we hit closing /%python.
-                    # Then highlight idx+1:j.
-                    j = idx + 1
-                    while True:
-                        try:
-                            next_line = lines[j]
-                        except IndexError:
-                            # no closing /%python -> _syntax_highlight only first line
-                            # TODO: in setuppy, under setup(), first line not closing %bash doesnt work
-                            #  Consider highlighting until end of string (better behavior and maybe solves this bug?)
-                            text = lines[idx + 1]
-                            highlighted = _syntax_highlight(text, lang, style)
-                            if enumerate_lines:
-                                breakpoint()
-                                # highlighted = f'{j + 1}. {highlighted}'
-                            highlighted_strs.append(highlighted)
-                            idx = j
-                            break # inner while
-                        else:
-                            if SYNTAX_HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
-                                text = '\n'.join(lines[idx + 1:j])
-                                if enumerate_lines:
-                                    # pygments adds color codes to start of line, even if
-                                    # it's indented. Tighten this up before adding line numbers.
-                                    indent_level = _get_indent_level(text)
-                                    dedented_text = dedent(text)
-                                    ljust = len(str(j - (idx + 1)))
-                                    highlighted = _syntax_highlight(dedented_text, lang, style)
-                                    highlighted = _enumerate_lines(highlighted, ljust=ljust)
-                                    highlighted = indent(highlighted, ' ' * indent_level)
-                                else:
-                                    highlighted = _syntax_highlight(text, lang, style)
-                                highlighted_strs.append(highlighted)
-                                idx = j
-                                break
-                            j += 1
-
-                elif match := IMPORT_RE.fullmatch(line.strip()):
+                if import_match := IMPORT_RE.fullmatch(line_stripped):
                     # ** `%import ...`:
                     from importlib import import_module
-                    groupdict = match.groupdict()
+                    groupdict = import_match.groupdict()
                     import_path = groupdict['import_path']
                     import_path, _, imported_manual_name = import_path.rpartition('.')
                     full_import_path = 'manuals.man.' + import_path.removeprefix('manuals.man.')
@@ -235,8 +188,83 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                     indented_imported_text = indent(imported_text + '\n', ' ' * indent_level)
                     highlighted_strs.append(indented_imported_text)
 
-                else: # regular line, no directives (SYNTAX_HIGHLIGHT_START_RE or IMPORT_RE)
+                elif syntax_highlight_start_match := SYNTAX_HIGHLIGHT_START_RE.fullmatch(line_stripped):
+                    # ** `%mysql ...`:
+                    groupdict: dict = syntax_highlight_start_match.groupdict()
+                    lang: Language = groupdict['lang']
+                    highlighted_lines_count: int = groupdict['count'] and int(groupdict['count'])
+                    enumerate_lines: bool = bool(groupdict['line_numbers'])
+                    # style precedence:
+                    # 1. %mysql friendly
+                    # 2. @syntax(python='friendly')
+                    # 3. @syntax('friendly')
+                    style = groupdict['style']
+                    if not style:
+                        # default_style is either @syntax('friendly') or None
+                        style = default_styles.get(lang, default_style)
+
+                    # * `%mysql 1`:
+                    if highlighted_lines_count:
+                        # looks like this breaks %mysql 3 --line-numbers
+                        highlight_start_idx = idx + 1
+                        for _ in range(highlighted_lines_count):
+                            next_line = lines[highlight_start_idx]
+                            highlighted = _syntax_highlight(next_line, lang, style)
+                            highlighted_strs.append(highlighted)
+                            highlight_start_idx += 1
+                        idx = highlight_start_idx + 1
+                        continue  # outer while
+
+                    # * `%mysql [friendly] [--line-numbers]`:
+                    # idx is where %python directive.
+                    # Keep incrementing highlight_start_idx until we hit closing /%python.
+                    # Then highlight idx+1:highlight_start_idx.
+                    highlight_start_idx = idx + 1
+                    while True:
+                        try:
+                            next_line = lines[highlight_start_idx]
+                        except IndexError:
+                            # This happens when we keep incrementing highlight_start_idx but no SYNTAX_HIGHLIGHT_END_RE is found.
+                            # So we just highlight the first line and break.
+                            # TODO: in setuppy, under setup(), first line not closing %bash doesnt work
+                            #  Consider highlighting until end of string (better behavior and maybe solves this bug?)
+                            text = lines[idx + 1]
+                            highlighted = _syntax_highlight(text, lang, style)
+                            if enumerate_lines:
+                                breakpoint()
+                            highlighted_strs.append(highlighted)
+                            idx = highlight_start_idx
+                            break  # inner while
+                        else:
+                            if SYNTAX_HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
+                                text = '\n'.join(lines[idx + 1:highlight_start_idx])
+                                if enumerate_lines:
+                                    # pygments adds color codes to start of line, even if
+                                    # it's indented. Tighten this up before adding line numbers.
+                                    indent_level = _get_indent_level(text)
+                                    dedented_text = dedent(text)
+                                    ljust = len(str(highlight_start_idx - (idx + 1)))
+                                    highlighted = _syntax_highlight(dedented_text, lang, style)
+                                    highlighted = _enumerate_lines(highlighted, ljust=ljust)
+                                    highlighted = indent(highlighted, ' ' * indent_level)
+                                else:
+                                    highlighted = _syntax_highlight(text, lang, style)
+                                highlighted_strs.append(highlighted)
+                                idx = highlight_start_idx
+                                break
+                            highlight_start_idx += 1
+
+
+                elif line_stripped.startswith('❯'):
+                    if '\x1b[' in line:  # hack to detect if line is already highlighted
+                        highlighted_strs.append(line)
+                    else:
+                        *prompt_symbol, line = line.partition('❯')
+                        highlighted = _syntax_highlight(line, "bash", style=default_styles.get("bash", default_style))
+                        highlighted_strs.append(''.join(prompt_symbol) + highlighted)
+                else:  # regular line, no directives (SYNTAX_HIGHLIGHT_START_RE or IMPORT_RE)
                     highlighted_strs.append(line + '\n')
+
                 idx += 1
             stripped = ''.join(highlighted_strs).strip()
             return stripped
