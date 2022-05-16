@@ -27,7 +27,7 @@ SYNTAX_HIGHLIGHT_END_RE = re.compile(f'/%({pipe_sep_langs})')
 IMPORT_RE = re.compile('%import (?P<import_path>[\w.]+)')
 
 SUB_TOPIC_RE = re.compile(r'_[A-Z\d_]*\s*=\s*(rf|fr|f)["\']{3}')
-WHITESPACE_RE = re.compile(r'\s+')
+WHITESPACE_RE = re.compile(r'\s*')
 COLOR_RE = re.compile(r'(\x1b\[(?:\d;?)*m)')
 # what = re.compile(r'\b'
 #                   r'(?:'
