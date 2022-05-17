@@ -57,17 +57,10 @@ def special_method_names(): # 3.3
       # Note: a.__dict__['x'] raises KeyError
       /%python
     """
+    _SLOTS = f"""{h5('3.3.2.4 __slots__')}"""
 
-    return f"""{h3('3.3 Special method names')}
-{c('https://docs.python.org/3/reference/datamodel.html#special-method-names')}
-
-  {h4('3.3.1 Basic customization')}
-    __new__, __init__, ...
-    {h5('Comparison')}
-      Returning NotImplemented (also from numeric methods) makes interpreter
-      try the __r<op>__ method on the operands.
-
-  {h4('3.3.2 Customizing attribute access')}
+    # 3.3.8
+    _ATTRIBUTES = f"""{h4('3.3.2 Customizing attribute access')}
     __getattribute__, __getattr__, __setattr__, __delattr__, __dir__
     %python
     def __getattribute__(self, key): # pseudo-code
@@ -84,8 +77,53 @@ def special_method_names(): # 3.3
             return self.__getattr__(key)
         raise AttributeError(key)
     /%python
-
+  
     {_DESCRIPTORS}
+
+    {_SLOTS}
+    """
+
+    # 3.3.8
+    _NUMERIC = f"""{h4('3.3.8 Numeric')}
+    {c('If returns NotImplemented, __r<op>__ is invoked (except __pow__):')}
+    __add__(self, other)           {c('+        ')}  __radd__(self, other)
+    __sub__(self, other)           {c('-        ')}  __rsub__(self, other)
+    __mul__(self, other)           {c('*        ')}  __rmul__(self, other)
+    __matmul__(self, other)        {c('@        ')}  __rmatmul__(self, other)
+    __truediv__(self, other)       {c('/        ')}  __rtruediv__(self, other)
+    __floordiv__(self, other)      {c('//       ')}  __rfloordiv__(self, other)
+    __mod__(self, other)           {c('%        ')}  __rmod__(self, other)
+    __divmod__(self, other)        {c('divmod() ')}  __rdivmod__(self, other)
+    __pow__(self, other[, modulo]) {c('**, pow()')}  __rpow__(self, other[, modulo])
+    __lshift__(self, other)        {c('<<       ')}  __rlshift__(self, other)
+    __rshift__(self, other)        {c('>>       ')}  __rrshift__(self, other)
+    __and__(self, other)           {c('&        ')}  __rand__(self, other)
+    __xor__(self, other)           {c('^        ')}  __rxor__(self, other)
+    __or__(self, other)            {c('|        ')}  __ror__(self, other)
+
+    x = x.__iadd__(y) <=> x += y (if defined)
+
+    __neg__(self)      {c('-    ')}       __complex__(self)  {c('complex()')}
+    __pos__(self)      {c('+    ')}       __int__(self)      {c('int()')}
+    __abs__(self)      {c('abs()')}       __float__(self)    {c('float()')}
+    __invert__(self)   {c('~    ')}       __index__(self)    {c('bin(), hex(), oct(); complex/int/float fallback')}
+    __round__(self[, ndigits])     {c('round()')}
+    __trunc__(self)                {c('math.trunc(); int fallback if no __int__ or __index__')}
+    __floor__(self)                {c('math.floor()')}
+    __ceil__(self)                 {c('math.ceil()')}
+    """
+    return f"""{h3('3.3 Special method names')}
+{c('https://docs.python.org/3/reference/datamodel.html#special-method-names')}
+
+  {h4('3.3.1 Basic customization')}
+    __new__, __init__, ...
+    {h5('Comparison')}
+      Returning NotImplemented (also from numeric methods) makes interpreter
+      try the __r<op>__ method on the operands.
+
+  {_ATTRIBUTES}
+  
+  {_NUMERIC}
     """
 
 @optional_subject
@@ -119,43 +157,12 @@ def datamodel():
   {h4('Custom classes')}
     Instance methods, not static methods, have __self__ attr (and __func__?)
     """
-
-    _NUMERIC = f"""{h4('3.3.8 Numeric')}
-    {c('If returns NotImplemented, __r<op>__ is invoked (except __pow__):')}
-    __add__(self, other)           {c('+        ')}  __radd__(self, other)
-    __sub__(self, other)           {c('-        ')}  __rsub__(self, other)
-    __mul__(self, other)           {c('*        ')}  __rmul__(self, other)
-    __matmul__(self, other)        {c('@        ')}  __rmatmul__(self, other)
-    __truediv__(self, other)       {c('/        ')}  __rtruediv__(self, other)
-    __floordiv__(self, other)      {c('//       ')}  __rfloordiv__(self, other)
-    __mod__(self, other)           {c('%        ')}  __rmod__(self, other)
-    __divmod__(self, other)        {c('divmod() ')}  __rdivmod__(self, other)
-    __pow__(self, other[, modulo]) {c('**, pow()')}  __rpow__(self, other[, modulo])
-    __lshift__(self, other)        {c('<<       ')}  __rlshift__(self, other)
-    __rshift__(self, other)        {c('>>       ')}  __rrshift__(self, other)
-    __and__(self, other)           {c('&        ')}  __rand__(self, other)
-    __xor__(self, other)           {c('^        ')}  __rxor__(self, other)
-    __or__(self, other)            {c('|        ')}  __ror__(self, other)
-
-    x = x.__iadd__(y) <=> x += y (if defined)
-
-    __neg__(self)      {c('-    ')}       __complex__(self)  {c('complex()')}
-    __pos__(self)      {c('+    ')}       __int__(self)      {c('int()')}
-    __abs__(self)      {c('abs()')}       __float__(self)    {c('float()')}
-    __invert__(self)   {c('~    ')}       __index__(self)    {c('bin(), hex(), oct(); complex/int/float fallback')}
-    __round__(self[, ndigits])     {c('round()')}
-    __trunc__(self)                {c('math.trunc(); int fallback if no __int__ or __index__')}
-    __floor__(self)                {c('math.floor()')}
-    __ceil__(self)                 {c('math.ceil()')}
-    """
     return f"""{h2('Magic / Dunder / Data Model / Descriptors')}
 {c('https://docs.python.org/3/reference/datamodel.html')}
 {c('Plain list: pygments/lexers/python.py:266')}    
 {_STANDARD_TYPE_HIERARCHY}
 {special_method_names()}
-  {_NUMERIC}
-
-{bg(i('__dict__ dir / vars / inspect.getmembers'))}
+{h3('__dict__ dir / vars / inspect.getmembers')}
   %python
   >>> dir(Console) == inspect.getmembers(Console) # True
   >>> vars(Console) == set(Console.__dict__) # True

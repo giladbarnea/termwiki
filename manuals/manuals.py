@@ -8611,41 +8611,26 @@ def python(subject=None):
     _MAGIC = _DUNDER = _DATAMODEL = _DESCRIPTORS = "%import python.datamodel"
 
     _MRO = f"""{h2('MRO')}
-    %python
-    >>> class A: 
-    >>>   x=1
-    >>>   def f(self):
-    >>>     print('A')
-    >>> class B(A): 
-    >>>   x=2
-    >>>   def f(self):
-    >>>     print('B')
-    >>>     super().f()
-    >>> class C(A): 
-    >>>   x=3
-    >>>   def f(self):
-    >>>     print('C')
-    >>>     super().f()
-    >>> class D(B, C): 
-    >>>   def f(self):
-    >>>     print('D')
-    >>>     super().f()
-    >>> d = D()
-    >>> d.x
-    2
-    >>> D.__mro__ # breadth-first
-    (D, B, C, A, object)
-    >>> class E(C, B): pass
-    >>> E().x
-    3
-    >>> E.__mro__
-    (E, C, B, A, object)
-    >>> d.f()
-    D
-    B
-    C
-    A
-    /%python
+    {c('D -> B -> C -> A')}
+           A
+          ╱ ╲
+         B   C
+          ╲ ╱
+           D
+    
+    {c('D -> B -> A -> C')}
+         A      {c(i('A ') + 'must call super() for C to be called')}
+         ⎸ 
+         B   C
+          ╲ ╱
+           D
+    
+    {c('TypeError; C needs A to init before B, but D needs B to init before A')}
+       A B   B A   
+        ╲│   │╱ 
+         C   D
+          ╲ ╱
+           E    
     """
     _OPEN = rf"""{h2(f'with open(path, mode="rt" {c("default")}, errors=None)')}
   {h2('mode')}
@@ -11711,6 +11696,9 @@ def zsh(subject=None):
     X   {c('Something about errors')}
     z   {c('Split result into words based on shell parsing (i.e. taking into account any quoting.)')}
     0   {c(f'Split result on null bytes. Shorthand for ‘ps:{literal_backslash}0:’')}
+    
+    {h3('See also')}
+      zsh print
     """
 
     _ZLE = f"""{h2('zle')} - Z-Shell Line Editor
@@ -11876,7 +11864,7 @@ def zsh(subject=None):
       _p9k_precmd
       
     """
-    _KEYS = f"""{h2('Keyboard Shortcuts')}
+    _KEYBOARD = _KBD = f"""{h2('Keyboard Shortcuts')}
     {c('show all with just `bindkey`')}
     {h3('Glossary')}
       ^X      {c('ctrl x')}
@@ -11943,8 +11931,7 @@ def zsh(subject=None):
     else:
         return f"""{h1('zsh')}
   {c('http://zsh.sourceforge.net/Guide/zshguide04.html')}
-
-  {_STRING}
+  {_EXPANSION}
   
   {_ARRAY}
   
@@ -11952,7 +11939,7 @@ def zsh(subject=None):
   
   {_ZLE}
 
-  {_KEYS}
+  {_KEYBOARD}
   
   {_BINDKEY}
   
