@@ -49,6 +49,8 @@
 - in README.md: "optimized for zero mental overhead, specifically when getting to the info"
 - mouseclick or kb shortcut to collapse / expand subtopics when shown
 - `mm python magic-` for collapsed from specific hierarchy
+- `mm python slots` should work even though `slots` is a python.datamodel.special_method_names() variable
+- Automatic h1-h6 headings based on indentation
 ### %import use cases
 - %import python.datamodel with python/datamodel.py and datamodel() method in datamodel.py
 - %import python.datamodel.numeric with python/datamodel.py and numeric() method in datamodel.py
