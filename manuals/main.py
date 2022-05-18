@@ -310,7 +310,10 @@ def print_manual(main_topic: str, sub_topic=None):
 @click.argument('sub_topic', required=False)
 @unrequired_opt('-l', '--list', 'list_topics_or_subtopics', is_flag=True, help="List main topic's sub topics if MAIN_TOPIC is provided, else list all main topics")
 @unrequired_opt('--doctor', 'print_unused_subtopics', is_flag=True, help="Print any subtopics that are skipped erroneously in a main topic's else clause")
-def get_topic(main_topic: str | None, sub_topic: str | None, list_topics_or_subtopics: bool = False, print_unused_subtopics: bool = False):
+def get_topic(main_topic: str | None,
+              sub_topic: str | None,
+              list_topics_or_subtopics: bool = False,
+              print_unused_subtopics: bool = False):
     logging.debug(f'manuals.get_topic({main_topic = !r}, {sub_topic = !r}, {list_topics_or_subtopics = }, {print_unused_subtopics = })')
     if print_unused_subtopics:  # mm --doctor
         populate_sub_topics(print_unused_subtopics=True)
