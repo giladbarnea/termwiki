@@ -180,10 +180,10 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                     groupdict = import_match.groupdict()
                     import_path = groupdict['import_path']
                     import_path, _, imported_manual_name = import_path.rpartition('.')
-                    full_import_path = 'manuals.man.' + import_path.removeprefix('manuals.man.')
+                    full_import_path = 'manuals.pages.' + import_path.removeprefix('manuals.pages.')
                     possible_import_paths = (
-                        (full_import_path, None), # absolute: import manuals.man.python.datamodel
-                        (f'.{imported_manual_name}', full_import_path), # relative: from manuals.man.python import datamodel
+                        (full_import_path, None), # absolute: import manuals.pages.python.datamodel
+                        (f'.{imported_manual_name}', full_import_path), # relative: from manuals.pages.python import datamodel
                     )
                     for import_name, import_package in possible_import_paths:
                         imported = import_module(import_name, import_package)
