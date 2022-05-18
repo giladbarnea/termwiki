@@ -175,3 +175,5 @@ def datamodel():
   >>> inspect.isroutine(Console) ==
   /%python
 """
+
+datamodel.aliases = ['magic']
