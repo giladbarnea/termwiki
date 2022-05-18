@@ -13,14 +13,14 @@ from typing import Callable, Collection
 
 import click
 
-from pages.colors import h2
-from pages.common.click_extension import unrequired_opt
-from pages.common.types import ManFn
-from pages.consts import SUB_TOPIC_RE
+from termwiki.colors import h2
+from termwiki.common.click_extension import unrequired_opt
+from termwiki.common.types import ManFn
+from termwiki.consts import SUB_TOPIC_RE
 
 
 def get_unused_subtopics(undecorated_main_topic_fn) -> list[str]:
-    """python -m pages --doctor calls this"""
+    """python -m termwiki --doctor calls this"""
     # TODO (bug): Doesn't check if __LOGGING_FORMATTER in _LOGGING
     # TODO (bug): If _MANAGE = _MANAGEPY = f"""... and _MANAGEPY in last block, says _MANAGE is unused
     lines = inspect.getsource(undecorated_main_topic_fn).splitlines()
@@ -47,9 +47,9 @@ def draw_out_decorated_fn(fn: ManFn) -> Callable:
 
 
 def populate_main_topics() -> dict[str, ManFn]:
-    """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `pages` module"""
-    from pages.pages import pages
-    from ._man import manuals as private_manuals
+    """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
+    from termwiki.pages import pages
+    from ._man import pages as private_manuals
     def iter_module_manuals(module):
         for _main_topic in dir(module):
             if _main_topic in module.EXCLUDE:
@@ -128,7 +128,7 @@ def fuzzy_find_topic(topic: str,
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
     # not even a subtopic, could be gibberish
     # try assuming it's a substring
-    from pages import search, prompt
+    from termwiki import search, prompt
     for maybes, is_last in search.iter_maybes(topic, collection, criterion='substring'):
         if not maybes:
             continue
@@ -279,7 +279,7 @@ def print_manual(main_topic: str, sub_topic=None):
         # * Indeed a precise subtopic
         ## Maybe multiple pages have it
         if len(SUB_TOPICS[sub_topic_key]) > 1:
-            from pages import prompt
+            from termwiki import prompt
             manuals: list[ManFn] = list(SUB_TOPICS[sub_topic_key])  # for index
 
             # TODO (bugs):
@@ -314,7 +314,7 @@ def get_topic(main_topic: str | None,
               sub_topic: str | None,
               list_topics_or_subtopics: bool = False,
               print_unused_subtopics: bool = False):
-    logging.debug(f'pages.get_topic({main_topic = !r}, {sub_topic = !r}, {list_topics_or_subtopics = }, {print_unused_subtopics = })')
+    logging.debug(f'termwiki.get_topic({main_topic = !r}, {sub_topic = !r}, {list_topics_or_subtopics = }, {print_unused_subtopics = })')
     if print_unused_subtopics:  # mm --doctor
         populate_sub_topics(print_unused_subtopics=True)
         return

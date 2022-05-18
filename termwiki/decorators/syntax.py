@@ -25,9 +25,9 @@ from pygments.lexers import (
     TypeScriptLexer,
     )
 
-from pages.common.types import ManFn, Style, Language
-from pages.consts import SYNTAX_HIGHLIGHT_START_RE, LANGS, SYNTAX_HIGHLIGHT_END_RE, WHITESPACE_RE, COLOR_RE, IMPORT_RE
-from pages.ipython_lexer import IPython3Lexer
+from termwiki.common.types import ManFn, Style, Language
+from termwiki.consts import SYNTAX_HIGHLIGHT_START_RE, LANGS, SYNTAX_HIGHLIGHT_END_RE, WHITESPACE_RE, COLOR_RE, IMPORT_RE
+from termwiki.ipython_lexer import IPython3Lexer
 
 # https://help.farbox.com/pygments.html     <- previews of all styles
 
@@ -180,10 +180,10 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                     groupdict = import_match.groupdict()
                     import_path = groupdict['import_path']
                     import_path, _, imported_manual_name = import_path.rpartition('.')
-                    full_import_path = 'pages.pages.' + import_path.removeprefix('pages.pages.')
+                    full_import_path = 'termwiki.pages.' + import_path.removeprefix('termwiki.pages.')
                     possible_import_paths = (
-                        (full_import_path, None), # absolute: import pages.pages.python.datamodel
-                        (f'.{imported_manual_name}', full_import_path), # relative: from pages.pages.python import datamodel
+                        (full_import_path, None), # absolute: import termwiki.pages.python.datamodel
+                        (f'.{imported_manual_name}', full_import_path), # relative: from termwiki.pages.python import datamodel
                     )
                     for import_name, import_package in possible_import_paths:
                         imported = import_module(import_name, import_package)

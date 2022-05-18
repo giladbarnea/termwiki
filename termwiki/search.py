@@ -179,7 +179,7 @@ def iter_maybes(keyword: str,
 		regexp = re.compile(regexp_str, re.IGNORECASE)
 	except re.error:
 		# compilation failed, probaby keyword is itself a regexp
-		from pages.regexp import has_regex
+		from termwiki.regexp import has_regex
 		if has_regex(keyword):
 			regexp = re.compile(keyword, re.IGNORECASE)
 

@@ -39,7 +39,7 @@ class MainTopic(Topic):
             yield sub_topic_name
     
     def print_unused_subtopics(self):
-        """python -m pages <MAIN TOPIC> --doctor calls this"""
+        """python -m termwiki <MAIN TOPIC> --doctor calls this"""
         wrapped = self.wrapped
         lines = inspect.getsource(wrapped).splitlines()
         try:

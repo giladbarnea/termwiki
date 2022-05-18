@@ -1,6 +1,6 @@
 import re
 
-from pages.common.types import Language, Style
+from termwiki.common.types import Language, Style
 
 literal_linebreak = r'\n'
 linebreak = '\n'

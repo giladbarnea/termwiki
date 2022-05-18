@@ -10,7 +10,7 @@ from more_termcolor import colors
 # from igit.abcs import prettyrepr
 # from rich.console import Console
 # from igit.util.misc import darkprint
-from pages.regexp import YES_OR_NO
+from termwiki.regexp import YES_OR_NO
 import logging
 T = TypeVar('T')
 # from rich.console import Console

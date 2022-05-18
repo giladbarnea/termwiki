@@ -3,9 +3,9 @@ from __future__ import annotations
 import inspect
 import re
 
-from pages.consts import literal_linebreak, literal_backslash
-from pages.decorators import syntax, alias
-from pages.colors import h1, h2, h3, h4, h5, b, c, i, black, bg
+from termwiki.consts import literal_linebreak, literal_backslash
+from termwiki.decorators import syntax, alias
+from termwiki.colors import h1, h2, h3, h4, h5, b, c, i, black, bg
 
 EXCLUDE = set(locals()) | {'EXCLUDE'}
 
