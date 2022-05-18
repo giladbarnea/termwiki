@@ -7433,6 +7433,23 @@ def pudb(subject=None):
 
   """
 
+@syntax
+def PIL(subject=None):
+    _IMAGE = f"""{h2('Image')}
+    %python
+    >>> from PIL import Image; img = Image.open('image.png')
+    >>> im.size
+    (5906, 7874)
+    >>> cropped = im.crop((0,0,5906,7874))  # no crop
+    /%python
+    """
+    if subject:
+        frame = inspect.currentframe()
+        return frame.f_locals[subject]
+    else:
+        return f"""{h1('PIL')}
+  
+  """
 
 @syntax
 def pip(subject=None):
