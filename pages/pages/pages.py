@@ -3,9 +3,9 @@ from __future__ import annotations
 import inspect
 import re
 
-from manuals.consts import literal_linebreak, literal_backslash
-from manuals.decorators import syntax, alias
-from manuals.colors import h1, h2, h3, h4, h5, b, c, i, black, bg
+from pages.consts import literal_linebreak, literal_backslash
+from pages.decorators import syntax, alias
+from pages.colors import h1, h2, h3, h4, h5, b, c, i, black, bg
 
 EXCLUDE = set(locals()) | {'EXCLUDE'}
 
@@ -1714,7 +1714,7 @@ def bash(subject=None):
     man -w|--where|--path|--location [man options] page ...
     man -W|--where-cat|--location-cat [man options] page ...
 
-  {h2('Finding manuals')}
+  {h2('Finding pages')}
     --regex or --wildcard     {c('Show all pages matching PAGE arg')}
   {h2('Controlling formatted output')}
     -P pager, --pager=pager
@@ -5006,7 +5006,7 @@ def inspect_(subject=None):
     """
 
     _MODULE = f"""{h2('module')}
-      m.__name__ {c(": str ('mytool.myman.manuals')")}
+      m.__name__ {c(": str ('mytool.myman.pages')")}
       m.__package__ {c(": str ('mytool.myman')")}
       m.__loader__ {c(': SourceFileLoader')}
       m.__spec__ {c(': ModuleSpec')}

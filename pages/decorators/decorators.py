@@ -5,7 +5,7 @@ import inspect
 from collections.abc import Callable
 from functools import wraps
 
-from manuals.common.types import ManFn
+from pages.common.types import ManFn
 
 console = None
 

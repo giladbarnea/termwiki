@@ -13,14 +13,14 @@ from typing import Callable, Collection
 
 import click
 
-from manuals.colors import h2
-from manuals.common.click_extension import unrequired_opt
-from manuals.common.types import ManFn
-from manuals.consts import SUB_TOPIC_RE
+from pages.colors import h2
+from pages.common.click_extension import unrequired_opt
+from pages.common.types import ManFn
+from pages.consts import SUB_TOPIC_RE
 
 
 def get_unused_subtopics(undecorated_main_topic_fn) -> list[str]:
-    """python -m manuals --doctor calls this"""
+    """python -m pages --doctor calls this"""
     # TODO (bug): Doesn't check if __LOGGING_FORMATTER in _LOGGING
     # TODO (bug): If _MANAGE = _MANAGEPY = f"""... and _MANAGEPY in last block, says _MANAGE is unused
     lines = inspect.getsource(undecorated_main_topic_fn).splitlines()
@@ -47,8 +47,8 @@ def draw_out_decorated_fn(fn: ManFn) -> Callable:
 
 
 def populate_main_topics() -> dict[str, ManFn]:
-    """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `manuals` module"""
-    from . import manuals
+    """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `pages` module"""
+    from pages.pages import pages
     from ._man import manuals as private_manuals
     def iter_module_manuals(module):
         for _main_topic in dir(module):
@@ -64,7 +64,7 @@ def populate_main_topics() -> dict[str, ManFn]:
             yield _name, _manual
 
     main_topics = dict()
-    for name, manual in it.chain(iter_module_manuals(manuals),
+    for name, manual in it.chain(iter_module_manuals(pages),
                                  iter_module_manuals(private_manuals)):
         ## dont draw_out_wrapped_fn because then syntax() isn't called
         main_topics[name] = manual
@@ -128,14 +128,14 @@ def fuzzy_find_topic(topic: str,
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
     # not even a subtopic, could be gibberish
     # try assuming it's a substring
-    from manuals import search, prompt
+    from pages import search, prompt
     for maybes, is_last in search.iter_maybes(topic, collection, criterion='substring'):
         if not maybes:
             continue
 
-        kwargs = dict(Ep='Edit manuals.py with pycharm',
-                      Ec='Edit manuals.py with vscode',
-                      Em='Edit manuals.py with micro')
+        kwargs = dict(Ep='Edit pages.py with pycharm',
+                      Ec='Edit pages.py with vscode',
+                      Em='Edit pages.py with micro')
 
         if is_last and raise_if_exhausted:
             kwargs.update(flowopts='quit')
@@ -277,9 +277,9 @@ def print_manual(main_topic: str, sub_topic=None):
                 break
     if sub_topic_key:
         # * Indeed a precise subtopic
-        ## Maybe multiple manuals have it
+        ## Maybe multiple pages have it
         if len(SUB_TOPICS[sub_topic_key]) > 1:
-            from manuals import prompt
+            from pages import prompt
             manuals: list[ManFn] = list(SUB_TOPICS[sub_topic_key])  # for index
 
             # TODO (bugs):
@@ -314,7 +314,7 @@ def get_topic(main_topic: str | None,
               sub_topic: str | None,
               list_topics_or_subtopics: bool = False,
               print_unused_subtopics: bool = False):
-    logging.debug(f'manuals.get_topic({main_topic = !r}, {sub_topic = !r}, {list_topics_or_subtopics = }, {print_unused_subtopics = })')
+    logging.debug(f'pages.get_topic({main_topic = !r}, {sub_topic = !r}, {list_topics_or_subtopics = }, {print_unused_subtopics = })')
     if print_unused_subtopics:  # mm --doctor
         populate_sub_topics(print_unused_subtopics=True)
         return

@@ -8,7 +8,7 @@ from .item import NumItems, LexicItems, KeywordItems
 from .util import has_duplicates
 # from .util.misc import darkprint
 from .item import FlowItem
-from manuals.err import DevError
+from pages.err import DevError
 
 
 # @prettyrepr
