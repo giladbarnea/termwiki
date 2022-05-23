@@ -9692,6 +9692,94 @@ def ssh(subject=None):
       /%bash
     
     """
+    _SSH_CONFIG=f"""{h2('ssh_config')} {c('ssh -o OPTION')}
+    {h3('-o OPTION')}
+      {c('https://linux.die.net/man/5/ssh_config')}
+      {c('bind_address can also be * and localhost')}
+      AddressFamily[=any]       {c('"inet" for ipv4 only; "inet6" for ipv6 only')}
+      BatchMode[=no]            {c('"yes" means do not ask for password')}
+      BindAddress ⟨ADDRESS⟩     {c('Use the specified address on the local machine as the source address of the connection.')}
+                                  {c('Only useful on systems with more than one address. Note that this option does not work if UsePrivilegedPort is set to "yes".')}
+      ChallengeResponseAuthentication[=yes]
+      CheckHostIP[=yes]         {c('Check host IP in known_hosts')}
+      Cipher[=3des]
+      Ciphers[=long list...]
+      ClearAllForwardings[=no]  {c('Clear all forwardings before starting')}
+      Compression[=no]          
+      CompressionLevel[=6]      {c('Compression level 1 (fast) to 9 (best)')}
+      ConnectionAttempts[=1]    {c('One per second')}
+      ConnectTimeout            {c('Instead of default system TCP timeout. Used only when target is down or unreachable, not when it refuses connection')}
+      ControlMaster[=no]
+      ControlPath               {c('Path to control socket used by ControlMaster. "none" or value with %l,%h,%p,%r')}
+      DynamicForward ⟨[bind_address:]port⟩ {c('-D (or "/" instead of ":" for ipv6). Default is by GatewayPorts.')}
+                                             {c('"localhost" limits to localhost only, "*" or empty means all interfaces.')}
+      EnableSSHKeysign[=no]     {c('Enables use of ssh-keysign during HostbasedAuthentication')}
+      EscapeChar[=~]            {c('Can be "none"')}
+      ExitOnForwardFailure[=no]
+      ForwardAgent[=no]         {c('-A | Forward connection to authentication agent (if any) to remote')}
+      ForwardX11[=no]           {c('-X | Forward X11 connection and set DISPLAY env var')}
+      ForwardX11Trusted[=no]    {c('-Y | Full access to original X11 display')}
+      GatewayPorts[=no]         {c('-g? | Allow remote to connect to local forwarded ports')}
+      GlobalKnownHostsFile[=/etc/ssh/ssh_known_hosts]
+      GSSAPI
+        GSSAPIAuthentication[=no] {c('Allow GSSAPI authentication. Applies to protocol v2 only.')}
+        GSSAPIKeyExchange[=no]    {c('Allow GSSAPI key exchange. Applies to protocol v2 only.')}
+        GSSAPIClientIdentity      {c('Specifies the GSSAPI client identity when connecting to server.')}
+        GSSAPIDelegateCredentials[=no] {c('Forward credentials to the server. Applies to protocol v2 using GSSAPI.')}
+        GSSAPIRenewalForcesRekey[=no]
+        GSSAPITrustDns[=no]       {c('Trust DNS to securely canonicalize the host name being connected to. Applies to protocol v2 using GSSAPI.')}
+      HashKnownHosts[=no]       {c('Hash host names and addresses in known_hosts file')}
+      Host                      {c('Specifies real host name to log into')}
+      HostbasedAuthentication[=no] {c('Try rhosts auth with public key. Applies to proto v2 only and similar to RhostsRSAAuthentication')}
+      HostKeyAlgorithms[=ssh-rsa,ssh-dss]
+      HostKeyAlias              {c('Specifies alias instead of the real host name')}
+      Hostname                  {c('Default uses value on the cmd line. Numeric allowed.')}
+      IdentitiesOnly[=no]       {c('Only use auth identity files configued in ssh_config files, even when ssh-agents offers more identities')}
+      IdentityFile              {c('Multiple. ~/.ssh/identity for proto v2; ~/.ssh/id_rsa and ~/.ssh/id_dsa for proto v2')}
+                                  {c("%d local use'r homedir; %u local user name; %l local host name; %h remote host name; %r remote user name")}
+      KbdInteractiveAuthentication[=yes]
+      KbdInteractiveDevices     {c("Auth methods to use when kbd interactive. empty, 'bsdauth', 'pam', and 'skey'")}
+      LocalCommand              {c('Execute after connecting. % directives. Ignored unless PermitLocalCommand')}
+      LocalForward ⟨[bind_address:]port⟩ ⟨host:hostport⟩ 
+            {c('Forward TCP port on local to specified host and port from remote.')}
+            {c('Defalut bound to GatewayPorts. "localhost" limits to localhost only, "*" or empty means all interfaces.')}
+      LogLevel[=INFO]
+      MACs[=long list...]
+      NoHostAuthenticationForLocalhost[=no]  {c('Disable host authentication for localhost (loopback addresses)')}
+                                               {c('Can be used if home dir is shared across machines.')}
+      NumberOfPasswordPrompts[=3]
+      PasswordAuthentication[=yes]
+      PermitLocalCommand[=no]   {c('Required switch for LocalCommand')}
+      Port[=22]
+      PreferredAuthentications[=list...] {c('Order of proto v2 auth methods to try')}
+      Protocol[=2,1]            {c('Order of protocol versions to fallback')}
+      ProxyCommand
+      PubkeyAuthentication[=yes] {c('Try public key authentication. Applies to proto v2 only.')}
+      RekeyLimit[=1G or 4G depending on cipher]
+      RemoteForward ⟨[bind_address:]port⟩ ⟨host:hostport⟩
+            {c('Forward a TCP port on remote machine over to local host and port.')}
+            {c('If "port" arg is 0, listen port is dynamically allocated on the server and reported to the client at run time.')}
+            {c('If "bind_address" is not specified, bind only loopback_addresses. "*" or empty string means all interfaces.')}
+            {c('Needs GatewayPorts.')}                                                            
+      RemoteCommand             {c('execute on remote after connecting')}
+      RhostsRSAAuthentication[=no] {c('Try rhosts with RSA auth. Applies to proto v1 only and requires ssh to be setuid root.')}
+      RSAAuthentication[=yes]   {c('Try RSA authentication. Applies to proto v1 only.')}
+      SendEnv                   {c('Refer to sshd_config AcceptEnv')}
+      SetEnv
+      ServerAliveCountMax[=3]   {c('Applies to proto v2 only.')}
+      ServerAliveInternal[=0]   {c('Applies to proto v2 only.')}
+      SmartcardDevice
+      StrictHostKeyChecking[=ask] {c('"yes" to never add host keys to ~/.ssh/known_hosts, "no" to add keys without prompting, "ask" to prompt for each key')}
+      TCPKeepAlive[=yes]        {c('Send keepalive messages to notice if connection is dead')}
+      Tunnel[=no]               {c('-W | Request tun(4) between client and server. "yes" or "point-to-point" (layer 3), "ethernet" (layer 2), or "no".')}
+      TunnelDevice ⟨local_tun[:remote_tun]⟩ {c('Default any:any. See tun(4).')}
+      UsePriviledgedPort[=no]   {c('Use priv port for outgoing connections. If yes, must be setuid root.')}
+      User
+      UserKnownHostsFile[=~/.ssh/known_hosts]
+      VerifyHostKeyDNS[=no]     {c('Verify remote key using DNS and SSHFP. "yes", "ask", "no". Applies to proto v2 only.')}
+      VisualHostKey[=no]        {c('Show art')}
+      XAuthLocation[=/usr/bin/xauth] {c('See xauth(1)')}    
+    """
     if subject:
         frame = inspect.currentframe()
         return frame.f_locals[subject]
@@ -9720,25 +9808,7 @@ def ssh(subject=None):
       -f      {c('go to background just before command execution (after prompts)')}
       -n      {c('Redirects stdin from /dev/null (actually, prevents reading from stdin).')}
     
-    {h3('-o OPTION')}
-      {c('bind_address can also be * and localhost')}
-      DynamicForward            {c('-D [bind_address:]port')}
-      ForwardAgent[=no]         {c('-A | Forward connection to authentication agent (if any) to remote')}
-      ForwardX11[=no]           {c('-X')}
-      ForwardX11Trusted[=no]    {c('-Y | Redirect X11 connection and set DISPLAY')}
-      GatewayPorts[=no]         {c('-g? | Allow remote to connect to local forwarded ports')}
-      Host                      {c('Specifies real host name to log into')}
-      HostKeyAlias              {c('Specifies alias instead of the real host name')}
-      Hostname
-      LocalForward [bind_address:]port    {c('Forward TCP port on local to specified host and port from remote')}
-      LocalCommand              {c('Allow local command execution via the LocalCommand')}
-      NoHostAuthenticationForLocalhost[=no]  {c('Disable host authentication for localhost (loopback addresses)')}
-      PermitLocalCommand[=no]
-      RemoteCommand             {c('execute on remote after connecting')}
-      RemoteForward [bind_address:]port   {c('Requires GatewayPorts')}
-      SendEnv                   {c('Refer to sshd_config AcceptEnv')}
-      SetEnv
-      VisualHostKey             {c('Show art')}
+    {_SSH_CONFIG}
     
     {h3('SSH TOKENS')}
       %%    {c("A literal ‘%’.")}
