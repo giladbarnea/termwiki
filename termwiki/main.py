@@ -106,7 +106,7 @@ def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[Page]]:
                 print(f"{name!r} doesn't print:{spaces}{', '.join(unused_sub_pages)}")
 
         for sub_page_var_name in sub_page_var_names:
-            ## DONT account for dunder __ARGUMENTS, it's being handled by get_sub_page().
+            ## DONT account for dunder __ARGUMENTS, it's being handled by get_sub_page_content().
             #   If handled here, eventually bash('_ARGUMENTS') is called which errors.
             #   likewise: if f'_{sub_page}' in page.sub_pages:
 
@@ -164,7 +164,7 @@ def fuzzy_find_page(page: str,
     return None, None
 
 
-def get_sub_page(main_page: str, sub_page: str) -> str:
+def get_sub_page_content(main_page: str, sub_page: str) -> str:
     """
     Function is called if both main_page and sub_page are specified.
     MAIN EXISTS?
@@ -195,7 +195,7 @@ def get_sub_page(main_page: str, sub_page: str) -> str:
                                           |         \
                                         [return]   KeyError
     """
-    logging.debug(f"get_sub_page({main_page = !r}, {sub_page = !r})")
+    logging.debug(f"get_sub_page_content({main_page = !r}, {sub_page = !r})")
     if main_page not in PAGES:
         print(f"[info] Unknown main page: {main_page!r}. Fuzzy finding among PAGES...")
         main_page = fuzzy_find_page(main_page, PAGES, raise_if_exhausted=True)
@@ -250,8 +250,8 @@ def print_page(main_page: str, sub_page=None):
     logging.debug(f"print_page({main_page!r}, {sub_page!r})")
     if sub_page:
         # ** Passed both main_page and sub_page
-        sub_page_str = get_sub_page(main_page, sub_page)
-        # sub_page_str = get_sub_page(main_page, sub_page) \
+        sub_page_str = get_sub_page_content(main_page, sub_page)
+        # sub_page_str = get_sub_page_content(main_page, sub_page) \
         #     .replace('[h1]', '[bold underline reverse bright_white]') \
         #     .replace('[h2]', '[bold underline bright_white]') \
         #     .replace('[h3]', '[bold bright_white]') \
@@ -266,21 +266,21 @@ def print_page(main_page: str, sub_page=None):
         return print(PAGES[main_page]())
 
     # ** Not a main main_page. Maybe it's a precise sub main_page, i.e. "diff"
-    sub_page_key = None
+    sub_page_name = None
     if main_page in SUB_PAGES:
-        sub_page_key = main_page
+        sub_page_name = main_page
     else:
         for sub_page in SUB_PAGES:
             sub_page_no_leading_underscore = sub_page.removeprefix('_')
             if main_page == sub_page_no_leading_underscore:
-                sub_page_key = sub_page
+                sub_page_name = sub_page
                 break
-    if sub_page_key:
+    if sub_page_name:
         # * Indeed a precise sub_page
         ## Maybe multiple pages have it
-        if len(SUB_PAGES[sub_page_key]) > 1:
+        if len(SUB_PAGES[sub_page_name]) > 1:
             from termwiki import prompt
-            pages: list[Page] = list(SUB_PAGES[sub_page_key])  # for index
+            pages: list[Page] = list(SUB_PAGES[sub_page_name])  # for index
 
             # TODO (bugs):
             #  (1) If an ALIAS of a sub_page is the same as a SUBPAGE of another main main_page,
@@ -288,15 +288,15 @@ def print_page(main_page: str, sub_page=None):
             #  (2) main pages with both @alias and @syntax decors, that have the issue above ("(1)"), raise
             #    a ValueError in igit prompt, because the same main main_page function is passed here for each sub_page and sub_page alias.
             #  ValueError: ('NumOptions | __init__(opts) duplicate opts: ', ('<function asyncio at 0x7f5dab684ca0>', '<function asyncio at 0x7f5dab684ca0>', '<function python at 0x7f5dab669a60>'))
-            idx, choice = prompt.choose(f"{sub_page_key!r} exists in several pages, which one did you mean?",
+            idx, choice = prompt.choose(f"{sub_page_name!r} exists in several pages, which one did you mean?",
                                         *[page.__qualname__ for page in pages],
                                         flowopts='quit'
                                         )
-            return print(pages[idx](f'_{sub_page_key.upper()}'))
+            return print(pages[idx](f'_{sub_page_name.upper()}'))
 
         ## Unique sub_page
-        page, *_ = SUB_PAGES[sub_page_key]
-        return print(page(f'_{sub_page_key.upper()}'))
+        page, *_ = SUB_PAGES[sub_page_name]
+        return print(page(f'_{sub_page_name.upper()}'))
 
     # ** Not a precise sub_page. find something precise, either a main or sub main_page
     key, main_page = fuzzy_find_page(main_page,
