@@ -48,7 +48,7 @@ def populate_pages() -> dict[str, Page]:
     from termwiki.pages import pages
     try:
         from .private_pages import pages as private_pages
-    except ModuleNotFoundError:
+    except ImportError:
         private_pages = None
 
     def iter_module_pages(module):
