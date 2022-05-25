@@ -15,7 +15,7 @@ from termwiki.colors import h2
 from termwiki.common.click_extension import unrequired_opt
 from termwiki.common.types import PageType
 from termwiki.consts import SUB_PAGE_RE
-from termwiki.page import FilePage
+from termwiki.page import FilePage, PackagePage
 
 
 def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
@@ -49,25 +49,22 @@ def populate_pages() -> dict[str, PageType]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
     main_pages = dict()
     from termwiki import pages as pages_package
-    pages_package_path = Path(pages_package.__path__[0])
-    for page in pages_package_path.iterdir():
-        # crazy CoPilot:
-        # if page.suffix == '.py' and page.name != '__init__.py':
-        #     page_name = page.stem
-        #     page_module = __import__(f'termwiki.{page_name}', fromlist=[page_name])
-        #     setattr(pages_package, page_name, page_module.__dict__[page_name])
-        #     PAGES[page_name] = getattr(pages_package, page_name)
-        if page.suffix == '.md':
-            main_pages[page.stem] = FilePage(page)
-            continue
+    pages_package = PackagePage(pages_package)
+    for name, page in pages_package.traverse():
+        main_pages[name] = page
 
     from termwiki.pages import pages
     try:
+        from termwiki import private_pages as private_pages_package
+        private_pages_package = PackagePage(private_pages_package)
+        for name, page in private_pages_package.traverse():
+            main_pages[name] = page
         from termwiki.private_pages import pages as private_pages
     except ImportError:
         private_pages = None
 
     def iter_module_pages(module) -> Generator[tuple[str, PageType]]:
+        """A file module (not package)"""
         if not module:
             return
         for _page_name in dir(module):
@@ -221,6 +218,15 @@ def get_sub_page_content(main_page: str, sub_page: str) -> str:
         main_page = fuzzy_find_page(main_page, PAGES, raise_if_exhausted=True)
 
     page: PageType = PAGES[main_page]
+    if hasattr(page, 'traverse'):
+        # print(f'{page.path = }')
+        # print(f'{page.package = }')
+        # print('page.traverse(): ', list(page.traverse()))
+        actual_sub_page = page[sub_page]
+        if actual_sub_page:
+            return actual_sub_page.read()
+        else:
+            raise KeyError(f"{sub_page = !r} isn't in {page.path = }")
     for sub_page_variation in (sub_page,
                                f'{sub_page}s',
                                f'_{sub_page}',
