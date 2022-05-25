@@ -130,4 +130,4 @@ dmypy.json
 src/
 
 # private repo
-termwiki/_man/*
+termwiki/private_pages/*
