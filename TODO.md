@@ -9,7 +9,7 @@
 - [ ] support for nested subtopics (e.g. `docker images ps`)
 - [ ] add command: `mm edit git [EDITOR]`
 - Refactoring:
-  - [ ] migrate all manuals in main.py to separate files
+  - [ ] migrate all pages in main.py to separate files
   - [ ] `populator.py`
     - [ ] find a better name about playing with functions
     - [ ] move from main.py functions like `get_skipped_subtopics` to it
@@ -29,7 +29,7 @@
 
 ---
 
-# Separate man files a.k.a Infinite topic tree
+# Separate page files a.k.a Infinite topic tree
 ## Markdown / Python hybrid
 - https://github.com/lark-parser/lark
 - https://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/

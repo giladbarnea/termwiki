@@ -5,29 +5,29 @@ import inspect
 from collections.abc import Callable
 from functools import wraps
 
-from termwiki.common.types import ManFn
+from termwiki.common.types import Page
 
 console = None
 
 
 # *** Decorators
 
-def alias(_alias: str) -> Callable[[ManFn], ManFn]:
+def alias(_alias: str) -> Callable[[Page], Page]:
     """Sets `fn.alias = _alias` to decorated function.
     Used when populating MAIN_TOPICS as an additional key to function."""
 
-    def wrap(fn: ManFn) -> ManFn:
+    def wrap(fn: Page) -> Page:
         fn.alias = _alias
         return fn
 
     return wrap
 
 
-def rich(manual: ManFn):
-    @wraps(manual)
+def rich(page: Page):
+    @wraps(page)
     def wrap(subject=None):
         global console
-        string = manual(subject)
+        string = page(subject)
         from rich.markdown import Markdown
         if console is None:
             from rich.console import Console
@@ -43,9 +43,9 @@ def rich(manual: ManFn):
     return wrap
 
 
-def optional_subject(manual: ManFn):
-    """Allows manual to be called with or without a subject,
-    and does the 'return local subject var if specified else the whole manual' thing automatically.
+def optional_subject(page: Page):
+    """Allows page to be called with or without a subject,
+    and does the 'return local subject var if specified else the whole page' thing automatically.
 
     Example::
 
@@ -56,11 +56,11 @@ def optional_subject(manual: ManFn):
                 {_ADMIN}"
     """
 
-    @wraps(manual)
+    @wraps(page)
     def decorate(subject=None):
         if not subject:
-            return manual()
-        fnsrc = inspect.getsource(manual)
+            return page()
+        fnsrc = inspect.getsource(page)
         parsed: ast.Module = ast.parse(fnsrc)
         # noinspection PyTypeChecker
         fndef: ast.FunctionDef = parsed.body[0]
@@ -75,6 +75,6 @@ def optional_subject(manual: ManFn):
                 if varname.id == subject:
                     return eval(ast.unparse(nod.value))
 
-        return manual()
+        return page()
 
     return decorate

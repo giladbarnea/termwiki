@@ -25,7 +25,7 @@ from pygments.lexers import (
     TypeScriptLexer,
     )
 
-from termwiki.common.types import ManFn, Style, Language
+from termwiki.common.types import Page, Style, Language
 from termwiki.consts import SYNTAX_HIGHLIGHT_START_RE, LANGS, SYNTAX_HIGHLIGHT_END_RE, WHITESPACE_RE, COLOR_RE, IMPORT_RE
 from termwiki.ipython_lexer import IPython3Lexer
 
@@ -115,7 +115,7 @@ def _syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     return highlighted
 
 
-def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
+def syntax(_page_or_style: Page | Style = None, **default_styles):
     """Possible forms:
     ::
         @syntax
@@ -149,23 +149,23 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
     """
     default_style = None
 
-    def decorator(manual: ManFn):
-        manual.__handled_directives__ = True
+    def decorator(page: Page):
+        page.__handled_directives__ = True
 
-        @wraps(manual)
-        def manual_that_handles_directives(subject=None) -> str:
+        @wraps(page)
+        def page_that_handles_directives(subject=None) -> str:
 
             try:
-                manual_content = manual(subject)
+                page_content = page(subject)
             except TypeError as te:
                 if te.args and re.search(r'takes \d+ positional arguments but \d+ was given', te.args[0]):
-                    manual_content = manual()
+                    page_content = page()
                     # import logging
                     # logging.warning('syntax() | ignored TypeError not enough pos arguments given')
                 else:
                     raise
 
-            lines = manual_content.splitlines()
+            lines = page_content.splitlines()
             highlighted_strs = []
             idx = 0
             while True:
@@ -179,26 +179,26 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                     from importlib import import_module
                     groupdict = import_match.groupdict()
                     import_path = groupdict['import_path']
-                    import_path, _, imported_manual_name = import_path.rpartition('.')
+                    import_path, _, imported_page_name = import_path.rpartition('.')
                     full_import_path = 'termwiki.pages.' + import_path.removeprefix('termwiki.pages.')
                     possible_import_paths = (
                         (full_import_path, None), # absolute: import termwiki.pages.python.datamodel
-                        (f'.{imported_manual_name}', full_import_path), # relative: from termwiki.pages.python import datamodel
+                        (f'.{imported_page_name}', full_import_path), # relative: from termwiki.pages.python import datamodel
                     )
                     for import_name, import_package in possible_import_paths:
                         imported = import_module(import_name, import_package)
-                        if hasattr(imported, imported_manual_name):
-                            imported_manual = getattr(imported, imported_manual_name)
+                        if hasattr(imported, imported_page_name):
+                            imported_page = getattr(imported, imported_page_name)
                             break
                     else:
                         print(f"[WARNING] {groupdict['import_path']} not found")
                         continue
 
-                    if hasattr(imported_manual, '__handled_directives__'):
-                        imported_text = imported_manual()
+                    if hasattr(imported_page, '__handled_directives__'):
+                        imported_text = imported_page()
                     else:
-                        directives_handling_imported_manual = syntax(imported_manual)
-                        imported_text = directives_handling_imported_manual()
+                        directives_handling_imported_page = syntax(imported_page)
+                        imported_text = directives_handling_imported_page()
                     indent_level = _get_indent_level(line)
                     indented_imported_text = indent(imported_text + '\n', ' ' * indent_level)
                     highlighted_strs.append(indented_imported_text)
@@ -284,14 +284,14 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
             stripped = ''.join(highlighted_strs).strip()
             return stripped
 
-        return manual_that_handles_directives
+        return page_that_handles_directives
 
-    if _manual_or_style is not None:
-        if callable(_manual_or_style):
+    if _page_or_style is not None:
+        if callable(_page_or_style):
             # e.g. naked `@syntax`
-            return decorator(_manual_or_style)
+            return decorator(_page_or_style)
         # e.g. `@syntax(python='friendly')`
-        default_style = _manual_or_style
+        default_style = _page_or_style
         return decorator
 
     # e.g. `@syntax(python='friendly')`, so `**default_styles` has value
