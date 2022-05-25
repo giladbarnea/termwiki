@@ -47,7 +47,7 @@ def populate_pages() -> dict[str, Page]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
     from termwiki.pages import pages
     try:
-        from .private_pages import pages as private_pages
+        from termwiki.private_pages import pages as private_pages
     except ImportError:
         private_pages = None
 
