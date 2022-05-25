@@ -265,7 +265,7 @@ def print_page(main_page: str, sub_page=None):
     if main_page in PAGES:
         return print(PAGES[main_page]())
 
-    # ** Not a main main_page. Maybe it's a precise sub main_page, i.e. "diff"
+    # ** Not a main page. Maybe it's a precise sub page, i.e. "diff"
     sub_page_name = None
     if main_page in SUB_PAGES:
         sub_page_name = main_page
