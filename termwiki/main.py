@@ -124,10 +124,10 @@ SUB_PAGES: TSubPages = populate_sub_pages()
 
 
 def fuzzy_find_page(page: str,
-                     collection: Collection,
-                     *extra_opts,
-                     raise_if_exhausted=False,
-                     **extra_kw_opts) -> tuple:
+                    collection: Collection,
+                    *extra_opts,
+                    raise_if_exhausted=False,
+                    **extra_kw_opts) -> tuple:
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
     # not even a sub_page, could be gibberish
     # try assuming it's a substring
@@ -205,9 +205,9 @@ def get_sub_page(main_page: str, sub_page: str) -> str:
 
     page: Page = PAGES[main_page]
     for sub_page_variation in (sub_page,
-                                f'{sub_page}s',
-                                f'_{sub_page}',
-                                f'_{sub_page}s'):
+                               f'{sub_page}s',
+                               f'_{sub_page}',
+                               f'_{sub_page}s'):
         ## This accounts for 2 cases:
         # 1. 'tw python descriptor', but correct is 'descriptors', so add 's'
         # 2. 'tw bash while' -> page.sub_pages has '_while' -> pass '__WHILE'
@@ -222,10 +222,10 @@ def get_sub_page(main_page: str, sub_page: str) -> str:
         print(f"[info] sub page {sub_page!r} isn't a sub page of {main_page!r}. "
               f"Searching among {main_page!r}'s sub pages...")
         key, chosen_sub_page = fuzzy_find_page(sub_page,
-                                                 page.sub_pages,
-                                                 raise_if_exhausted=False,
-                                                 # keep uppercase P so doesn't collide with pages
-                                                 P=f"print {main_page!r} w/o sub_page")
+                                               page.sub_pages,
+                                               raise_if_exhausted=False,
+                                               # keep uppercase P so doesn't collide with pages
+                                               P=f"print {main_page!r} w/o sub_page")
         if key == 'P':
             return page()
 
@@ -238,9 +238,9 @@ def get_sub_page(main_page: str, sub_page: str) -> str:
 
         print(f"[info] {sub_page!r} doesn't belong to any page. Searching among all SUB_PAGES...")
         key, sub_page = fuzzy_find_page(sub_page,
-                                          SUB_PAGES,
-                                          raise_if_exhausted=True,
-                                          P=f"print {main_page!r} without sub_page")
+                                        SUB_PAGES,
+                                        raise_if_exhausted=True,
+                                        P=f"print {main_page!r} without sub_page")
         if key == 'P':
             return page()
 
@@ -303,8 +303,8 @@ def print_page(main_page: str, sub_page=None):
 
     # ** Not a precise sub_page. find something precise, either a main or sub main_page
     key, main_page = fuzzy_find_page(main_page,
-                                       set(PAGES.keys()) | set(SUB_PAGES.keys()),
-                                       raise_if_exhausted=True)
+                                     set(PAGES.keys()) | set(SUB_PAGES.keys()),
+                                     raise_if_exhausted=True)
     return print_page(main_page)
 
 
