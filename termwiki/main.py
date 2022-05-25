@@ -6,14 +6,16 @@ import itertools as it
 import logging
 import sys
 from collections import defaultdict
-from typing import Callable, Collection
+from typing import Callable, Collection, Generator
+from pathlib import Path
 
 import click
 
 from termwiki.colors import h2
 from termwiki.common.click_extension import unrequired_opt
-from termwiki.common.types import Page
+from termwiki.common.types import PageType
 from termwiki.consts import SUB_PAGE_RE
+from termwiki.page import FilePage
 
 
 def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
@@ -34,30 +36,44 @@ def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
         return sorted(list(lines_missing_inside_last_block))
 
 
-def draw_out_decorated_fn(page: Page) -> Callable:
-    # todo: use inspect.unwrap(), or page.__wrapped__
-    closure: tuple = page.__closure__
-    if not closure:
-        # non-decorated functions' closure is None
-        return page
-    return closure[-1].cell_contents
+# def draw_out_decorated_fn(page: PageType) -> Callable:
+#     # todo: use inspect.unwrap(), or page.__wrapped__
+#     closure: tuple = page.__closure__
+#     if not closure:
+#         # non-decorated functions' closure is None
+#         return page
+#     return closure[-1].cell_contents
 
 
-def populate_pages() -> dict[str, Page]:
+def populate_pages() -> dict[str, PageType]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
+    main_pages = dict()
+    from termwiki import pages as pages_package
+    pages_package_path = Path(pages_package.__path__[0])
+    for page in pages_package_path.iterdir():
+        # crazy CoPilot:
+        # if page.suffix == '.py' and page.name != '__init__.py':
+        #     page_name = page.stem
+        #     page_module = __import__(f'termwiki.{page_name}', fromlist=[page_name])
+        #     setattr(pages_package, page_name, page_module.__dict__[page_name])
+        #     PAGES[page_name] = getattr(pages_package, page_name)
+        if page.suffix == '.md':
+            main_pages[page.stem] = FilePage(page)
+            continue
+
     from termwiki.pages import pages
     try:
         from termwiki.private_pages import pages as private_pages
     except ImportError:
         private_pages = None
 
-    def iter_module_pages(module):
+    def iter_module_pages(module) -> Generator[tuple[str, PageType]]:
         if not module:
             return
         for _page_name in dir(module):
-            if _page_name in module.EXCLUDE:
+            if _page_name in getattr(module, 'EXCLUDE', set()):
                 continue
-            _page: Page = getattr(module, _page_name)
+            _page: PageType = getattr(module, _page_name)
             if not inspect.isfunction(_page):
                 continue
             if _page_name.endswith('_'):  # inspect_()
@@ -66,7 +82,7 @@ def populate_pages() -> dict[str, Page]:
                 _name = _page_name
             yield _name, _page
 
-    main_pages = dict()
+
     for name, page in it.chain(iter_module_pages(pages),
                                iter_module_pages(private_pages)):
         ## dont draw_out_wrapped_fn because then syntax() isn't called
@@ -77,30 +93,34 @@ def populate_pages() -> dict[str, Page]:
     return main_pages
 
 
-PAGES: dict[str, Page] = populate_pages()
+PAGES: dict[str, PageType] = populate_pages()
 
 
-def get_sub_page_var_names(page: Page) -> list[str]:
+def get_sub_page_var_names(page: PageType) -> list[str]:
+    if not hasattr(page, '__code__'):
+        # Not every `page` is a function
+        return []
     return [n for n in page.__code__.co_varnames if n.isupper()]
 
 
-def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[Page]]:
+def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageType]]:
     """Sets bash.sub_pages = [ "cut" , "for" ] for each PAGES.
     Removes (d)underscore and lowers _CUT and __FOR.
     Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
-    all_sub_pages: dict[str, set[Page]] = defaultdict(set)
+    all_sub_pages: dict[str, set[PageType]] = defaultdict(set)
     for name, page in PAGES.items():
 
         # sub_page_var_names = [n for n in draw_out_decorated_fn(main_page_fn).__code__.co_varnames if n.isupper()]
         # draw_out_decorated_fn is necessary because PAGES has to store the fns in the wrapped form (to call them later)
         setattr(page, 'sub_pages', set())
-        undecorated_main_page_fn = draw_out_decorated_fn(page)
-        sub_page_var_names = get_sub_page_var_names(undecorated_main_page_fn)
+#         # unwrapped_page_fn = draw_out_decorated_fn(page)
+        unwrapped_page_fn = inspect.unwrap(page)
+        sub_page_var_names = get_sub_page_var_names(unwrapped_page_fn)
         if not sub_page_var_names:
             continue
 
         if print_unused_sub_pages:
-            unused_sub_pages = get_unused_sub_pages(undecorated_main_page_fn)
+            unused_sub_pages = get_unused_sub_pages(unwrapped_page_fn)
             if unused_sub_pages:
                 spaces = ' ' * (max(map(len, PAGES.keys())) - len(name))
                 print(f"{name!r} doesn't print:{spaces}{', '.join(unused_sub_pages)}")
@@ -117,7 +137,7 @@ def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[Page]]:
     return all_sub_pages
 
 
-SUB_PAGES: dict[str, set[Page]] = populate_sub_pages()
+SUB_PAGES: dict[str, set[PageType]] = populate_sub_pages()
 
 
 def fuzzy_find_page(page: str,
@@ -200,7 +220,7 @@ def get_sub_page_content(main_page: str, sub_page: str) -> str:
         print(f"[info] Unknown main page: {main_page!r}. Fuzzy finding among PAGES...")
         main_page = fuzzy_find_page(main_page, PAGES, raise_if_exhausted=True)
 
-    page: Page = PAGES[main_page]
+    page: PageType = PAGES[main_page]
     for sub_page_variation in (sub_page,
                                f'{sub_page}s',
                                f'_{sub_page}',
@@ -280,7 +300,7 @@ def print_page(main_page: str, sub_page=None):
         ## Maybe multiple pages have it
         if len(SUB_PAGES[sub_page_name]) > 1:
             from termwiki import prompt
-            pages: list[Page] = list(SUB_PAGES[sub_page_name])  # for index
+            pages: list[PageType] = list(SUB_PAGES[sub_page_name])  # for index
 
             # TODO (bugs):
             #  (1) If an ALIAS of a sub_page is the same as a SUBPAGE of another main main_page,
@@ -323,7 +343,7 @@ def get_page(main_page: str | None,
             print(f"{h2(main_page)}")
             [print(f' · {sub}') for sub in sorted(PAGES[main_page].sub_pages)]
         else:
-            page: Page
+            page: PageType
             for page_name, page in sorted(PAGES.items()):
                 alias = getattr(page, 'alias', None)
                 if alias and alias == page_name:

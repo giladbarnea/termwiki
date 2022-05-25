@@ -5,25 +5,25 @@ import inspect
 from collections.abc import Callable
 from functools import wraps
 
-from termwiki.common.types import Page
+from termwiki.common.types import PageType
 
 console = None
 
 
 # *** Decorators
 
-def alias(_alias: str) -> Callable[[Page], Page]:
+def alias(_alias: str) -> Callable[[PageType], PageType]:
     """Sets `page.alias = _alias` to decorated function.
     Used when populating PAGES as an additional key to function."""
 
-    def wrap(fn: Page) -> Page:
+    def wrap(fn: PageType) -> PageType:
         fn.alias = _alias
         return fn
 
     return wrap
 
 
-def rich(page: Page):
+def rich(page: PageType):
     @wraps(page)
     def wrap(subject=None):
         global console
@@ -43,7 +43,7 @@ def rich(page: Page):
     return wrap
 
 
-def optional_subject(page: Page):
+def optional_subject(page: PageType):
     """Allows page to be called with or without a subject,
     and does the 'return local subject var if specified else the whole page' thing automatically.
 

@@ -25,7 +25,7 @@ from pygments.lexers import (
     TypeScriptLexer,
     )
 
-from termwiki.common.types import Page, Style, Language
+from termwiki.common.types import PageType, Style, Language
 from termwiki.consts import SYNTAX_HIGHLIGHT_START_RE, LANGS, SYNTAX_HIGHLIGHT_END_RE, WHITESPACE_RE, COLOR_RE, IMPORT_RE
 from termwiki.ipython_lexer import IPython3Lexer
 
@@ -115,7 +115,7 @@ def _syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     return highlighted
 
 
-def syntax(_page_or_style: Page | Style = None, **default_styles):
+def syntax(_page_or_style: PageType | Style = None, **default_styles):
     """Possible forms:
     ::
         @syntax
@@ -149,7 +149,7 @@ def syntax(_page_or_style: Page | Style = None, **default_styles):
     """
     default_style = None
 
-    def decorator(page: Page):
+    def decorator(page: PageType):
         page.__handled_directives__ = True
 
         @wraps(page)
