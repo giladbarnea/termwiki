@@ -84,14 +84,11 @@ def get_sub_page_var_names(page: Page) -> list[str]:
     return [n for n in page.__code__.co_varnames if n.isupper()]
 
 
-TSubPages = dict[str, set[Page]]
-
-
-def populate_sub_pages(*, print_unused_sub_pages=False) -> TSubPages:
+def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[Page]]:
     """Sets bash.sub_pages = [ "cut" , "for" ] for each PAGES.
     Removes (d)underscore and lowers _CUT and __FOR.
     Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
-    all_sub_pages: TSubPages = defaultdict(set)
+    all_sub_pages: dict[str, set[Page]] = defaultdict(set)
     for name, page in PAGES.items():
 
         # sub_page_var_names = [n for n in draw_out_decorated_fn(main_page_fn).__code__.co_varnames if n.isupper()]
@@ -120,7 +117,7 @@ def populate_sub_pages(*, print_unused_sub_pages=False) -> TSubPages:
     return all_sub_pages
 
 
-SUB_PAGES: TSubPages = populate_sub_pages()
+SUB_PAGES: dict[str, set[Page]] = populate_sub_pages()
 
 
 def fuzzy_find_page(page: str,
