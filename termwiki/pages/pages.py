@@ -5444,6 +5444,10 @@ def ipython(subject=None):
       -f        force overwrite
       -a        append to the file
     
+    %ipython 1
+    %save foo.py 1 4 5 23  # For multiple lines
+    
+    
     {h4('See also: %store, %macro')}
     """
 
@@ -6169,7 +6173,19 @@ def mermaid(subject=None):
       Alice->>John: Hello John, how are you?
       John-->>Alice: Great!
       John->>Bob: How about you?
-      Bob-->>John: Jolly good!    
+      Bob-->>John: Jolly good!
+      
+  erDiagram
+  Account ||..|{{ User : has
+  Account ||..|{{ Device : has
+  User ||..|{{ Device : uses  
+  
+  sequenceDiagram
+  SysConfigCallback->> SysConfigUpdatedUseCase: execute
+  SysConfigUpdatedUseCase->> AbstractCollection: insert_one()
+  AbstractCollection->> MongoCollection: insert_one()
+  SysConfigUpdatedUseCase->> AbstractRequest: post()
+  AbstractRequest->> Request: post()  
     """
 
 
