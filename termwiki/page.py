@@ -7,12 +7,16 @@ from pathlib import Path
 from types import ModuleType
 import ast
 
+
 class Page:
     def __call__(self, *args, **kwargs) -> str:
         ...
 
-    def __getitem__(self, item):
-        ...
+    def __getitem__(self, item: str) -> Page | None:
+        for page_name, page in self.traverse():
+            if page_name == item:
+                return page
+        return None
 
     def read(self, *args, **kwargs) -> str:
         ...
@@ -87,12 +91,6 @@ class PackagePage(Page):
     def __init__(self, package: ModuleType | Path) -> None:
         super().__init__()
         self._package = package
-
-    def __getitem__(self, item: str) -> Page | None:
-        for page_name, page in self.traverse():
-            if page_name == item:
-                return page
-        return None
 
     @property
     def package(self) -> ModuleType:
