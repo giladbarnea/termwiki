@@ -1904,7 +1904,7 @@ def bash(subject=None):
 
       {h3('See also')}
         killpg(3)                  {c('Sends a signal to all of the members of a specified process group.')}
-        mm filedescriptor
+        tw filedescriptor
 
     {h2('Signals')}
       {c('man 7 signal')}
@@ -8227,7 +8227,7 @@ def python(subject=None):
   {h3('-X importtime')}  {c("python3 -X importtime -c 'import asyncio' | PYTHONPROFILEIMPORTTIME")}
 
   {h4('See also')}
-    mm python env
+    tw python env
     """
     _COMPILE = _EXEC = f"""{h1('compile / exec')}
     {h2('compile')}
@@ -8466,7 +8466,7 @@ def python(subject=None):
     If a non-empty string, equivalent to specifying -i option.
 
   {h4('See also')}
-    mm python cmd
+    tw python cmd
     """
     _FORMAT = f"""{h2('str.format')}
     {c('https://docs.python.org/3/library/string.html#format-specification-mini-language')}

@@ -13,8 +13,8 @@ console = None
 # *** Decorators
 
 def alias(_alias: str) -> Callable[[Page], Page]:
-    """Sets `fn.alias = _alias` to decorated function.
-    Used when populating MAIN_TOPICS as an additional key to function."""
+    """Sets `page.alias = _alias` to decorated function.
+    Used when populating PAGES as an additional key to function."""
 
     def wrap(fn: Page) -> Page:
         fn.alias = _alias

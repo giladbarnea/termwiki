@@ -4,7 +4,7 @@ Style = Literal['algol_nu', 'default', 'dracula', 'friendly', 'fruity', 'inkpot'
 Language = Literal['ahk', 'bash', 'css', 'docker', 'ini', 'ipython', 'js', 'json', 'md', 'mysql', 'python', 'rst', 'sass', 'toml', 'ts']
 
 class Page(Protocol):
-    sub_topics: set[str]
+    sub_pages: set[str]
     alias: str
     
     def __call__(self, subject: str = None) -> str: ...
@@ -17,9 +17,9 @@ class Page(Protocol):
 # @runtime_checkable
 # class Page(Callable[[str], str]):
 # class Page(Callable,FunctionType):
-#     sub_topics: List[str]
+#     sub_pages: List[str]
 #     alias: str
 
-# __slots__ = ('sub_topics',)
+# __slots__ = ('sub_pages',)
 
 # Page = Callable[[Union[str, ...]], str]

@@ -3,17 +3,17 @@
 
 # Small
 
-- [ ] if subtopic is not found:
-  - [ ] suggest subtopics that include the searched subtopic in their text. `git fetch` doesn't exist but `git remote` includes `fetch` twice
+- [ ] if sub_page is not found:
+  - [ ] suggest sub_pages that include the searched sub_page in their text. `git fetch` doesn't exist but `git remote` includes `fetch` twice
   - [ ] search with fzf
-- [ ] support for nested subtopics (e.g. `docker images ps`)
-- [ ] add command: `mm edit git [EDITOR]`
+- [ ] support for nested sub_pages (e.g. `docker images ps`)
+- [ ] add command: `tw edit git [EDITOR]`
 - Refactoring:
   - [ ] migrate all pages in main.py to separate files
   - [ ] `populator.py`
     - [ ] find a better name about playing with functions
-    - [ ] move from main.py functions like `get_skipped_subtopics` to it
-- [ ] [perf] Populate (sub)topic lazily, only on demand
+    - [ ] move from main.py functions like `get_skipped_sub_pages` to it
+- [ ] [perf] Populate (sub)page lazily, only on demand
 
 # Big
 
@@ -22,14 +22,14 @@
 - [ ] migrate to `prompt-toolkit`? or `rich/Textual`?
 
 # Bugs
-- [ ] `mm bash --list` prints `_args` and `_arguments` as separate. should display `_args, _arguments`
-- [ ] `mm regex --list` errors because regex is a subtopic, should warn and print subtopic instead
-- [ ] `mm cmdl` shows one "Did you mean any of these? [0] cmd", and only after selection shows "Exists in several topics". Should sublist topics in first screen "cmd:\n[0]python cmd" etc
-- [ ] `mm --doctor` says `pytest` doesn't print `_CONFTEST` even though it's a substring of `pytest.config`
+- [ ] `tw bash --list` prints `_args` and `_arguments` as separate. should display `_args, _arguments`
+- [ ] `tw regex --list` errors because regex is a sub_page, should warn and print sub_page instead
+- [ ] `tw cmdl` shows one "Did you mean any of these? [0] cmd", and only after selection shows "Exists in several pages". Should sublist pages in first screen "cmd:\n[0]python cmd" etc
+- [ ] `tw --doctor` says `pytest` doesn't print `_CONFTEST` even though it's a substring of `pytest.config`
 
 ---
 
-# Separate page files a.k.a Infinite topic tree
+# Separate page files a.k.a Infinite page tree
 ## Markdown / Python hybrid
 - https://github.com/lark-parser/lark
 - https://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/
@@ -42,14 +42,14 @@
   - `kitty icat --align=left ./foo.gif`
   - perfect
 ## Brain dump
-- a `python` **submodule** is a topic, and it contains functions which are subtopics etc
-- aliases for everything, even subtopics. like rst directives?
-- (sub)topics can reference other (sub)topics (simple `import` maybe? or directive?)
+- a `python` **submodule** is a page, and it contains functions which are sub_pages etc
+- aliases for everything, even sub_pages. like rst directives?
+- (sub)pages can reference other (sub)pages (simple `import` maybe? or directive?)
 - "See also: blabla" is clickable (`Textual`)
 - in README.md: "optimized for zero mental overhead, specifically when getting to the info"
-- mouseclick or kb shortcut to collapse / expand subtopics when shown
-- `mm python magic-` for collapsed from specific hierarchy
-- `mm python slots` should work even though `slots` is a python.datamodel.special_method_names() variable
+- mouseclick or kb shortcut to collapse / expand sub_pages when shown
+- `tw python magic-` for collapsed from specific hierarchy
+- `tw python slots` should work even though `slots` is a python.datamodel.special_method_names() variable
 - Automatic h1-h6 headings based on indentation
 ### %import use cases
 - %import python.datamodel with python/datamodel.py and datamodel() method in datamodel.py

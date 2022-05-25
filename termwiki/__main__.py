@@ -6,4 +6,4 @@
 #     pass
 if __name__ == '__main__':
     from . import main
-    main.get_topic()
+    main.get_page()

@@ -1,7 +1,4 @@
 #!/usr/bin/env python3.8
-"""
-get_main_topics() is called to popuplate MAIN_TOPICS.
-"""
 from __future__ import annotations
 
 import inspect
@@ -16,125 +13,126 @@ import click
 from termwiki.colors import h2
 from termwiki.common.click_extension import unrequired_opt
 from termwiki.common.types import Page
-from termwiki.consts import SUB_TOPIC_RE
+from termwiki.consts import SUB_PAGE_RE
 
 
-def get_unused_subtopics(undecorated_main_topic_fn) -> list[str]:
+def get_unused_sub_pages(undecorated_page_fn) -> list[str]:
     """python -m termwiki --doctor calls this"""
     # TODO (bug): Doesn't check if __LOGGING_FORMATTER in _LOGGING
     # TODO (bug): If _MANAGE = _MANAGEPY = f"""... and _MANAGEPY in last block, says _MANAGE is unused
-    lines = inspect.getsource(undecorated_main_topic_fn).splitlines()
+    lines = inspect.getsource(undecorated_page_fn).splitlines()
     try:
         last_block_linenum = -next(i for i, line in enumerate(reversed(lines)) if line.strip() == 'else:') - 1
     except StopIteration:
         # no else: clause, just `return """...`
         last_block_linenum = -next(i for i, line in enumerate(reversed(lines)) if line.strip().startswith('return')) - 1
     lines_before_last_block = {line.strip().partition('=')[0].strip() for line in lines[:last_block_linenum] if
-                               line and SUB_TOPIC_RE.search(line) and '__' not in line}
+                               line and SUB_PAGE_RE.search(line) and '__' not in line}
     line_inside_last_block = {line.strip()[1:-1] for line in lines[last_block_linenum:] if
                               (stripped := line.strip()).startswith('{_') and stripped.endswith('}')}
     if lines_missing_inside_last_block := lines_before_last_block - line_inside_last_block:
         return sorted(list(lines_missing_inside_last_block))
 
 
-def draw_out_decorated_fn(fn: Page) -> Callable:
-    # todo: use inspect.unwrap(), or fn.__wrapped__
-    closure: tuple = fn.__closure__
+def draw_out_decorated_fn(page: Page) -> Callable:
+    # todo: use inspect.unwrap(), or page.__wrapped__
+    closure: tuple = page.__closure__
     if not closure:
         # non-decorated functions' closure is None
-        return fn
+        return page
     return closure[-1].cell_contents
 
 
-def populate_main_topics() -> dict[str, Page]:
+def populate_pages() -> dict[str, Page]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
     from termwiki.pages import pages
     try:
         from .private_pages import pages as private_pages
     except ModuleNotFoundError:
         private_pages = None
+
     def iter_module_pages(module):
         if not module:
             return
-        for _main_topic in dir(module):
-            if _main_topic in module.EXCLUDE:
+        for _page_name in dir(module):
+            if _page_name in module.EXCLUDE:
                 continue
-            _page: Page = getattr(module, _main_topic)
+            _page: Page = getattr(module, _page_name)
             if not inspect.isfunction(_page):
                 continue
-            if _main_topic.endswith('_'):  # inspect_()
-                _name = _main_topic[:-1]
+            if _page_name.endswith('_'):  # inspect_()
+                _name = _page_name[:-1]
             else:
-                _name = _main_topic
+                _name = _page_name
             yield _name, _page
 
-    main_topics = dict()
+    main_pages = dict()
     for name, page in it.chain(iter_module_pages(pages),
-                                 iter_module_pages(private_pages)):
+                               iter_module_pages(private_pages)):
         ## dont draw_out_wrapped_fn because then syntax() isn't called
-        main_topics[name] = page
+        main_pages[name] = page
         if alias := getattr(page, 'alias', None):
-            main_topics[alias] = page
+            main_pages[alias] = page
 
-    return main_topics
-
-
-MAIN_TOPICS: dict[str, Page] = populate_main_topics()
+    return main_pages
 
 
-def get_sub_topic_var_names(fn: Page) -> list[str]:
-    return [n for n in fn.__code__.co_varnames if n.isupper()]
+PAGES: dict[str, Page] = populate_pages()
 
 
-TSubTopics = dict[str, set[Page]]
+def get_sub_page_var_names(page: Page) -> list[str]:
+    return [n for n in page.__code__.co_varnames if n.isupper()]
 
 
-def populate_sub_topics(*, print_unused_subtopics=False) -> TSubTopics:
-    """Sets bash.sub_topics = [ "cut" , "for" ] for each MAIN_TOPICS.
+TSubPages = dict[str, set[Page]]
+
+
+def populate_sub_pages(*, print_unused_sub_pages=False) -> TSubPages:
+    """Sets bash.sub_pages = [ "cut" , "for" ] for each PAGES.
     Removes (d)underscore and lowers _CUT and __FOR.
     Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
-    all_sub_topics: TSubTopics = defaultdict(set)
-    for name, main_topic in MAIN_TOPICS.items():
+    all_sub_pages: TSubPages = defaultdict(set)
+    for name, page in PAGES.items():
 
-        # sub_topic_var_names = [n for n in draw_out_decorated_fn(main_topic_fn).__code__.co_varnames if n.isupper()]
-        # draw_out_decorated_fn is necessary because MAIN_TOPICS has to store the fns in the wrapped form (to call them later)
-        setattr(main_topic, 'sub_topics', set())
-        undecorated_main_topic_fn = draw_out_decorated_fn(main_topic)
-        sub_topic_var_names = get_sub_topic_var_names(undecorated_main_topic_fn)
-        if not sub_topic_var_names:
+        # sub_page_var_names = [n for n in draw_out_decorated_fn(main_page_fn).__code__.co_varnames if n.isupper()]
+        # draw_out_decorated_fn is necessary because PAGES has to store the fns in the wrapped form (to call them later)
+        setattr(page, 'sub_pages', set())
+        undecorated_main_page_fn = draw_out_decorated_fn(page)
+        sub_page_var_names = get_sub_page_var_names(undecorated_main_page_fn)
+        if not sub_page_var_names:
             continue
 
-        if print_unused_subtopics:
-            unused_subtopics = get_unused_subtopics(undecorated_main_topic_fn)
-            if unused_subtopics:
-                spaces = ' ' * (max(map(len, MAIN_TOPICS.keys())) - len(name))
-                print(f"{name!r} doesn't print:{spaces}{', '.join(unused_subtopics)}")
+        if print_unused_sub_pages:
+            unused_sub_pages = get_unused_sub_pages(undecorated_main_page_fn)
+            if unused_sub_pages:
+                spaces = ' ' * (max(map(len, PAGES.keys())) - len(name))
+                print(f"{name!r} doesn't print:{spaces}{', '.join(unused_sub_pages)}")
 
-        for sub_topic_var_name in sub_topic_var_names:
-            ## DONT account for dunder __ARGUMENTS, it's being handled by get_sub_topic().
+        for sub_page_var_name in sub_page_var_names:
+            ## DONT account for dunder __ARGUMENTS, it's being handled by get_sub_page().
             #   If handled here, eventually bash('_ARGUMENTS') is called which errors.
-            #   likewise: if f'_{sub_topic}' in page.sub_topics:
+            #   likewise: if f'_{sub_page}' in page.sub_pages:
 
-            sub_topic_var_name = sub_topic_var_name.strip().lower()[1:]
-            main_topic.sub_topics.add(sub_topic_var_name)
-            all_sub_topics[sub_topic_var_name].add(main_topic)
+            sub_page_var_name = sub_page_var_name.strip().lower()[1:]
+            page.sub_pages.add(sub_page_var_name)
+            all_sub_pages[sub_page_var_name].add(page)
 
-    return all_sub_topics
-
-
-SUB_TOPICS: TSubTopics = populate_sub_topics()
+    return all_sub_pages
 
 
-def fuzzy_find_topic(topic: str,
+SUB_PAGES: TSubPages = populate_sub_pages()
+
+
+def fuzzy_find_page(page: str,
                      collection: Collection,
                      *extra_opts,
                      raise_if_exhausted=False,
                      **extra_kw_opts) -> tuple:
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
-    # not even a subtopic, could be gibberish
+    # not even a sub_page, could be gibberish
     # try assuming it's a substring
     from termwiki import search, prompt
-    for maybes, is_last in search.iter_maybes(topic, collection, criterion='substring'):
+    for maybes, is_last in search.iter_maybes(page, collection, criterion='substring'):
         if not maybes:
             continue
 
@@ -146,7 +144,7 @@ def fuzzy_find_topic(topic: str,
             kwargs.update(flowopts='quit')
         else:
             kwargs.update(flowopts='quit', no='continue')
-        # TODO: if a match is a subtopic, present maintopic.subtopic in choose
+        # TODO: if a match is a sub_page, present main_page.sub_page in choose
         key, choice = prompt.choose(f"Did you mean any of these?",
                                     *extra_opts,
                                     *maybes,
@@ -165,13 +163,13 @@ def fuzzy_find_topic(topic: str,
             sys.exit(status)
         return key, choice.value
     if raise_if_exhausted:
-        raise KeyError(f"{topic = !r} isn't in collection")
+        raise KeyError(f"{page = !r} isn't in collection")
     return None, None
 
 
-def get_sub_topic(main_topic: str, sub_topic: str) -> str:
+def get_sub_page(main_page: str, sub_page: str) -> str:
     """
-    Function is called if both main_topic and sub_topic are specified.
+    Function is called if both main_page and sub_page are specified.
     MAIN EXISTS?
      |      \
     yes     no
@@ -200,149 +198,150 @@ def get_sub_topic(main_topic: str, sub_topic: str) -> str:
                                           |         \
                                         [return]   KeyError
     """
-    logging.debug(f"get_sub_topic({main_topic = !r}, {sub_topic = !r})")
-    if main_topic not in MAIN_TOPICS:
-        print(f"[info] Unknown main topic: {main_topic!r}. Fuzzy finding among MAIN_TOPICS...")
-        main_topic = fuzzy_find_topic(main_topic, MAIN_TOPICS, raise_if_exhausted=True)
+    logging.debug(f"get_sub_page({main_page = !r}, {sub_page = !r})")
+    if main_page not in PAGES:
+        print(f"[info] Unknown main page: {main_page!r}. Fuzzy finding among PAGES...")
+        main_page = fuzzy_find_page(main_page, PAGES, raise_if_exhausted=True)
 
-    page: Page = MAIN_TOPICS[main_topic]
-    for sub_topic_variation in (sub_topic,
-                                f'{sub_topic}s',
-                                f'_{sub_topic}',
-                                f'_{sub_topic}s'):
+    page: Page = PAGES[main_page]
+    for sub_page_variation in (sub_page,
+                                f'{sub_page}s',
+                                f'_{sub_page}',
+                                f'_{sub_page}s'):
         ## This accounts for 2 cases:
-        # 1. 'mm python descriptor', but correct is 'descriptors', so add 's'
-        # 2. 'mm bash while' -> page.sub_topics has '_while' -> pass '__WHILE'
-        if sub_topic_variation in page.sub_topics:
-            return page(f'_{sub_topic_variation.upper()}')
+        # 1. 'tw python descriptor', but correct is 'descriptors', so add 's'
+        # 2. 'tw bash while' -> page.sub_pages has '_while' -> pass '__WHILE'
+        if sub_page_variation in page.sub_pages:
+            return page(f'_{sub_page_variation.upper()}')
 
     try:
         # sometimes functions have alias logic under 'if subject:' clause, for example bash
-        # has 'subject.startswith('<')'. so maybe sub_topic works
-        return page(sub_topic)
+        # has 'subject.startswith('<')'. so maybe sub_page works
+        return page(sub_page)
     except KeyError:
-        print(f"[info] sub topic {sub_topic!r} isn't a sub topic of {main_topic!r}. "
-              f"Searching among {main_topic!r}'s sub topics...")
-        key, chosen_sub_topic = fuzzy_find_topic(sub_topic,
-                                                 page.sub_topics,
+        print(f"[info] sub page {sub_page!r} isn't a sub page of {main_page!r}. "
+              f"Searching among {main_page!r}'s sub pages...")
+        key, chosen_sub_page = fuzzy_find_page(sub_page,
+                                                 page.sub_pages,
                                                  raise_if_exhausted=False,
-                                                 # keep uppercase P so doesn't collide with topics
-                                                 P=f"print {main_topic!r} w/o subtopic")
+                                                 # keep uppercase P so doesn't collide with pages
+                                                 P=f"print {main_page!r} w/o sub_page")
         if key == 'P':
             return page()
 
-        if chosen_sub_topic is not None:
-            return page(f'_{chosen_sub_topic.upper()}')
+        if chosen_sub_page is not None:
+            return page(f'_{chosen_sub_page.upper()}')
 
-        if sub_topic in SUB_TOPICS:
-            print(f"[info] {sub_topic!r} isn't a sub topic of {main_topic!r}, but it belongs to these topics:")
-            return print_page(sub_topic)
+        if sub_page in SUB_PAGES:
+            print(f"[info] {sub_page!r} isn't a sub page of {main_page!r}, but it belongs to these pages:")
+            return print_page(sub_page)
 
-        print(f"[info] {sub_topic!r} doesn't belong to any topic. Searching among all SUB_TOPICS...")
-        key, sub_topic = fuzzy_find_topic(sub_topic,
-                                          SUB_TOPICS,
+        print(f"[info] {sub_page!r} doesn't belong to any page. Searching among all SUB_PAGES...")
+        key, sub_page = fuzzy_find_page(sub_page,
+                                          SUB_PAGES,
                                           raise_if_exhausted=True,
-                                          P=f"print {main_topic!r} without subtopic")
+                                          P=f"print {main_page!r} without sub_page")
         if key == 'P':
             return page()
 
-        return page(f'_{sub_topic.upper()}')
+        return page(f'_{sub_page.upper()}')
 
 
-def print_page(main_topic: str, sub_topic=None):
-    """If passed correct main_topic(s), prints.
+def print_page(main_page: str, sub_page=None):
+    """If passed correct main_page(s), prints.
     If not correct, finds the correct with fuzzy search and calls itself."""
-    logging.debug(f"print_page({main_topic!r}, {sub_topic!r})")
-    if sub_topic:
-        # ** Passed both main_topic and sub_topic
-        sub_topic_str = get_sub_topic(main_topic, sub_topic)
-        # sub_topic_str = get_sub_topic(main_topic, sub_topic) \
+    logging.debug(f"print_page({main_page!r}, {sub_page!r})")
+    if sub_page:
+        # ** Passed both main_page and sub_page
+        sub_page_str = get_sub_page(main_page, sub_page)
+        # sub_page_str = get_sub_page(main_page, sub_page) \
         #     .replace('[h1]', '[bold underline reverse bright_white]') \
         #     .replace('[h2]', '[bold underline bright_white]') \
         #     .replace('[h3]', '[bold bright_white]') \
         #     .replace('[h4]', '[info]') \
         #     .replace('[h5]', '[white]') \
         #     .replace('[c]', '[dim]')
-        # return console.print(sub_topic_str)
-        return print(sub_topic_str)
+        # return console.print(sub_page_str)
+        return print(sub_page_str)
 
     # ** Passed only one arg; could be main or sub. Maybe main?
-    if main_topic in MAIN_TOPICS:
-        return print(MAIN_TOPICS[main_topic]())
+    if main_page in PAGES:
+        return print(PAGES[main_page]())
 
-    # ** Not a main main_topic. Maybe it's a precise sub main_topic, i.e. "diff"
-    sub_topic_key = None
-    if main_topic in SUB_TOPICS:
-        sub_topic_key = main_topic
+    # ** Not a main main_page. Maybe it's a precise sub main_page, i.e. "diff"
+    sub_page_key = None
+    if main_page in SUB_PAGES:
+        sub_page_key = main_page
     else:
-        for sub_topic in SUB_TOPICS:
-            sub_topic_no_leading_underscore = sub_topic.removeprefix('_')
-            if main_topic == sub_topic_no_leading_underscore:
-                sub_topic_key = sub_topic
+        for sub_page in SUB_PAGES:
+            sub_page_no_leading_underscore = sub_page.removeprefix('_')
+            if main_page == sub_page_no_leading_underscore:
+                sub_page_key = sub_page
                 break
-    if sub_topic_key:
-        # * Indeed a precise subtopic
+    if sub_page_key:
+        # * Indeed a precise sub_page
         ## Maybe multiple pages have it
-        if len(SUB_TOPICS[sub_topic_key]) > 1:
+        if len(SUB_PAGES[sub_page_key]) > 1:
             from termwiki import prompt
-            pages: list[Page] = list(SUB_TOPICS[sub_topic_key])  # for index
+            pages: list[Page] = list(SUB_PAGES[sub_page_key])  # for index
 
             # TODO (bugs):
-            #  (1) If an ALIAS of a subtopic is the same as a SUBTOPIC of another main main_topic,
-            #    this is called (shouldn't). Aliases aren't subtopics. (uncomment asyncio # _SUBPROCESS = _SUBPROCESSES)
-            #  (2) main topics with both @alias and @syntax decors, that have the issue above ("(1)"), raise
-            #    a ValueError in igit prompt, because the same main main_topic function is passed here for each subtopic and subtopic alias.
+            #  (1) If an ALIAS of a sub_page is the same as a SUBPAGE of another main main_page,
+            #    this is called (shouldn't). Aliases aren't sub_pages. (uncomment asyncio # _SUBPROCESS = _SUBPROCESSES)
+            #  (2) main pages with both @alias and @syntax decors, that have the issue above ("(1)"), raise
+            #    a ValueError in igit prompt, because the same main main_page function is passed here for each sub_page and sub_page alias.
             #  ValueError: ('NumOptions | __init__(opts) duplicate opts: ', ('<function asyncio at 0x7f5dab684ca0>', '<function asyncio at 0x7f5dab684ca0>', '<function python at 0x7f5dab669a60>'))
-            idx, choice = prompt.choose(f"{sub_topic_key!r} exists in several topics, which one did you mean?",
+            idx, choice = prompt.choose(f"{sub_page_key!r} exists in several pages, which one did you mean?",
                                         *[page.__qualname__ for page in pages],
                                         flowopts='quit'
                                         )
-            return print(pages[idx](f'_{sub_topic_key.upper()}'))
+            return print(pages[idx](f'_{sub_page_key.upper()}'))
 
-        ## Unique subtopic
-        page, *_ = SUB_TOPICS[sub_topic_key]
-        return print(page(f'_{sub_topic_key.upper()}'))
+        ## Unique sub_page
+        page, *_ = SUB_PAGES[sub_page_key]
+        return print(page(f'_{sub_page_key.upper()}'))
 
-    # ** Not a precise subtopic. find something precise, either a main or sub main_topic
-    key, main_topic = fuzzy_find_topic(main_topic,
-                                       set(MAIN_TOPICS.keys()) | set(SUB_TOPICS.keys()),
+    # ** Not a precise sub_page. find something precise, either a main or sub main_page
+    key, main_page = fuzzy_find_page(main_page,
+                                       set(PAGES.keys()) | set(SUB_PAGES.keys()),
                                        raise_if_exhausted=True)
-    return print_page(main_topic)
+    return print_page(main_page)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.argument('main_topic', required=False)
-@click.argument('sub_topic', required=False)
-@unrequired_opt('-l', '--list', 'list_topics_or_subtopics', is_flag=True, help="List main topic's sub topics if MAIN_TOPIC is provided, else list all main topics")
-@unrequired_opt('--doctor', 'print_unused_subtopics', is_flag=True, help="Print any subtopics that are skipped erroneously in a main topic's else clause")
-def get_topic(main_topic: str | None,
-              sub_topic: str | None,
-              list_topics_or_subtopics: bool = False,
-              print_unused_subtopics: bool = False):
-    logging.debug(f'termwiki.get_topic({main_topic = !r}, {sub_topic = !r}, {list_topics_or_subtopics = }, {print_unused_subtopics = })')
-    if print_unused_subtopics:  # mm --doctor
-        populate_sub_topics(print_unused_subtopics=True)
+@click.argument('main_page', required=False)
+@click.argument('sub_page', required=False)
+@unrequired_opt('-l', '--list', 'list_pages_or_sub_pages', is_flag=True, help="List main page's sub pages if MAIN_PAGE is provided, else list all main pages")
+@unrequired_opt('--doctor', 'print_unused_sub_pages', is_flag=True, help="Print any sub_pages that are skipped erroneously in a main page's else clause")
+def get_page(main_page: str | None,
+             sub_page: str | None,
+             list_pages_or_sub_pages: bool = False,
+             print_unused_sub_pages: bool = False):
+    logging.debug(f'termwiki.get_page({main_page = !r}, {sub_page = !r}, {list_pages_or_sub_pages = }, {print_unused_sub_pages = })')
+    if print_unused_sub_pages:  # tw --doctor
+        populate_sub_pages(print_unused_sub_pages=True)
         return
-    if list_topics_or_subtopics:  # mm [MAIN_TOPIC] -l, --list
-        if main_topic:
-            print(f"{h2(main_topic)}")
-            [print(f' · {sub}') for sub in sorted(MAIN_TOPICS[main_topic].sub_topics)]
+    if list_pages_or_sub_pages:  # tw [MAIN_PAGE] -l, --list
+        if main_page:
+            print(f"{h2(main_page)}")
+            [print(f' · {sub}') for sub in sorted(PAGES[main_page].sub_pages)]
         else:
-            for main_name, main_function in sorted(MAIN_TOPICS.items()):
-                alias = getattr(main_function, 'alias', None)
-                if alias and alias == main_name:
+            page: Page
+            for page_name, page in sorted(PAGES.items()):
+                alias = getattr(page, 'alias', None)
+                if alias and alias == page_name:
                     continue
-                title = f"\n{h2(main_name)}"
+                title = f"\n{h2(page_name)}"
                 if alias:
-                    title += f" ({main_function.alias})"
+                    title += f" ({page.alias})"
                 print(title)
-                [print(f' · {sub}') for sub in sorted(MAIN_TOPICS[main_name].sub_topics)]
+                [print(f' · {sub}') for sub in sorted(PAGES[page_name].sub_pages)]
         return
-    if not main_topic:
-        print('Error: Must specify a topic.\n')
-        ctx = get_topic.context_class(get_topic)
-        print(get_topic.get_help(ctx))
+    if not main_page:
+        print('Error: Must specify a page.\n')
+        ctx = get_page.context_class(get_page)
+        print(get_page.get_help(ctx))
         return
 
-    # mm MAIN_TOPIC [SUB_TOPIC]
-    print_page(main_topic, sub_topic)
+    # tw MAIN_PAGE [SUB_PAGE]
+    print_page(main_page, sub_page)

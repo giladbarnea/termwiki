@@ -15,7 +15,7 @@ more-termcolor = "^1.1.3"
 prompt-toolkit = "latest"
 
 [tool.poetry.scripts]
-tw = 'termwiki.main:get_topic'
+tw = 'termwiki.main:get_page'
 
 [tool.poetry.build]
 generate-setup-file = true
