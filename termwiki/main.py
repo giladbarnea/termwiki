@@ -49,8 +49,13 @@ def draw_out_decorated_fn(fn: ManFn) -> Callable:
 def populate_main_topics() -> dict[str, ManFn]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
     from termwiki.pages import pages
-    from ._man import pages as private_manuals
+    try:
+        from .private_pages import pages as private_pages
+    except ModuleNotFoundError:
+        private_pages = None
     def iter_module_manuals(module):
+        if not module:
+            return
         for _main_topic in dir(module):
             if _main_topic in module.EXCLUDE:
                 continue
@@ -65,7 +70,7 @@ def populate_main_topics() -> dict[str, ManFn]:
 
     main_topics = dict()
     for name, manual in it.chain(iter_module_manuals(pages),
-                                 iter_module_manuals(private_manuals)):
+                                 iter_module_manuals(private_pages)):
         ## dont draw_out_wrapped_fn because then syntax() isn't called
         main_topics[name] = manual
         if alias := getattr(manual, 'alias', None):
