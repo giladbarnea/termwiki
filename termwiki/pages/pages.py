@@ -1977,6 +1977,7 @@ def bash(subject=None):
     %bash
     sed -n '\@bla bla@p' ~/.zsh_history
     sed 's@search@replace@g' ~/.zsh_history
+    /%bash
     """
 
     _SYMLINK = _LN = _LINK = f"""{h1('ln - make links between files')}

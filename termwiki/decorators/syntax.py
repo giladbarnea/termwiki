@@ -169,7 +169,7 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
             highlighted_strs = []
             idx = 0
             while True:
-                if idx == len(lines):
+                if idx >= len(lines):
                     break
                 line = lines[idx]
                 line_stripped = line.strip()
@@ -221,25 +221,25 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                     # * `%mysql 1`:
                     if highlighted_lines_count:
                         # looks like this breaks %mysql 3 --line-numbers
-                        highlight_start_idx = idx + 1
+                        highlighting_idx = idx + 1
                         for _ in range(highlighted_lines_count):
-                            next_line = lines[highlight_start_idx]
+                            next_line = lines[highlighting_idx]
                             highlighted = _syntax_highlight(next_line, lang, style)
                             highlighted_strs.append(highlighted)
-                            highlight_start_idx += 1
-                        idx = highlight_start_idx + 1
+                            highlighting_idx += 1
+                        idx = highlighting_idx + 1
                         continue  # outer while
 
                     # * `%mysql [friendly] [--line-numbers]`:
                     # idx is where %python directive.
-                    # Keep incrementing highlight_start_idx until we hit closing /%python.
-                    # Then highlight idx+1:highlight_start_idx.
-                    highlight_start_idx = idx + 1
+                    # Keep incrementing highlighting_idx until we hit closing /%python.
+                    # Then highlight idx+1:highlighting_idx.
+                    highlighting_idx = idx + 1
                     while True:
                         try:
-                            next_line = lines[highlight_start_idx]
+                            next_line = lines[highlighting_idx]
                         except IndexError:
-                            # This happens when we keep incrementing highlight_start_idx but no SYNTAX_HIGHLIGHT_END_RE is found.
+                            # This happens when we keep incrementing highlighting_idx but no SYNTAX_HIGHLIGHT_END_RE is found.
                             # So we just highlight the first line and break.
                             # TODO: in setuppy, under setup(), first line not closing %bash doesnt work
                             #  Consider highlighting until end of string (better behavior and maybe solves this bug?)
@@ -248,26 +248,26 @@ def syntax(_manual_or_style: ManFn | Style = None, **default_styles):
                             if enumerate_lines:
                                 breakpoint()
                             highlighted_strs.append(highlighted)
-                            idx = highlight_start_idx
+                            idx = highlighting_idx
                             break  # inner while
                         else:
                             if SYNTAX_HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
-                                text = '\n'.join(lines[idx + 1:highlight_start_idx])
+                                text = '\n'.join(lines[idx + 1:highlighting_idx])
                                 if enumerate_lines:
                                     # pygments adds color codes to start of line, even if
                                     # it's indented. Tighten this up before adding line numbers.
                                     indent_level = _get_indent_level(text)
                                     dedented_text = dedent(text)
-                                    ljust = len(str(highlight_start_idx - (idx + 1)))
+                                    ljust = len(str(highlighting_idx - (idx + 1)))
                                     highlighted = _syntax_highlight(dedented_text, lang, style)
                                     highlighted = _enumerate_lines(highlighted, ljust=ljust)
                                     highlighted = indent(highlighted, ' ' * indent_level)
                                 else:
                                     highlighted = _syntax_highlight(text, lang, style)
                                 highlighted_strs.append(highlighted)
-                                idx = highlight_start_idx
+                                idx = highlighting_idx
                                 break
-                            highlight_start_idx += 1
+                            highlighting_idx += 1
 
 
                 elif line_stripped.startswith('❯'):
