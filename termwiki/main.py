@@ -16,7 +16,7 @@ from termwiki.common.types import Page
 from termwiki.consts import SUB_PAGE_RE
 
 
-def get_unused_sub_pages(undecorated_page_fn) -> list[str]:
+def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
     """python -m termwiki --doctor calls this"""
     # TODO (bug): Doesn't check if __LOGGING_FORMATTER in _LOGGING
     # TODO (bug): If _MANAGE = _MANAGEPY = f"""... and _MANAGEPY in last block, says _MANAGE is unused
