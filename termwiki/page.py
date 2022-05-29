@@ -37,6 +37,9 @@ class FunctionPage(Page):
         super().__init__()
         self.function = function
 
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(function={self.function.__qualname__})'
+
     def read(self, *args, **kwargs) -> str:
         return self.function(*args, **kwargs)
 
@@ -47,6 +50,9 @@ class FilePage(Page):
     def __init__(self, filename: str | Path) -> None:
         super().__init__()
         self.filename = filename
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(filename={self.filename!r})'
 
     def read(self, *args, **kwargs) -> str:
         with open(self.filename) as f:
@@ -62,6 +68,9 @@ class PythonFilePage(Page):
         super().__init__()
         self._python_module = python_module
         self.parent = parent
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(python_module={self._python_module!r}, parent={self.parent!r})'
 
     def __getitem__(self, item: str) -> Page | None:
         module_attribute: types.FunctionType | ... = super().__getitem__(item)
@@ -104,20 +113,35 @@ class PythonFilePage(Page):
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, ast.AST]]:
         python_module: ModuleType = self.python_module()
+        exclude_names = getattr(python_module, '__exclude__', {})
         python_module_ast: ast.Module = ast.parse(inspect.getsource(python_module))
         # pprint_node(python_module_ast)
         for node in python_module_ast.body:
             if hasattr(node, 'name'):
-                yield node.name, getattr(python_module, node.name)
+                if node.name in exclude_names:
+                    continue
+                if isinstance(node, ast.FunctionDef):
+                    function = getattr(python_module, node.name)
+                    yield node.name, FunctionPage(function)
+                else:
+                    print(f'{self.__class__.__name__}.traverse(): {node.__class__.__name__} has "name" but is not a FunctionDef')
+                    breakpoint()
                 continue
             if hasattr(node, 'names'):
+                if isinstance(node, (ast.Import, ast.ImportFrom)):
+                    continue
+                print(f'{self.__class__.__name__}.traverse(): {node.__class__.__name__} has "names" but is not an Import or ImportFrom')
+                breakpoint()
                 for alias in node.names:
-                    yield alias.name, getattr(python_module, alias.name)
+                    if alias.name not in exclude_names:
+                        yield alias.name, getattr(python_module, alias.name)
                 continue
             if isinstance(node, ast.Assign):
                 target: ast.Name
                 for target in node.targets:
-                    yield target.id, getattr(python_module, target.id)
+                    if target.id not in exclude_names:
+                        variable = getattr(python_module, target.id)
+                        yield target.id, variable
                 continue
             breakpoint()
             # if isinstance(node, ast.FunctionDef):
@@ -163,8 +187,18 @@ class DirectoryPage(Page):
                 continue
             if path.is_dir():
                 yield path.name, DirectoryPage(path)
-            elif path.suffix != ".py":
+                continue
+            if path.suffix != ".py":
                 yield path.stem, FilePage(path)
-            elif path.name != '__init__.py':
+                continue
+            if path.name != '__init__.py':
                 package = self.package()
                 yield path.stem, PythonFilePage(path, package)
+                continue
+
+        pages_python_file = self.path() / 'pages.py'
+        if pages_python_file.exists():
+            package = self.package()
+            python_file_page = PythonFilePage(pages_python_file, package)
+            for name, page in python_file_page.traverse():
+                yield name, page

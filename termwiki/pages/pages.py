@@ -7,7 +7,7 @@ from termwiki.consts import literal_linebreak, literal_backslash
 from termwiki.decorators import syntax, alias
 from termwiki.colors import h1, h2, h3, h4, h5, b, c, i, black, bg
 
-EXCLUDE = set(locals()) | {'EXCLUDE'}
+__exclude__ = set(locals()) | {'__exclude__'}
 
 
 # @rich

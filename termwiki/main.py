@@ -67,7 +67,7 @@ def populate_pages() -> dict[str, PageType]:
         if not module:
             return
         for _page_name in dir(module):
-            if _page_name in getattr(module, 'EXCLUDE', set()):
+            if _page_name in getattr(module, '__exclude__', {}):
                 continue
             _page: PageType = getattr(module, _page_name)
             if not inspect.isfunction(_page):
