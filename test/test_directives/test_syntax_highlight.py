@@ -1,4 +1,4 @@
-from termwiki.decorators.syntax import syntax_highlight
+from termwiki.directives.syntax import syntax_highlight
 from termwiki import page_tree
 from test.util import decolor
 

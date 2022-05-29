@@ -6,6 +6,7 @@ from collections.abc import Callable, Generator
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType, FunctionType
+from typing import Protocol
 
 import termwiki
 
@@ -20,8 +21,7 @@ def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, i
     print(pformat_node(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent))
 
 
-def paginate_function(function: Callable[..., str]):
-    python_module_ast: ast.Module = ast.parse(inspect.getsource(function))
+def paginate_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
     for node in python_module_ast.body[0].body:
         if isinstance(node, ast.Assign):
             target: ast.Name
@@ -40,8 +40,7 @@ def paginate_function(function: Callable[..., str]):
             breakpoint()
 
 
-def paginate_module(module: ModuleType):
-    python_module_ast: ast.Module = ast.parse(inspect.getsource(module))
+def paginate_module(module: ModuleType, python_module_ast: ast.Module):
     exclude_names = getattr(module, '__exclude__', {})
     for node in python_module_ast.body:
         if hasattr(node, 'name'):
@@ -70,6 +69,10 @@ def paginate_module(module: ModuleType):
 
 
 class Page:
+
+    def __init__(self, initial_depth: int = 1) -> None:
+        self.initial_depth = initial_depth
+
     def __call__(self, *args, **kwargs) -> str:
         ...
 
@@ -99,27 +102,46 @@ class VariablePage(Page):
     def read(self, *args, **kwargs) -> str:
         return self.value
 
-
 class FunctionPage(Page):
-    def __init__(self, function: Callable[..., str]) -> None:
-        super().__init__()
+    def __init__(self, function: Callable[..., str], initial_depth: int = 1) -> None:
+        super().__init__(initial_depth=initial_depth)
         self.function = function
+        self._python_module_ast: ast.Module = None
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(function={self.function.__qualname__})'
 
+    def python_module_ast(self) -> ast.Module:
+        if self._python_module_ast:
+            return self._python_module_ast
+        self._python_module_ast: ast.Module = ast.parse(inspect.getsource(self.function))
+        return self._python_module_ast
+
     def read(self, *args, **kwargs) -> str:
-        return self.function(*args, **kwargs)
+        text = self.function(*args, **kwargs)
+        if text is not None:
+            return text
+        # If a function doesn't return, return its joined variables
+        values = ['#' * self.initial_depth + f' {self.function.__qualname__}']
+        seen_pages = set()
+        for var_name, var_page in self.traverse():
+            if var_page.value in seen_pages:
+                continue
+            seen_pages.add(var_page.value)
+            text = var_page.read()
+            values.append(text)
+        return '\n'.join(values)
 
     __call__ = read
 
-    def traverse(self, *args, **kwargs) -> Generator[Page]:
-        yield from paginate_function(self.function)
+    def traverse(self, *args, **kwargs) -> Generator[tuple[str, VariablePage]]:
+        python_module_ast = self.python_module_ast()
+        yield from paginate_function(self.function, python_module_ast)
 
 
 class FilePage(Page):
-    def __init__(self, filename: str | Path) -> None:
-        super().__init__()
+    def __init__(self, filename: str | Path, initial_depth: int = 1) -> None:
+        super().__init__(initial_depth=initial_depth)
         self.filename = filename
 
     def __repr__(self) -> str:
@@ -136,13 +158,20 @@ class FilePage(Page):
 class PythonFilePage(Page):
     """A Python module representing a file (not a package)"""
 
-    def __init__(self, python_module: ModuleType | Path, parent: ModuleType = None) -> None:
-        super().__init__()
+    def __init__(self, python_module: ModuleType | Path, parent: ModuleType = None, initial_depth: int = 1) -> None:
+        super().__init__(initial_depth=initial_depth)
         self._python_module = python_module
+        self._python_module_ast = None
         self.parent = parent
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(python_module={self._python_module!r}, parent={self.parent!r})'
+
+    def python_module_ast(self) -> ast.Module:
+        if self._python_module_ast:
+            return self._python_module_ast
+        self._python_module_ast: ast.Module = ast.parse(inspect.getsource(self.python_module()))
+        return self._python_module_ast
 
     # @property
     def python_module(self) -> ModuleType:
@@ -172,16 +201,17 @@ class PythonFilePage(Page):
         #     return page.body[0].value.s
         return NotImplemented(module_name)
 
-    def traverse(self, *args, **kwargs) -> Generator[tuple[str, ast.AST]]:
+    def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         python_module: ModuleType = self.python_module()
-        yield from paginate_module(python_module)
+        python_module_ast: ast.Module = self.python_module_ast()
+        yield from paginate_module(python_module, python_module_ast)
 
 
 class DirectoryPage(Page):
     """A directory / package / namespace."""
 
-    def __init__(self, package: ModuleType | Path) -> None:
-        super().__init__()
+    def __init__(self, package: ModuleType | Path, initial_depth: int = 1) -> None:
+        super().__init__(initial_depth=initial_depth)
         self._package = package
 
     def __repr__(self) -> str:

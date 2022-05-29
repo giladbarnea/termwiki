@@ -2,7 +2,7 @@
 python magic / duner / datamodel / descriptors
 """
 from termwiki.colors import c, bg, i, h2, h3, h4, h5, h6
-from termwiki.decorators import optional_subject
+from termwiki.directives import optional_subject
 
 @optional_subject
 def special_method_names(): # 3.3
@@ -145,13 +145,13 @@ def datamodel():
     __annotations__: dict
     __builtins__: module
     __file__: str {c("'/abs/path/to/file.py'")}
-    __name__: str {c("'__main__' or 'termwiki.decorators.syntax'. Unique")}
+    __name__: str {c("'__main__' or 'termwiki.directives.syntax'. Unique")}
     __loader__: SourceFileLoader
     __spec__: ModuleSpec? {c('__spec__.parent is a fallback for __package__')}
-    __path__: list[str] {c("Unset for non-packages. ['/home/gilad/dev/termwiki/pages/decorators']")}
+    __path__: list[str] {c("Unset for non-packages. ['/home/gilad/dev/termwiki/pages/directives']")}
     __cached__: str? {c(".pyc file")}
     __package__: str? {c('if module is package: __package__ == __name__;')}
-                               {c("otherwise, if top level: __package__ == '', else: 'termwiki.decorators'")}
+                               {c("otherwise, if top level: __package__ == '', else: 'termwiki.directives'")}
                                {c("see https://peps.python.org/pep-0366/")}
 
   {h4('Custom classes')}
