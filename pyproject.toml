@@ -25,6 +25,8 @@ pytest = "^7.1.2"
 ipython = "^8.4.0"
 ipython-autoimport = "^0.4"
 ast-magic = "^1.0.1"
+pdbpp = { path = "../pdbpp/", develop = true, optional = true }
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

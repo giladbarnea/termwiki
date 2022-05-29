@@ -101,15 +101,21 @@ class PythonFilePage(Page):
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, ast.AST]]:
         python_module: ModuleType = self.python_module()
         python_module_ast: ast.Module = ast.parse(inspect.getsource(python_module))
-        pprint_node(python_module_ast)
+        # pprint_node(python_module_ast)
         for node in python_module_ast.body:
             if hasattr(node, 'name'):
                 yield node.name, getattr(python_module, node.name)
+                continue
             if hasattr(node, 'names'):
                 for alias in node.names:
                     yield alias.name, getattr(python_module, alias.name)
-            else:
-                pprint_node(node)
+                continue
+            if isinstance(node, ast.Assign):
+                target: ast.Name
+                for target in node.targets:
+                    yield target.id, getattr(python_module, target.id)
+                continue
+            breakpoint()
             # if isinstance(node, ast.FunctionDef):
             #     yield node.name, FunctionPage(getattr(python_module, node.name))
 
