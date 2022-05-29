@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from textwrap import indent, dedent
 
 from termwiki.common.types import Style, Language
@@ -148,7 +149,7 @@ def resolve_directives(text: str, default_styles: dict = None, default_style: St
     stripped = ''.join(highlighted_strs).strip()
     if stripped in text \
             and not '\x1b[' in text \
-            and highlighted_strs[0].startswith('# '):
+            and re.match('#+ ', highlighted_strs[0]):
         # Text never included colors nor directives, and it looks like markdown
         return syntax_highlight(stripped, "markdown", style=default_styles.get("markdown", default_style))
     return stripped
