@@ -10,7 +10,7 @@ python = "^3.9"
 click = "^8.0.3"
 fuzzysearch = "^0.7.3"
 Pygments = "^2.10.0"
-rich = "latest"
+rich = "^12"
 more-termcolor = "^1.1.3"
 prompt-toolkit = "latest"
 
@@ -20,6 +20,11 @@ tw = 'termwiki.main:get_page'
 [tool.poetry.build]
 generate-setup-file = true
 
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+ipython = "^8.4.0"
+ipython-autoimport = "^0.4"
+ast-magic = "^1.0.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

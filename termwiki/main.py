@@ -7,7 +7,6 @@ import logging
 import sys
 from collections import defaultdict
 from typing import Callable, Collection, Generator
-from pathlib import Path
 
 import click
 
@@ -15,8 +14,8 @@ from termwiki.colors import h2
 from termwiki.common.click_extension import unrequired_opt
 from termwiki.common.types import PageType
 from termwiki.consts import SUB_PAGE_RE
-from termwiki.page import FilePage, PackagePage
-
+from termwiki.page import FilePage, DirectoryPage
+# import termwiki.page_tree
 
 def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
     """python -m termwiki --doctor calls this"""
@@ -49,14 +48,14 @@ def populate_pages() -> dict[str, PageType]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
     main_pages = dict()
     from termwiki import pages as pages_package
-    pages_package = PackagePage(pages_package)
+    pages_package = DirectoryPage(pages_package)
     for name, page in pages_package.traverse():
         main_pages[name] = page
 
     from termwiki.pages import pages
     try:
         from termwiki import private_pages as private_pages_package
-        private_pages_package = PackagePage(private_pages_package)
+        private_pages_package = DirectoryPage(private_pages_package)
         for name, page in private_pages_package.traverse():
             main_pages[name] = page
         from termwiki.private_pages import pages as private_pages
