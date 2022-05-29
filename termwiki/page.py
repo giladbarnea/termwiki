@@ -1,18 +1,69 @@
 from __future__ import annotations
+
+import ast
 import inspect
-import types
-from collections.abc import Callable, Iterator, Generator
+from collections.abc import Callable, Generator
 from importlib import import_module
 from pathlib import Path
-from types import ModuleType
-import ast
+from types import ModuleType, FunctionType
+
 import termwiki
+
 PROJECT_ROOT = Path(termwiki.__path__[0]).parent
+
 
 def pformat_node(node: ast.AST, annotate_fields=True, include_attributes=False, indent=4):
     return ast.dump(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent).replace(r'\n', '\n... ')
+
+
 def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, indent=4):
     print(pformat_node(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent))
+
+
+def paginate_function(function: Callable[..., str]):
+    python_module_ast: ast.Module = ast.parse(inspect.getsource(function))
+    for node in python_module_ast.body[0].body:
+        if isinstance(node, ast.Assign):
+            target: ast.Name
+            for target in node.targets:
+                value = node.value.value
+                yield target.id, value
+            continue
+        breakpoint()
+
+
+def paginate_module(module: ModuleType):
+    python_module_ast: ast.Module = ast.parse(inspect.getsource(module))
+    exclude_names = getattr(module, '__exclude__', {})
+    for node in python_module_ast.body:
+        if hasattr(node, 'name'):
+            if node.name in exclude_names:
+                continue
+            if isinstance(node, ast.FunctionDef):
+                function = getattr(module, node.name)
+                yield node.name, FunctionPage(function)
+            else:
+                print(f'paginate_module({module}): {node.__class__.__name__} has "name" but is not a FunctionDef')
+                breakpoint()
+            continue
+        if hasattr(node, 'names'):
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                continue
+            print(f'paginate_module({module}): {node.__class__.__name__} has "names" but is not an Import or ImportFrom')
+            breakpoint()
+            for alias in node.names:
+                if alias.name not in exclude_names:
+                    yield alias.name, getattr(module, alias.name)
+            continue
+        if isinstance(node, ast.Assign):
+            target: ast.Name
+            for target in node.targets:
+                if target.id not in exclude_names:
+                    variable = getattr(module, target.id)
+                    yield target.id, variable
+            continue
+        breakpoint()
+
 
 class Page:
     def __call__(self, *args, **kwargs) -> str:
@@ -23,7 +74,6 @@ class Page:
             if page_name == item:
                 return page
         return None
-
 
     def read(self, *args, **kwargs) -> str:
         ...
@@ -45,6 +95,9 @@ class FunctionPage(Page):
 
     __call__ = read
 
+    def traverse(self, *args, **kwargs) -> Generator[Page]:
+        yield from paginate_function(self.function)
+
 
 class FilePage(Page):
     def __init__(self, filename: str | Path) -> None:
@@ -64,6 +117,7 @@ class FilePage(Page):
 
 class PythonFilePage(Page):
     """A Python module representing a file (not a package)"""
+
     def __init__(self, python_module: ModuleType | Path, parent: ModuleType = None) -> None:
         super().__init__()
         self._python_module = python_module
@@ -71,17 +125,6 @@ class PythonFilePage(Page):
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(python_module={self._python_module!r}, parent={self.parent!r})'
-
-    def __getitem__(self, item: str) -> Page | None:
-        module_attribute: types.FunctionType | ... = super().__getitem__(item)
-        attribute_type = type(module_attribute)
-        if attribute_type is type:
-            breakpoint()
-            return NotImplemented(f'{self.__class__.__qualname__}[{item!r}] is {module_attribute}: {attribute_type}')
-        if callable(module_attribute):
-            return FunctionPage(module_attribute)
-        breakpoint()
-        return module_attribute
 
     # @property
     def python_module(self) -> ModuleType:
@@ -106,46 +149,45 @@ class PythonFilePage(Page):
         if hasattr(python_module, module_name):
             return getattr(python_module, module_name)()
         # for page in self.traverse():
-            # if isinstance(page, ast.FunctionDef):
-            #     if module_name == page.name:
-            #     return page.body[0].value.s
+        # if isinstance(page, ast.FunctionDef):
+        #     if module_name == page.name:
+        #     return page.body[0].value.s
         return NotImplemented(module_name)
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, ast.AST]]:
         python_module: ModuleType = self.python_module()
-        exclude_names = getattr(python_module, '__exclude__', {})
-        python_module_ast: ast.Module = ast.parse(inspect.getsource(python_module))
-        # pprint_node(python_module_ast)
-        for node in python_module_ast.body:
-            if hasattr(node, 'name'):
-                if node.name in exclude_names:
-                    continue
-                if isinstance(node, ast.FunctionDef):
-                    function = getattr(python_module, node.name)
-                    yield node.name, FunctionPage(function)
-                else:
-                    print(f'{self.__class__.__name__}.traverse(): {node.__class__.__name__} has "name" but is not a FunctionDef')
-                    breakpoint()
-                continue
-            if hasattr(node, 'names'):
-                if isinstance(node, (ast.Import, ast.ImportFrom)):
-                    continue
-                print(f'{self.__class__.__name__}.traverse(): {node.__class__.__name__} has "names" but is not an Import or ImportFrom')
-                breakpoint()
-                for alias in node.names:
-                    if alias.name not in exclude_names:
-                        yield alias.name, getattr(python_module, alias.name)
-                continue
-            if isinstance(node, ast.Assign):
-                target: ast.Name
-                for target in node.targets:
-                    if target.id not in exclude_names:
-                        variable = getattr(python_module, target.id)
-                        yield target.id, variable
-                continue
-            breakpoint()
-            # if isinstance(node, ast.FunctionDef):
-            #     yield node.name, FunctionPage(getattr(python_module, node.name))
+        # exclude_names = getattr(python_module, '__exclude__', {})
+        # python_module_ast: ast.Module = ast.parse(inspect.getsource(python_module))
+        yield from paginate_module(python_module)
+        # for node in python_module_ast.body:
+        #     if hasattr(node, 'name'):
+        #         if node.name in exclude_names:
+        #             continue
+        #         if isinstance(node, ast.FunctionDef):
+        #             function = getattr(python_module, node.name)
+        #             yield node.name, FunctionPage(function)
+        #         else:
+        #             print(f'{self.__class__.__name__}.traverse(): {node.__class__.__name__} has "name" but is not a FunctionDef')
+        #             breakpoint()
+        #         continue
+        #     if hasattr(node, 'names'):
+        #         if isinstance(node, (ast.Import, ast.ImportFrom)):
+        #             continue
+        #         print(f'{self.__class__.__name__}.traverse(): {node.__class__.__name__} has "names" but is not an Import or ImportFrom')
+        #         breakpoint()
+        #         for alias in node.names:
+        #             if alias.name not in exclude_names:
+        #                 yield alias.name, getattr(python_module, alias.name)
+        #         continue
+        #     if isinstance(node, ast.Assign):
+        #         target: ast.Name
+        #         for target in node.targets:
+        #             if target.id not in exclude_names:
+        #                 variable = getattr(python_module, target.id)
+        #                 yield target.id, variable
+        #         continue
+        #     breakpoint()
+
 
 class DirectoryPage(Page):
     """A directory / package / namespace."""
