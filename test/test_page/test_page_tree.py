@@ -33,6 +33,15 @@ class TestDirectory:
             title = cleanse_str(adhd_text_lines[title_index])
             assert title.lower() == 'adhd'
 
+        def test_function_variable(self):
+            adhd_page: FunctionPage = page_tree.get('adhd')[0]
+            diet_page = adhd_page['diet']
+            diet_text = diet_page.read()
+            diet_text_lines = diet_text.splitlines()
+            title = cleanse_str(diet_text_lines[0])
+            assert title.lower() == 'diet'
+            assert diet_text_lines[1].strip() == 'Bad: sugary foods'
+
     class TestNestedDirectory:
         class TestPythonFile:
             class TestEponymousFunction:

@@ -26,10 +26,18 @@ def paginate_function(function: Callable[..., str]):
         if isinstance(node, ast.Assign):
             target: ast.Name
             for target in node.targets:
-                value = node.value.value
-                yield target.id, value
-            continue
-        breakpoint()
+                if isinstance(node.value, ast.JoinedStr):
+                    for value in node.value.values:
+                        if isinstance(value, ast.FormattedValue):
+                            breakpoint()
+                        else:
+                            yield target.id, VariablePage(value.s, target.id)
+                else:
+                    print(f'paginate_function({function}): {node} is not a JoinedStr')
+                    breakpoint()
+        else:
+            print(f'paginate_function({function}): {node} is not an Assign')
+            breakpoint()
 
 
 def paginate_module(module: ModuleType):
@@ -43,24 +51,20 @@ def paginate_module(module: ModuleType):
                 function = getattr(module, node.name)
                 yield node.name, FunctionPage(function)
             else:
-                print(f'paginate_module({module}): {node.__class__.__name__} has "name" but is not a FunctionDef')
+                print(f'paginate_module({module}): {node} has "name" but is not a FunctionDef')
                 breakpoint()
             continue
         if hasattr(node, 'names'):
             if isinstance(node, (ast.Import, ast.ImportFrom)):
                 continue
-            print(f'paginate_module({module}): {node.__class__.__name__} has "names" but is not an Import or ImportFrom')
+            print(f'paginate_module({module}): {node} has "names" but is not an Import or ImportFrom')
             breakpoint()
             for alias in node.names:
                 if alias.name not in exclude_names:
                     yield alias.name, getattr(module, alias.name)
             continue
         if isinstance(node, ast.Assign):
-            target: ast.Name
-            for target in node.targets:
-                if target.id not in exclude_names:
-                    variable = getattr(module, target.id)
-                    yield target.id, variable
+            # print(f'paginate_module({module}): {node} is an Assign ({[n.id for n in node.targets]})')
             continue
         breakpoint()
 
@@ -80,6 +84,20 @@ class Page:
 
     def traverse(self, *args, **kwargs) -> Generator[Page]:
         ...
+
+
+class VariablePage(Page):
+
+    def __init__(self, value: str, name: str = None) -> None:
+        super().__init__()
+        self.value = value
+        self.name = name
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(value={self.value!r}, name={self.name!r})'
+
+    def read(self, *args, **kwargs) -> str:
+        return self.value
 
 
 class FunctionPage(Page):
@@ -156,37 +174,7 @@ class PythonFilePage(Page):
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, ast.AST]]:
         python_module: ModuleType = self.python_module()
-        # exclude_names = getattr(python_module, '__exclude__', {})
-        # python_module_ast: ast.Module = ast.parse(inspect.getsource(python_module))
         yield from paginate_module(python_module)
-        # for node in python_module_ast.body:
-        #     if hasattr(node, 'name'):
-        #         if node.name in exclude_names:
-        #             continue
-        #         if isinstance(node, ast.FunctionDef):
-        #             function = getattr(python_module, node.name)
-        #             yield node.name, FunctionPage(function)
-        #         else:
-        #             print(f'{self.__class__.__name__}.traverse(): {node.__class__.__name__} has "name" but is not a FunctionDef')
-        #             breakpoint()
-        #         continue
-        #     if hasattr(node, 'names'):
-        #         if isinstance(node, (ast.Import, ast.ImportFrom)):
-        #             continue
-        #         print(f'{self.__class__.__name__}.traverse(): {node.__class__.__name__} has "names" but is not an Import or ImportFrom')
-        #         breakpoint()
-        #         for alias in node.names:
-        #             if alias.name not in exclude_names:
-        #                 yield alias.name, getattr(python_module, alias.name)
-        #         continue
-        #     if isinstance(node, ast.Assign):
-        #         target: ast.Name
-        #         for target in node.targets:
-        #             if target.id not in exclude_names:
-        #                 variable = getattr(python_module, target.id)
-        #                 yield target.id, variable
-        #         continue
-        #     breakpoint()
 
 
 class DirectoryPage(Page):

@@ -28,30 +28,27 @@ __exclude__ = set(locals()) | {'__exclude__'}
 #     """
 
 
-def adhd(subject=None):
-    _DIET = f"""{h2('Diet')}
+def adhd():
+    diet = f"""## Diet
     Bad: sugary foods
     Probably: oligoantigenic (unless avoiding food X then coming back makes you allergic to it). Lancet study.
     Omega3 (>1g EPA, fish oil). studies: effects are significant but modest, or no effect, but safe to assume helps lower dosage of meds.
       Modulaitng dopamine, makes it more available.
     """
-    _BEHAVIOR = f"""{h2('Behavior')}
+    behavior = f"""## Behavior
     """
-    _COGNITIVE = _MENTAL = f"""{h2('Cognitive / Mental')}
+    cognitive = mental = f"""## Cognitive / Mental
     Open monitoring (vs soda-straw focus): 
       Higher time framerate. Can see 2 waldos. 
     
     Meditation (15m) - focus on breathing and body-scan
       Signif. reduced attentional blinks
     """
-    if subject:
-        frame = inspect.currentframe()
-        return frame.f_locals[subject]
-    else:
-        return f"""{h1('ADHD')}
-    {_DIET}
-    {_BEHAVIOR}
-    {_COGNITIVE}
+
+    return f"""# ADHD
+    {diet}
+    {behavior}
+    {cognitive}
     """
 
 
