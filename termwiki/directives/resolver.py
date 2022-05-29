@@ -146,12 +146,14 @@ def resolve_directives(text: str, default_styles: dict = None, default_style: St
             highlighted_strs.append(line + '\n')
 
         idx += 1
+
     stripped = ''.join(highlighted_strs).strip()
     if stripped in text \
             and not '\x1b[' in text \
             and re.match('#+ ', highlighted_strs[0]):
         # Text never included colors nor directives, and it looks like markdown
-        return syntax_highlight(stripped, "markdown", style=default_styles.get("markdown", default_style))
+        dedented = '\n'.join(map(str.strip, stripped.splitlines()))
+        return syntax_highlight(dedented, "markdown", style=default_styles.get("markdown", default_style))
     return stripped
 
 

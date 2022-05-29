@@ -32,6 +32,8 @@ def paginate_function(function: Callable[..., str], python_module_ast: ast.Modul
                             breakpoint()
                         else:
                             yield target.id, VariablePage(value.s, target.id)
+                elif isinstance(node.value, ast.Constant):
+                    yield target.id, VariablePage(node.value.value, target.id)
                 else:
                     print(f'paginate_function({function}): {node} is not a JoinedStr')
                     breakpoint()
