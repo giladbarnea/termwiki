@@ -5,7 +5,7 @@ from test.util import decolor
 
 class TestMarkdown:
     def test_plantuml(self):
-        plantuml = page_tree['plantuml']
+        plantuml = page_tree.get('plantuml')[0]
         plantuml_text = plantuml.read()
         plantuml_lines = plantuml_text.splitlines()
         highlighted_text = syntax_highlight(plantuml_text, 'markdown')

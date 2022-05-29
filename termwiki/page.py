@@ -82,7 +82,11 @@ class PythonFilePage(Page):
             if hasattr(self.parent, self._python_module.stem):
                 self._python_module = getattr(self.parent, self._python_module.stem)
             else:
-                python_module_relative_path = Path(self._python_module).relative_to(PROJECT_ROOT)
+                python_module_path = Path(self._python_module)
+                if python_module_path.is_relative_to(PROJECT_ROOT):
+                    python_module_relative_path = python_module_path.relative_to(PROJECT_ROOT)
+                else:
+                    python_module_relative_path = python_module_path
                 python_module_name = str(python_module_relative_path.with_suffix('')).replace('/', '.')
                 self._python_module = import_module(python_module_name)
             return self._python_module
@@ -136,16 +140,21 @@ class DirectoryPage(Page):
         package_relative_path = self._package.relative_to(PROJECT_ROOT)
         import_path = '.'.join(package_relative_path.parts)
         imported_package = import_module(import_path)
+        self._package = imported_package
         return imported_package
 
     # @property
     def path(self) -> Path:
+        if hasattr(self, '_path'):
+            return self._path
         package = self.package()
-        if package.__file__:
-            return Path(package.__file__).parent
         # Namespaces __file__ attribute is None
-        # Also works: self.package.__spec__.submodule_search_locations[0]
-        return Path(package.__package__.replace('.', '/'))
+        if package.__file__:
+            self._path = Path(package.__file__).parent
+        else:
+            # Also works: self.package.__spec__.submodule_search_locations[0]
+            self._path = Path(package.__package__.replace('.', '/'))
+        return self._path
 
     def traverse(self, *, target=None) -> Generator[tuple[str, Page]]:
         path = self.path()
