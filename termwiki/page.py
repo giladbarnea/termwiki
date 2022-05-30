@@ -25,9 +25,11 @@ def paginate_function(function: Callable[..., str], python_module_ast: ast.Modul
         if isinstance(node, ast.Assign):
             target: ast.Name
             for target in node.targets:
-                if isinstance(node.value, ast.JoinedStr):
-                    values = node.value.values
-                    breakpoint()
+                if isinstance(node.value, ast.Constant):
+                    yield target.id, VariablePage(node.value.value, target.id)
+                # elif isinstance(node.value, ast.JoinedStr):
+                #     values = node.value.values
+                    # breakpoint()
                     # for value in node.value.values:
                     #     if isinstance(value, ast.FormattedValue):
                     #         wrapped_function = getattr(function, '__wrapped__', function)
@@ -50,11 +52,13 @@ def paginate_function(function: Callable[..., str], python_module_ast: ast.Modul
                     #         # breakpoint()
                     #     else:
                     #         yield target.id, VariablePage(value.s, target.id)
-                elif isinstance(node.value, ast.Constant):
-                    yield target.id, VariablePage(node.value.value, target.id)
                 else:
-                    print(f'paginate_function({function}): {node} is not a JoinedStr')
-                    breakpoint()
+                    # print(f'paginate_function({function}): {node.value=} is not a Constant')
+                    from astunparse import unparse
+                    wrapped_function = getattr(function, '__wrapped__', function)
+                    unparsed_value = unparse(node.value)
+                    rendered: str = eval(unparsed_value, wrapped_function.__globals__)
+                    yield target.id, VariablePage(rendered, target.id)
         else:
             print(f'paginate_function({function}): {node} is not an Assign')
             breakpoint()

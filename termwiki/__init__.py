@@ -1,5 +1,6 @@
 from sys import path
 import os
+os.environ['DEBUGFILE_NO_PATCH_PRINT'] = '1'
 from rich.traceback import install
 import click
 if home:=os.path.expanduser('~') not in path:
