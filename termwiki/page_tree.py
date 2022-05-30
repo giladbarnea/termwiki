@@ -1,27 +1,16 @@
-from collections import defaultdict
+from collections.abc import Sequence
 
-from termwiki import pages as public_pages, private_pages
-from termwiki.page import DirectoryPage, Page
+from termwiki import private_pages
+from termwiki.page import DirectoryPage, Page, deep_search
 
-public_pages_tree = DirectoryPage(public_pages)
 private_pages_tree = DirectoryPage(private_pages)
 
 
-# def zip_pages(*page_iterators):
-#     fillvalue = []
-#     [fillvalue.append(None) for _ in page_iterators]
-#     for zipped_pages in zip_longest(*page_iterators, fillvalue=fillvalue):
-#         for page_tuple in zipped_pages:
-#             page_name, page = page_tuple
-#             yield page_name, page
+def get(page_path: Sequence[str]) -> tuple[list[str], Page]:
+    return deep_search(private_pages_tree, page_path)
+    if not pages:
+        return [], private_pages_tree
 
-
-def get(name) -> list[Page]:
-    if not name:
-        raise AttributeError(name)
-    current_level_pages: defaultdict[str, list[Page]] = defaultdict(list)
-    for page_name, page in public_pages_tree.traverse():
-        current_level_pages[page_name].append(page)
     for page_name, page in private_pages_tree.traverse():
         current_level_pages[page_name].append(page)
 

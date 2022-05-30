@@ -1,4 +1,4 @@
-## Option(Parameter)
+Option(Parameter): h1
   // https://click.palletsprojects.com/en/8.0.x/options/
   This is some text.
   Some more text.
@@ -32,20 +32,25 @@
                 ...
                 )
   ```
-  ### Some other headline
-  ### Example
-    #### Multi-value options         // Tuple
-      A multi-value option is blablabla
+  Some h2 headline
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Donec eget nunc eget nunc efficitur efficitur.
+    NOT HEADLINE
 
-      ```python
-      @click.option('--pos', nargs=2)
-      def findme(pos):
-        click.echo('%s / %s' % pos)
+    STILL NOT HEADLINE
 
-      >>> findme --pos 2.0 3.0
-      ```
+    YES HEADLINE (h3)
 
-    #### Multiple options            // Tuple[T]
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+    ALSO YES HEADLINE (h3)
+      Tile gnicsipida rutetcesnoc ,tema tis rolod muspi merol.
+
+  Example h2
+    Multi-value options (h3)         // Tuple
+      :import click.option.multi-value
+
+    Multiple options (h3)            // Tuple[T]
       ```python
       @click.option('--message', '-m', multiple=True, type=T)
       def commit(message):
@@ -54,7 +59,7 @@
       >>> commit -m foo -m bar
       ```
 
-    #### Boolean Flags
+    Boolean Flags (h3)
       ```python
       @click.option('--shout/--no-shout')
       def info(shout):  # Pass either
@@ -63,17 +68,19 @@
       def info(shout):  # --shout -> True
       ```
 
-    #### Feature Switches            // Multiple options
-      ```python 2
-      @click.option('--upper', 'transformation', flag_value='upper', default=True)
+    Feature Switches (h3)            // Multiple options
+      ```python
+      @click.option('--upper', 'transformation', flag_value='upper', 
+        default=True)
       @click.option('--lower', 'transformation', flag_value='lower')
+      ```
 
-    #### Prompt
-      ```python 1
-      @click.option('--name', prompt='Your name please')
+    Prompt (h3)
+      >>> @click.option('--name', prompt='Your name please')
 
-    #### Dynamic Defaults
-      ```python 3
+    Dynamic Defaults (h3)
+      ```python
       @click.option('--username', prompt=True,
               default=lambda: os.environ.get('USER', ''),
               show_default='current user')
+      ```

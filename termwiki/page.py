@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import ast
 import inspect
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Sequence
 from importlib import import_module
 from pathlib import Path
-from types import ModuleType, FunctionType
-from typing import Protocol
+from types import ModuleType
 
 import termwiki
 
@@ -20,33 +19,37 @@ def pformat_node(node: ast.AST, annotate_fields=True, include_attributes=False, 
 def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, indent=4):
     print(pformat_node(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent))
 
+
 def paginate_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
     for node in python_module_ast.body[0].body:
         if isinstance(node, ast.Assign):
             target: ast.Name
             for target in node.targets:
                 if isinstance(node.value, ast.JoinedStr):
-                    for value in node.value.values:
-                        if isinstance(value, ast.FormattedValue):
-                            wrapped_function = getattr(function, '__wrapped__', function)
-                            if not hasattr(value.value, 'func'):
-                                # value.value is Name, so a variable in an fstring. __LOGGING_HANDLER
-                                breakpoint()
-                            formatting_function = wrapped_function.__globals__[value.value.func.id]
-                            formatting_function_args = []
-                            for arg in value.value.args:
-                                if isinstance(arg, ast.JoinedStr):
-                                    formatting_function_args.append(''.join([v.value for v in arg.values]))
-                                else:
-                                    formatting_function_args.append(arg.s)
-                            try:
-                                s = formatting_function(*formatting_function_args)
-                            except AttributeError as e:
-                                from pdbpp import post_mortem; post_mortem()
-                            yield target.id, VariablePage(s, target.id)
-                            # breakpoint()
-                        else:
-                            yield target.id, VariablePage(value.s, target.id)
+                    values = node.value.values
+                    breakpoint()
+                    # for value in node.value.values:
+                    #     if isinstance(value, ast.FormattedValue):
+                    #         wrapped_function = getattr(function, '__wrapped__', function)
+                    #         if not hasattr(value.value, 'func'):
+                    #             # value.value is Name, so a variable in an fstring. __LOGGING_HANDLER
+                    #             breakpoint()
+                    #         formatting_function = wrapped_function.__globals__[value.value.func.id]
+                    #         formatting_function_args = []
+                    #         for arg in value.value.args:
+                    #             if isinstance(arg, ast.JoinedStr):
+                    #                 formatting_function_args.append(''.join([v.value for v in arg.values]))
+                    #             else:
+                    #                 formatting_function_args.append(arg.s)
+                    #         try:
+                    #             s = formatting_function(*formatting_function_args)
+                    #         except AttributeError as e:
+                    #             from pdbpp import post_mortem;
+                    #             post_mortem()
+                    #         yield target.id, VariablePage(s, target.id)
+                    #         # breakpoint()
+                    #     else:
+                    #         yield target.id, VariablePage(value.s, target.id)
                 elif isinstance(node.value, ast.Constant):
                     yield target.id, VariablePage(node.value.value, target.id)
                 else:
@@ -85,13 +88,21 @@ def paginate_module(module: ModuleType, python_module_ast: ast.Module):
         breakpoint()
 
 
+def deep_search(page: Page, page_path: Sequence[str]) -> tuple[list[str], Page]:
+    if not page_path:
+        return [], page
+    sub_path, *page_path = page_path
+    sub_page = page[sub_path]
+    if not sub_page:
+        return [], page
+    found_paths, found_page = deep_search(sub_page, page_path)
+    return [sub_path] + found_paths, found_page
+
+
 class Page:
 
     def __init__(self, initial_depth: int = 1) -> None:
         self.initial_depth = initial_depth
-
-    def __call__(self, *args, **kwargs) -> str:
-        ...
 
     def __getitem__(self, item: str) -> Page | None:
         for page_name, page in self.traverse():
@@ -102,7 +113,7 @@ class Page:
     def read(self, *args, **kwargs) -> str:
         ...
 
-    def traverse(self, *args, **kwargs) -> Generator[Page]:
+    def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         ...
 
 
@@ -117,7 +128,8 @@ class VariablePage(Page):
         return f'{self.__class__.__name__}(value={self.value!r}, name={self.name!r})'
 
     def read(self, *args, **kwargs) -> str:
-        return self.value
+        return str(self.value)
+
 
 class FunctionPage(Page):
     def __init__(self, function: Callable[..., str], initial_depth: int = 1) -> None:
@@ -169,8 +181,6 @@ class FilePage(Page):
             file_content = f.read()
         return file_content
 
-    __call__ = read
-
 
 class PythonFilePage(Page):
     """A Python module representing a file (not a package)"""
@@ -190,7 +200,6 @@ class PythonFilePage(Page):
         self._python_module_ast: ast.Module = ast.parse(inspect.getsource(self.python_module()))
         return self._python_module_ast
 
-    # @property
     def python_module(self) -> ModuleType:
         if isinstance(self._python_module, ModuleType):
             return self._python_module
@@ -211,6 +220,7 @@ class PythonFilePage(Page):
         python_module = self.python_module()
         module_name = Path(python_module.__file__).stem
         if hasattr(python_module, module_name):
+            # Should handle the case where it's a var
             return getattr(python_module, module_name)()
         # for page in self.traverse():
         # if isinstance(page, ast.FunctionDef):
@@ -234,7 +244,6 @@ class DirectoryPage(Page):
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(package={self._package!r})'
 
-    # @property
     def package(self) -> ModuleType:
         if isinstance(self._package, ModuleType):
             return self._package
@@ -244,7 +253,6 @@ class DirectoryPage(Page):
         self._package = imported_package
         return imported_package
 
-    # @property
     def path(self) -> Path:
         if hasattr(self, '_path'):
             return self._path
@@ -264,15 +272,14 @@ class DirectoryPage(Page):
                 continue
             if path.is_dir():
                 yield path.name, DirectoryPage(path)
-                continue
-            if path.suffix != ".py":
+            elif path.suffix != ".py":
                 yield path.stem, FilePage(path)
-                continue
-            if path.name != '__init__.py':
+            elif path.name != '__init__.py':
                 package = self.package()
                 yield path.stem, PythonFilePage(path, package)
-                continue
 
+        # Should not hard code pages.py, but self-named
+        #  files (not only python) and subdirs etc
         pages_python_file = self.path() / 'pages.py'
         if pages_python_file.exists():
             package = self.package()

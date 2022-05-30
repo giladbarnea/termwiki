@@ -20,14 +20,17 @@ class TestMarkdown:
         assert decolor(highlighted_lines[0]).startswith('┌')
         assert title == '```plantuml'
 
-class TestTermWikiMarkdown:
-    """Markdown with:
-    1. // comments
-    2. No code blocks (preserves indentation)
+class TestIndentationMarkdown:
+    """
+    1. Indentation <=> Hierarchy (no # header needed)
+    2. // comments
+    3. No code blocks (preserves indentation)
+    4. Inline syntax highlighting with prompt: >>>
+    5. Double indent ==> double header increase
 
     How?
     Separate to blocks
     code highlight ``` is a block
     """
     def test_click_option_indented_md(self):
-        text = Path('test/test_directives/data/click.option.indented.md').read_text()
+        text = Path('test/test_directives/data/click.option.indented-md').read_text()
