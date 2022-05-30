@@ -8,25 +8,26 @@ private_pages_tree = DirectoryPage(private_pages)
 
 def get(page_path: Sequence[str]) -> tuple[list[str], Page]:
     return deep_search(private_pages_tree, page_path)
-    if not pages:
-        return [], private_pages_tree
 
-    for page_name, page in private_pages_tree.traverse():
-        current_level_pages[page_name].append(page)
-
-    if name in current_level_pages:
-        return current_level_pages[name]
-
-    while True:
-        previous_level_pages = current_level_pages.copy()
-        current_level_pages.clear()
-        for pages_name, pages in previous_level_pages.items():
-            for page in pages:
-                for sub_page_name, sub_page in page.traverse():
-                    current_level_pages[sub_page_name].append(sub_page)
-
-        if name in current_level_pages:
-            return current_level_pages[name]
+    # if not pages:
+    #     return [], private_pages_tree
+    #
+    # for page_name, page in private_pages_tree.traverse():
+    #     current_level_pages[page_name].append(page)
+    #
+    # if name in current_level_pages:
+    #     return current_level_pages[name]
+    #
+    # while True:
+    #     previous_level_pages = current_level_pages.copy()
+    #     current_level_pages.clear()
+    #     for pages_name, pages in previous_level_pages.items():
+    #         for page in pages:
+    #             for sub_page_name, sub_page in page.traverse():
+    #                 current_level_pages[sub_page_name].append(sub_page)
+    #
+    #     if name in current_level_pages:
+    #         return current_level_pages[name]
 
     # for page_name, page in zip_pages(public_pages_tree.traverse(),
     #                                  private_pages_tree.traverse(),
