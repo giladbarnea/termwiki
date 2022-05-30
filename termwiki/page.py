@@ -20,7 +20,6 @@ def pformat_node(node: ast.AST, annotate_fields=True, include_attributes=False, 
 def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, indent=4):
     print(pformat_node(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent))
 
-
 def paginate_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
     for node in python_module_ast.body[0].body:
         if isinstance(node, ast.Assign):
@@ -29,7 +28,23 @@ def paginate_function(function: Callable[..., str], python_module_ast: ast.Modul
                 if isinstance(node.value, ast.JoinedStr):
                     for value in node.value.values:
                         if isinstance(value, ast.FormattedValue):
-                            breakpoint()
+                            wrapped_function = getattr(function, '__wrapped__', function)
+                            if not hasattr(value.value, 'func'):
+                                # value.value is Name, so a variable in an fstring. __LOGGING_HANDLER
+                                breakpoint()
+                            formatting_function = wrapped_function.__globals__[value.value.func.id]
+                            formatting_function_args = []
+                            for arg in value.value.args:
+                                if isinstance(arg, ast.JoinedStr):
+                                    formatting_function_args.append(''.join([v.value for v in arg.values]))
+                                else:
+                                    formatting_function_args.append(arg.s)
+                            try:
+                                s = formatting_function(*formatting_function_args)
+                            except AttributeError as e:
+                                from pdbpp import post_mortem; post_mortem()
+                            yield target.id, VariablePage(s, target.id)
+                            # breakpoint()
                         else:
                             yield target.id, VariablePage(value.s, target.id)
                 elif isinstance(node.value, ast.Constant):
