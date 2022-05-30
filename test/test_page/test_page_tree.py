@@ -11,7 +11,8 @@ class TestDirectory:
                   pages.py
                      adhd() -> str
             """
-            pages_page: PythonFilePage = page_tree.get('pages')[0]
+            pages_page: PythonFilePage
+            paths, pages_page = page_tree.get('pages')
             adhd_page: FunctionPage = pages_page['adhd']
             adhd_text = adhd_page.read()
             adhd_text_lines = adhd_text.splitlines()
@@ -23,7 +24,8 @@ class TestDirectory:
             assert title.lower() == 'adhd'
 
         def test_implicit_pages_at_directory_root(self):
-            adhd_page: FunctionPage = page_tree.get('adhd')[0]
+            adhd_page: FunctionPage
+            adhd_path, adhd_page = page_tree.get('adhd')
             adhd_text = adhd_page.read()
             adhd_text_lines = adhd_text.splitlines()
             if '┌' in adhd_text_lines[0]:
@@ -34,8 +36,8 @@ class TestDirectory:
             assert title.lower() == 'adhd'
 
         def test_function_variable(self):
-            adhd_page: FunctionPage = page_tree.get('adhd')[0]
-            diet_page = adhd_page['diet']
+            adhd_path, adhd_page = page_tree.get('adhd')
+            diet_page: FunctionPage = adhd_page['diet']
             diet_text = diet_page.read()
             diet_text_lines = diet_text.splitlines()
             title = cleanse_str(diet_text_lines[0])
@@ -52,7 +54,8 @@ class TestDirectory:
                                product.py
                                   product() -> str
                     """
-                    pecan_page: DirectoryPage = page_tree.get('pecan')[0]
+                    pecan_page: DirectoryPage
+                    pecan_page_paths, pecan_page = page_tree.get('pecan')
                     product_page: PythonFilePage = pecan_page['product']
                     product_function_page: FunctionPage = product_page['product']
                     product_text = product_function_page.read()
@@ -72,7 +75,8 @@ class TestDirectory:
                                   <.read()>
                                   product() -> str
                     """
-                    pecan_page: DirectoryPage = page_tree.get('pecan')[0]
+                    pecan_page: DirectoryPage
+                    pecan_page_paths, pecan_page = page_tree.get('pecan')
                     product_page: PythonFilePage = pecan_page['product']
                     product_text = product_page.read()
                     product_text_lines = product_text.splitlines()

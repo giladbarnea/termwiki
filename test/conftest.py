@@ -34,9 +34,10 @@ if homedir not in sys.path:
 def pytest_report_teststatus(report: CollectReport | TestReport, config: Config) -> tuple[str, str, Union[str, Mapping[str, bool]]]:
     if report.when == 'call':
         if report.failed:
-            return report.outcome, 'x', f'Failed {report.head_line} at {report.location[0]}:{report.location[1]}'
+            return report.outcome, 'x', ''
         if report.passed:
-            return report.outcome, '√', f'Passed {report.head_line} at {report.location[0]}:{report.location[1]}'
+            return report.outcome, '√', ''
+        breakpoint()
         return report.outcome, '', f'{report.outcome.title()} {report.head_line} at {report.location[0]}:{report.location[1]}'
     # breakpoint()
     # if report.skipped:

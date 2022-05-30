@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections.abc import Sequence
 
 from termwiki import private_pages
@@ -6,7 +7,9 @@ from termwiki.page import DirectoryPage, Page, deep_search
 private_pages_tree = DirectoryPage(private_pages)
 
 
-def get(page_path: Sequence[str]) -> tuple[list[str], Page]:
+def get(page_path: Sequence[str] | str) -> tuple[list[str], Page]:
+    if isinstance(page_path, str):
+        page_path = page_path.split(' ')
     return deep_search(private_pages_tree, page_path)
 
     # if not pages:
