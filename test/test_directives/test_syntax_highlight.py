@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from termwiki.directives.syntax import syntax_highlight
 from termwiki import page_tree
 from test.util import decolor
@@ -17,3 +19,15 @@ class TestMarkdown:
         title = plantuml_lines[title_index]
         assert decolor(highlighted_lines[0]).startswith('┌')
         assert title == '```plantuml'
+
+class TestTermWikiMarkdown:
+    """Markdown with:
+    1. // comments
+    2. No code blocks (preserves indentation)
+
+    How?
+    Separate to blocks
+    code highlight ``` is a block
+    """
+    def test_click_option_indented_md(self):
+        text = Path('test/test_directives/data/click.option.indented.md').read_text()

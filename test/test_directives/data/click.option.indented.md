@@ -1,5 +1,8 @@
 ## Option(Parameter)
   // https://click.palletsprojects.com/en/8.0.x/options/
+  This is some text.
+  Some more text.
+
   ```python
   @click.option('-s', '--string-to-echo', 'variable_name',
                 help: str = None,
@@ -29,9 +32,11 @@
                 ...
                 )
   ```
-
+  ### Some other headline
   ### Example
     #### Multi-value options         // Tuple
+      A multi-value option is blablabla
+
       ```python
       @click.option('--pos', nargs=2)
       def findme(pos):
