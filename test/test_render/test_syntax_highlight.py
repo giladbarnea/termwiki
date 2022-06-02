@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from termwiki import page_tree
 from termwiki.render.syntax import syntax_highlight
 from test.util import decolor
@@ -19,22 +17,3 @@ class TestMarkdown:
         title = plantuml_lines[title_index]
         assert decolor(highlighted_lines[0]).startswith('┌')
         assert title == '```plantuml'
-
-
-class TestIndentationMarkdown:
-    """
-    1. Indentation <=> Hierarchy (no # header needed)
-    2. // comments
-    3. No code blocks (preserves indentation)
-    4. Inline syntax highlighting with prompt: >>>
-    5. Double indent ==> double header increase
-
-    How?
-    Separate to blocks
-    code highlight ``` is a block regardless of indentation
-    """
-
-    def test_click_option_indented_md(self):
-        text = Path('test/data/mock_pages_root/click.option.indented-md').read_text()
-        text_lines = text.splitlines()
-
