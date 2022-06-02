@@ -17,3 +17,6 @@ def adhd():
     with_underscore = f"""with underscore"""
     _leading_underscore = "leading underscore"
     _WITH_UPPERCASE = "with uppercase"
+
+def _WITH_UPPERCASE_FUNCTION():
+    return "with uppercase function"

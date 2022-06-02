@@ -36,3 +36,13 @@ class TestFuzzyPageNames:
         assert adhd_page['with_uppercase'].read() == _with_uppercase_text
         assert adhd_page['with-uppercase'].read() == _with_uppercase_text
         assert adhd_page['withuppercase'].read() == _with_uppercase_text
+
+    def test_fuzzy_function_names(self):
+        pages = mock_page_tree['pages']
+        _with_uppercase_function = pages['_WITH_UPPERCASE_FUNCTION']
+        assert _with_uppercase_function
+        _with_uppercase_function_text = _with_uppercase_function.read()
+        assert _with_uppercase_function_text == "with uppercase function"
+        assert pages['with_uppercase_function'].read() == _with_uppercase_function_text
+        assert pages['with-uppercase-function'].read() == _with_uppercase_function_text
+        assert pages['withuppercasefunction'].read() == _with_uppercase_function_text

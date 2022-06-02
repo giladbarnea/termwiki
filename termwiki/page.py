@@ -76,11 +76,12 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
     exclude_names = getattr(module, '__exclude__', {})
     for node in python_module_ast.body:
         if hasattr(node, 'name'):
-            if node.name in exclude_names:
+            node_name = normalize_page_name(node.name)
+            if node.name in exclude_names or node_name in exclude_names:
                 continue
             if isinstance(node, ast.FunctionDef):
                 function = getattr(module, node.name)
-                yield node.name, FunctionPage(function)
+                yield node_name, FunctionPage(function)
             else:
                 print(f'traverse_module({module}): {node} has "name" but is not a FunctionDef')
                 breakpoint()
@@ -127,7 +128,7 @@ class Page:
 
 
 class VariablePage(Page):
-
+    """Variables within functions, or variables at module level"""
     def __init__(self, value: str, name: str = None) -> None:
         super().__init__()
         self.value = value
@@ -160,7 +161,7 @@ class FunctionPage(Page):
         if text is not None:
             return text
         # If a function doesn't return, return its joined variables
-        values = ['#' * self.initial_depth + f' {self.function.__qualname__}']
+        values = [f'# {self.function.__qualname__}']
         seen_pages = set()
         for var_name, var_page in self.traverse():
             if var_page.value in seen_pages:
