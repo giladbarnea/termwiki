@@ -74,11 +74,7 @@ class TestFuzzyPageNames:
         assert withwhitespace['ugly-function'].read() == "ugly function"
 
     def test_fuzzy_directory_names(self):
-        ugly_names = ('ugly dirname_',
-                      'ugly_dirname',
-                      'ugly dirname',
-                      'UGLY_DIRNAME',
-                      'uglydirname')
+        ugly_names = ('ugly dirname_', 'ugly_dirname', 'ugly dirname', 'UGLY_DIRNAME', 'uglydirname')
         for ugly_name in ugly_names:
             ugly_dirname_directory = mock_page_tree[ugly_name]
             assert ugly_dirname_directory
@@ -90,6 +86,3 @@ class TestFuzzyPageNames:
                     assert ugly_dirname_variable
                     ugly_dirname_variable_text = ugly_dirname_variable.read()
                     assert ugly_dirname_variable_text == "ugly dirname"
-
-        ugly_dirname_text = mock_page_tree['ugly dirname'].read()
-        assert ugly_dirname_text == "ugly dirname"

@@ -45,6 +45,13 @@ class TestDirectory:
             assert diet_text_lines[1].strip() == 'Bad: sugary foods'
 
     class TestNestedDirectory:
+        def test_self_named_python_file(self):
+            from test.data import mock_pages_root
+
+            mock_page_tree = DirectoryPage(mock_pages_root)
+            ugly_dirname_text = mock_page_tree['ugly dirname'].read()
+            assert ugly_dirname_text == "ugly dirname"
+
         class TestPythonFile:
             class TestEponymousFunction:
                 def test_pecan_product_product(self):

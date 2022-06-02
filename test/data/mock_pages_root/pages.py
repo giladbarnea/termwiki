@@ -1,3 +1,6 @@
+from termwiki.render.decorators import style
+
+
 def adhd():
     diet = f"""## Diet
     Bad: sugary foods
@@ -18,5 +21,16 @@ def adhd():
     _leading_underscore = "leading underscore"
     _WITH_UPPERCASE = "with uppercase"
 
+
 def _WITH_UPPERCASE_FUNCTION():
     return "with uppercase function"
+
+
+@style('friendly')
+def with_style_friendly_decorator():
+    return "with @style('friendly') decorator"
+
+
+@style(python='friendly')
+def with_style_python_friendly_decorator():
+    return "with @style(python='friendly') decorator"

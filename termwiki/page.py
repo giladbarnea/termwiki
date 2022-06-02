@@ -68,8 +68,7 @@ def traverse_assign_node(node: ast.Assign, parent: Callable[..., str] | ModuleTy
             elif hasattr(parent, '__builtins__'):
                 globs = parent.__builtins__
             else:
-                print(f'traverse_assign_node({parent}): {parent} has neither __globals__ nor __builtins__')
-                breakpoint()
+                raise AttributeError(f'traverse_assign_node({parent}): {parent} has neither __globals__ nor __builtins__')
             rendered: str = eval(unparsed_value, globs)
             yield target_id, VariablePage(rendered, target_id)
 

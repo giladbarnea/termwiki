@@ -29,6 +29,7 @@ def style(default_style: str = None, **language_styles):
         if not hasattr(page_function, 'styles'):
             page_function.styles = {}
         page_function.styles.update(language_styles)
+        return page_function
     return decorator
 
 def alias(*aliases) -> Callable[[PageFunction], PageFunction]:
