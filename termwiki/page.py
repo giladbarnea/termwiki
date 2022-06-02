@@ -26,47 +26,57 @@ def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, i
     print(pformat_node(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent))
 
 
+def traverse_assign_node(node: ast.Assign, parent: Callable[..., str] | ModuleType) -> Generator[tuple[str, VariablePage]]:
+    parent = inspect.unwrap(parent)  # parent isn't necessarily a function, but that's ok
+    target: ast.Name
+    for target in node.targets:
+        target_id = normalize_page_name(target.id)
+        if isinstance(node.value, ast.Constant):
+            yield target_id, VariablePage(node.value.value, target_id)
+        # elif isinstance(node.value, ast.JoinedStr):
+        #     values = node.value.values
+        # breakpoint()
+        # for value in node.value.values:
+        #     if isinstance(value, ast.FormattedValue):
+        #         wrapped_function = getattr(function, '__wrapped__', function)
+        #         if not hasattr(value.value, 'func'):
+        #             # value.value is Name, so a variable in an fstring. __LOGGING_HANDLER
+        #             breakpoint()
+        #         formatting_function = wrapped_function.__globals__[value.value.func.id]
+        #         formatting_function_args = []
+        #         for arg in value.value.args:
+        #             if isinstance(arg, ast.JoinedStr):
+        #                 formatting_function_args.append(''.join([v.value for v in arg.values]))
+        #             else:
+        #                 formatting_function_args.append(arg.s)
+        #         try:
+        #             s = formatting_function(*formatting_function_args)
+        #         except AttributeError as e:
+        #             from pdbpp import post_mortem;
+        #             post_mortem()
+        #         yield target.id, VariablePage(s, target.id)
+        #         # breakpoint()
+        #     else:
+        #         yield target.id, VariablePage(value.s, target.id)
+        else:
+            # noinspection PyTypeChecker
+            unparsed_value = ast.unparse(node.value)
+            globs = {}
+            if hasattr(parent, '__globals__'):
+                globs = parent.__globals__
+            elif hasattr(parent, '__builtins__'):
+                globs = parent.__builtins__
+            else:
+                print(f'traverse_assign_node({parent}): {parent} has neither __globals__ nor __builtins__')
+                breakpoint()
+            rendered: str = eval(unparsed_value, globs)
+            yield target_id, VariablePage(rendered, target_id)
+
+
 def traverse_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
-    wrapped_function = None
     for node in python_module_ast.body[0].body:
         if isinstance(node, ast.Assign):
-            target: ast.Name
-            for target in node.targets:
-                target_id = normalize_page_name(target.id)
-                if isinstance(node.value, ast.Constant):
-                    yield target_id, VariablePage(node.value.value, target_id)
-                # elif isinstance(node.value, ast.JoinedStr):
-                #     values = node.value.values
-                # breakpoint()
-                # for value in node.value.values:
-                #     if isinstance(value, ast.FormattedValue):
-                #         wrapped_function = getattr(function, '__wrapped__', function)
-                #         if not hasattr(value.value, 'func'):
-                #             # value.value is Name, so a variable in an fstring. __LOGGING_HANDLER
-                #             breakpoint()
-                #         formatting_function = wrapped_function.__globals__[value.value.func.id]
-                #         formatting_function_args = []
-                #         for arg in value.value.args:
-                #             if isinstance(arg, ast.JoinedStr):
-                #                 formatting_function_args.append(''.join([v.value for v in arg.values]))
-                #             else:
-                #                 formatting_function_args.append(arg.s)
-                #         try:
-                #             s = formatting_function(*formatting_function_args)
-                #         except AttributeError as e:
-                #             from pdbpp import post_mortem;
-                #             post_mortem()
-                #         yield target.id, VariablePage(s, target.id)
-                #         # breakpoint()
-                #     else:
-                #         yield target.id, VariablePage(value.s, target.id)
-                else:
-                    # print(f'traverse_function({function}): {node.value=} is not a Constant')
-                    wrapped_function = wrapped_function or getattr(function, '__wrapped__', function)
-                    (inspect.unwrap(function) is wrapped_function) or breakpoint()
-                    unparsed_value = ast.unparse(node.value)
-                    rendered: str = eval(unparsed_value, wrapped_function.__globals__)
-                    yield target_id, VariablePage(rendered, target_id)
+            yield from traverse_assign_node(node, function)
         else:
             print(f'traverse_function({function}): {node} is not an Assign')
             breakpoint()
@@ -80,6 +90,7 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
             if node.name in exclude_names or node_name in exclude_names:
                 continue
             if isinstance(node, ast.FunctionDef):
+                # This is prone to error...
                 function = getattr(module, node.name)
                 yield node_name, FunctionPage(function)
             else:
@@ -96,7 +107,7 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
                     yield alias.name, getattr(module, alias.name)
             continue
         if isinstance(node, ast.Assign):
-            # print(f'traverse_module({module}): {node} is an Assign ({[n.id for n in node.targets]})')
+            yield from traverse_assign_node(node, module)
             continue
         breakpoint()
 
@@ -129,6 +140,7 @@ class Page:
 
 class VariablePage(Page):
     """Variables within functions, or variables at module level"""
+
     def __init__(self, value: str, name: str = None) -> None:
         super().__init__()
         self.value = value
@@ -252,7 +264,10 @@ class DirectoryPage(Page):
     def package(self) -> ModuleType:
         if isinstance(self._package, ModuleType):
             return self._package
-        package_relative_path = self._package.relative_to(PROJECT_ROOT)
+        if self._package.is_relative_to(PROJECT_ROOT):
+            package_relative_path = self._package.relative_to(PROJECT_ROOT)
+        else:
+            package_relative_path = self._package
         import_path = '.'.join(package_relative_path.parts)
         imported_package = import_module(import_path)
         self._package = imported_package
