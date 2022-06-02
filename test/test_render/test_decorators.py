@@ -7,6 +7,28 @@ mock_page_tree = DirectoryPage(mock_pages_root)
 class TestAliasDecorator:
     """Tests @alias decorator, and fn.aliases = ..."""
 
+    def test_sanity(self):
+        function_page_with_alias_decorator = mock_page_tree['pages']['with_alias_decorator']
+        assert function_page_with_alias_decorator
+        function_page_with_alias_decorator_text = function_page_with_alias_decorator.read()
+        assert function_page_with_alias_decorator_text == "with @alias('with_alias') decorator"
+
+
+    def test_get_page_by_alias(self):
+        pages = mock_page_tree['pages']
+        function_page_with_alias_decorator = pages['with_alias']
+        assert function_page_with_alias_decorator
+        function_page_with_alias_decorator_text = function_page_with_alias_decorator.read()
+        assert function_page_with_alias_decorator_text == "with @alias('with_alias') decorator"
+
+        function_page_original = pages['with_alias_decorator']
+        assert function_page_original.function == function_page_with_alias_decorator.function
+        assert function_page_original.read() == function_page_with_alias_decorator_text
+
+        function_page_original = pages['another alias']
+        assert function_page_original.function == function_page_with_alias_decorator.function
+        assert function_page_original.read() == function_page_with_alias_decorator_text
+
 
 class TestStyleDecorator:
     def test_sanity(self):

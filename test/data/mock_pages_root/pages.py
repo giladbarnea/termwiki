@@ -1,4 +1,4 @@
-from termwiki.render.decorators import style
+from termwiki.render.decorators import style, alias
 
 
 def adhd():
@@ -34,3 +34,8 @@ def with_style_friendly_decorator():
 @style(python='friendly')
 def with_style_python_friendly_decorator():
     return "with @style(python='friendly') decorator"
+
+
+@alias('with_alias', 'another alias')
+def with_alias_decorator():
+    return "with @alias('with_alias') decorator"

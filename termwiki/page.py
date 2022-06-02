@@ -90,9 +90,13 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
             if node.name in exclude_names or node_name in exclude_names:
                 continue
             if isinstance(node, ast.FunctionDef):
-                # This is prone to error...
                 function = getattr(module, node.name)
                 yield node_name, FunctionPage(function)
+
+                # this will be replaced with import hook
+                if hasattr(function, 'aliases'):
+                    for alias in function.aliases:
+                        yield normalize_page_name(alias), FunctionPage(function)
             else:
                 print(f'traverse_module({module}): {node} has "name" but is not a FunctionDef')
                 breakpoint()
