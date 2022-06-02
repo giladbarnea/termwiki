@@ -209,6 +209,9 @@ class FilePage(Page):
         return file_content
 
 
+class MarkdownFilePage(Page):
+    """Traverses headings"""
+
 class PythonFilePage(Page):
     """A Python module representing a file (not a package)"""
 

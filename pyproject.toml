@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "termwiki"
-version = "0.1.1"
+version = "0.2.0"
 description = "Interactive cheat sheets for the cmdline with support for rich markdown"
 authors = ["Gilad Barnea <giladbrn@gmail.com>"]
 readme = "README.md"
@@ -14,7 +14,7 @@ rich = "^12"
 more-termcolor = "^1.1.3"
 prompt-toolkit = "latest"
 pytest = "^7.1.2"
-lark = "^1.1.2"
+lark = { path = "../lark", develop=true }
 
 [tool.poetry.scripts]
 tw = 'termwiki.cli:get_page'
