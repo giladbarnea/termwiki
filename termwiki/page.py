@@ -216,17 +216,18 @@ class PythonFilePage(Page):
         if isinstance(self._python_module, Path):
             if hasattr(self.parent, self._python_module.stem):
                 self._python_module = getattr(self.parent, self._python_module.stem)
+                return self._python_module
+            python_module_path = Path(self._python_module)
+            if python_module_path.is_relative_to(PROJECT_ROOT):
+                python_module_relative_path = python_module_path.relative_to(PROJECT_ROOT)
             else:
-                python_module_path = Path(self._python_module)
-                if python_module_path.is_relative_to(PROJECT_ROOT):
-                    python_module_relative_path = python_module_path.relative_to(PROJECT_ROOT)
-                else:
-                    python_module_relative_path = python_module_path
-                python_module_name = str(python_module_relative_path.with_suffix('')).replace('/', '.')
-                self._python_module = import_module(python_module_name)
+                python_module_relative_path = python_module_path
+            python_module_name = str(python_module_relative_path.with_suffix('')).replace('/', '.')
+            self._python_module = import_module(python_module_name)
             return self._python_module
 
     def read(self, *args, **kwargs) -> str:
+        """Read the function with the same name as the module"""
         python_module = self.python_module()
         module_name = Path(python_module.__file__).stem
         if hasattr(python_module, module_name):
