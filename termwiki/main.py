@@ -12,7 +12,7 @@ import click
 
 from termwiki.colors import h2
 from termwiki.common.click_extension import unrequired_opt
-from termwiki.common.types import PageType
+from termwiki.common.types import PageFunction
 from termwiki.consts import SUB_PAGE_RE
 from termwiki.page import FilePage, DirectoryPage
 # import termwiki.page_tree
@@ -35,7 +35,7 @@ def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
         return sorted(list(lines_missing_inside_last_block))
 
 
-# def draw_out_decorated_fn(page: PageType) -> Callable:
+# def draw_out_decorated_fn(page: PageFunction) -> Callable:
 #     # todo: use inspect.unwrap(), or page.__wrapped__
 #     closure: tuple = page.__closure__
 #     if not closure:
@@ -44,7 +44,7 @@ def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
 #     return closure[-1].cell_contents
 
 
-def populate_pages() -> dict[str, PageType]:
+def populate_pages() -> dict[str, PageFunction]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
     main_pages = dict()
     from termwiki import pages as pages_package
@@ -62,14 +62,14 @@ def populate_pages() -> dict[str, PageType]:
     except ImportError:
         private_pages = None
 
-    def iter_module_pages(module) -> Generator[tuple[str, PageType]]:
+    def iter_module_pages(module) -> Generator[tuple[str, PageFunction]]:
         """A file module (not package)"""
         if not module:
             return
         for _page_name in dir(module):
             if _page_name in getattr(module, '__exclude__', {}):
                 continue
-            _page: PageType = getattr(module, _page_name)
+            _page: PageFunction = getattr(module, _page_name)
             if not inspect.isfunction(_page):
                 continue
             if _page_name.endswith('_'):  # inspect_()
@@ -89,21 +89,21 @@ def populate_pages() -> dict[str, PageType]:
     return main_pages
 
 
-PAGES: dict[str, PageType] = populate_pages()
+PAGES: dict[str, PageFunction] = populate_pages()
 
 
-def get_sub_page_var_names(page: PageType) -> list[str]:
+def get_sub_page_var_names(page: PageFunction) -> list[str]:
     if not hasattr(page, '__code__'):
         # Not every `page` is a function
         return []
     return [n for n in page.__code__.co_varnames if n.isupper()]
 
 
-def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageType]]:
+def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageFunction]]:
     """Sets bash.sub_pages = [ "cut" , "for" ] for each PAGES.
     Removes (d)underscore and lowers _CUT and __FOR.
     Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
-    all_sub_pages: dict[str, set[PageType]] = defaultdict(set)
+    all_sub_pages: dict[str, set[PageFunction]] = defaultdict(set)
     for name, page in PAGES.items():
 
         # sub_page_var_names = [n for n in draw_out_decorated_fn(main_page_fn).__code__.co_varnames if n.isupper()]
@@ -133,7 +133,7 @@ def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageTyp
     return all_sub_pages
 
 
-SUB_PAGES: dict[str, set[PageType]] = populate_sub_pages()
+SUB_PAGES: dict[str, set[PageFunction]] = populate_sub_pages()
 
 
 def fuzzy_find_page(page: str,
@@ -216,7 +216,7 @@ def get_sub_page_content(main_page: str, sub_page: str) -> str:
         print(f"[info] Unknown main page: {main_page!r}. Fuzzy finding among PAGES...")
         main_page = fuzzy_find_page(main_page, PAGES, raise_if_exhausted=True)
 
-    page: PageType = PAGES[main_page]
+    page: PageFunction = PAGES[main_page]
     if hasattr(page, 'traverse'):
         # print(f'{page.path = }')
         # print(f'{page.package = }')
@@ -305,7 +305,7 @@ def print_page(main_page: str, sub_page=None):
         ## Maybe multiple pages have it
         if len(SUB_PAGES[sub_page_name]) > 1:
             from termwiki import prompt
-            pages: list[PageType] = list(SUB_PAGES[sub_page_name])  # for index
+            pages: list[PageFunction] = list(SUB_PAGES[sub_page_name])  # for index
 
             # TODO (bugs):
             #  (1) If an ALIAS of a sub_page is the same as a SUBPAGE of another main main_page,
@@ -348,7 +348,7 @@ def get_page(main_page: str | None,
             print(f"{h2(main_page)}")
             [print(f' · {sub}') for sub in sorted(PAGES[main_page].sub_pages)]
         else:
-            page: PageType
+            page: PageFunction
             for page_name, page in sorted(PAGES.items()):
                 alias = getattr(page, 'alias', None)
                 if alias and alias == page_name:

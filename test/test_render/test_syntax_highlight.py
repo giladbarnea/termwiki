@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from termwiki import page_tree
-from termwiki.directives.syntax import syntax_highlight
+from termwiki.render.syntax import syntax_highlight
 from test.util import decolor
 
 
@@ -31,8 +31,10 @@ class TestIndentationMarkdown:
 
     How?
     Separate to blocks
-    code highlight ``` is a block
+    code highlight ``` is a block regardless of indentation
     """
 
     def test_click_option_indented_md(self):
-        text = Path('test/test_directives/data/click.option.indented-md').read_text()
+        text = Path('test/test_render/data/click.option.indented-md').read_text()
+        text_lines = text.splitlines()
+

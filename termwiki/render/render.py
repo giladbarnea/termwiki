@@ -4,22 +4,17 @@ import re
 from textwrap import indent, dedent
 
 from termwiki.common.types import Style, Language
-from termwiki.consts import IMPORT_RE, SYNTAX_HIGHLIGHT_START_RE, SYNTAX_HIGHLIGHT_END_RE, COLOR_RE, WHITESPACE_RE
-from termwiki.directives import syntax
-from termwiki.directives.syntax import syntax_highlight
+from termwiki.consts import IMPORT_RE, SYNTAX_HIGHLIGHT_START_RE, SYNTAX_HIGHLIGHT_END_RE
+from termwiki.page import Page
+from termwiki.render import syntax
+from termwiki.render.syntax import syntax_highlight
+from termwiki.render.util import get_indent_level
 
 
-def _get_indent_level(text: str) -> int:
-    def _get_single_line_indent_level(_line: str) -> int:
-        _decolored = _decolor(_line)
-        _whitespace_re_match = WHITESPACE_RE.match(_decolored)
-        _whitespace_re_match_span = _whitespace_re_match.span()
-        return _whitespace_re_match_span[1]
-    indent_level: int = min(map(_get_single_line_indent_level, text.splitlines()))
-    return indent_level
-
-
-def resolve_directives(text: str, default_styles: dict = None, default_style: Style = None, *args) -> str:
+def render_page(page: Page,
+                default_styles: dict = None,
+                default_style: Style = None,
+                *args) -> str:
     # try:
     #     page_content = page(subject)
     # except TypeError as te:
@@ -30,6 +25,8 @@ def resolve_directives(text: str, default_styles: dict = None, default_style: St
     #     else:
     #         raise
     default_styles = default_styles or {}
+    text = page.read()
+    text or breakpoint()
     lines = text.splitlines()
     highlighted_strs = []
     idx = 0
@@ -64,7 +61,7 @@ def resolve_directives(text: str, default_styles: dict = None, default_style: St
             else:
                 directives_handling_imported_page = syntax(imported_page)
                 imported_text = directives_handling_imported_page()
-            indent_level = _get_indent_level(line)
+            indent_level = get_indent_level(line)
             indented_imported_text = indent(imported_text + '\n', ' ' * indent_level)
             highlighted_strs.append(indented_imported_text)
 
@@ -121,11 +118,11 @@ def resolve_directives(text: str, default_styles: dict = None, default_style: St
                         if enumerate_lines:
                             # pygments adds color codes to start of line, even if
                             # it's indented. Tighten this up before adding line numbers.
-                            indent_level = _get_indent_level(text)
+                            indent_level = get_indent_level(text)
                             dedented_text = dedent(text)
                             ljust = len(str(highlighting_idx - (idx + 1)))
                             highlighted = syntax_highlight(dedented_text, lang, style)
-                            highlighted = _enumerate_lines(highlighted, ljust=ljust)
+                            highlighted = enumerate_lines(highlighted, ljust=ljust)
                             highlighted = indent(highlighted, ' ' * indent_level)
                         else:
                             highlighted = syntax_highlight(text, lang, style)
@@ -155,14 +152,3 @@ def resolve_directives(text: str, default_styles: dict = None, default_style: St
         dedented = '\n'.join(map(str.strip, stripped.splitlines()))
         return syntax_highlight(dedented, "markdown", style=default_styles.get("markdown", default_style))
     return stripped
-
-
-def _enumerate_lines(text: str, *, ljust: int = 0) -> str:
-    enumerated_text: str = '\n'.join([f'\x1b[90m{i: >{ljust}}｜\x1b[0m {line}'
-                                      for i, line
-                                      in enumerate(text.splitlines(), start=1)])
-    return enumerated_text
-
-
-def _decolor(text):
-    return COLOR_RE.sub('', text)

@@ -24,7 +24,7 @@ from pygments.lexers import (
     TypeScriptLexer,
     )
 
-from termwiki.common.types import PageType, Style, Language
+from termwiki.common.types import PageFunction, Style, Language
 from termwiki.consts import LANGS
 from termwiki.ipython_lexer import IPython3Lexer
 
@@ -85,8 +85,9 @@ def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     global console
     if lang in ('md', 'markdown'):
         from rich.markdown import Markdown
-        from rich.console import Console
-        console = Console(width=int(os.getenv('COLUNMS', 160)) // 2)
+        if console is None:
+            from rich.console import Console
+            console = Console(width=int(os.getenv('COLUNMS', 160)) // 2)
         with console.capture() as capture:
             console.print(Markdown(text, justify="left"))
         return capture.get()
@@ -101,7 +102,7 @@ def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     return highlighted
 
 
-def syntax(_page_or_style: PageType | Style = None, **default_styles):
+def syntax(_page_or_style: PageFunction | Style = None, **default_styles):
     """Possible forms:
     ::
         @syntax
@@ -135,8 +136,8 @@ def syntax(_page_or_style: PageType | Style = None, **default_styles):
     """
     default_style = None
 
-    def decorator(page: PageType):
-        from termwiki.directives.resolver import resolve_directives
+    def decorator(page: PageFunction):
+        from termwiki.render import render_page
         page.__handled_directives__ = True
 
         # @wraps(page)
@@ -186,7 +187,7 @@ def syntax(_page_or_style: PageType | Style = None, **default_styles):
         #             else:
         #                 directives_handling_imported_page = syntax(imported_page)
         #                 imported_text = directives_handling_imported_page()
-        #             indent_level = _get_indent_level(line)
+        #             indent_level = get_indent_level(line)
         #             indented_imported_text = indent(imported_text + '\n', ' ' * indent_level)
         #             highlighted_strs.append(indented_imported_text)
         #
@@ -243,11 +244,11 @@ def syntax(_page_or_style: PageType | Style = None, **default_styles):
         #                         if enumerate_lines:
         #                             # pygments adds color codes to start of line, even if
         #                             # it's indented. Tighten this up before adding line numbers.
-        #                             indent_level = _get_indent_level(text)
+        #                             indent_level = get_indent_level(text)
         #                             dedented_text = dedent(text)
         #                             ljust = len(str(highlighting_idx - (idx + 1)))
         #                             highlighted = syntax_highlight(dedented_text, lang, style)
-        #                             highlighted = _enumerate_lines(highlighted, ljust=ljust)
+        #                             highlighted = enumerate_lines(highlighted, ljust=ljust)
         #                             highlighted = indent(highlighted, ' ' * indent_level)
         #                         else:
         #                             highlighted = syntax_highlight(text, lang, style)
@@ -271,7 +272,7 @@ def syntax(_page_or_style: PageType | Style = None, **default_styles):
         #     stripped = ''.join(highlighted_strs).strip()
         #     return stripped
 
-        return wraps(page)(partial(resolve_directives, page, default_styles))
+        return wraps(page)(partial(render_page, page, default_styles))
 
     if _page_or_style is not None:
         if callable(_page_or_style):

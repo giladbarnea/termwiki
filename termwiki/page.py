@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import ast
 import inspect
-from collections.abc import Callable, Generator, Sequence
+from collections.abc import Generator, Sequence
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType
+from typing import Callable
 
 import termwiki
 
@@ -21,6 +22,7 @@ def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, i
 
 
 def paginate_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
+    wrapped_function = None
     for node in python_module_ast.body[0].body:
         if isinstance(node, ast.Assign):
             target: ast.Name
@@ -29,34 +31,33 @@ def paginate_function(function: Callable[..., str], python_module_ast: ast.Modul
                     yield target.id, VariablePage(node.value.value, target.id)
                 # elif isinstance(node.value, ast.JoinedStr):
                 #     values = node.value.values
-                    # breakpoint()
-                    # for value in node.value.values:
-                    #     if isinstance(value, ast.FormattedValue):
-                    #         wrapped_function = getattr(function, '__wrapped__', function)
-                    #         if not hasattr(value.value, 'func'):
-                    #             # value.value is Name, so a variable in an fstring. __LOGGING_HANDLER
-                    #             breakpoint()
-                    #         formatting_function = wrapped_function.__globals__[value.value.func.id]
-                    #         formatting_function_args = []
-                    #         for arg in value.value.args:
-                    #             if isinstance(arg, ast.JoinedStr):
-                    #                 formatting_function_args.append(''.join([v.value for v in arg.values]))
-                    #             else:
-                    #                 formatting_function_args.append(arg.s)
-                    #         try:
-                    #             s = formatting_function(*formatting_function_args)
-                    #         except AttributeError as e:
-                    #             from pdbpp import post_mortem;
-                    #             post_mortem()
-                    #         yield target.id, VariablePage(s, target.id)
-                    #         # breakpoint()
-                    #     else:
-                    #         yield target.id, VariablePage(value.s, target.id)
+                # breakpoint()
+                # for value in node.value.values:
+                #     if isinstance(value, ast.FormattedValue):
+                #         wrapped_function = getattr(function, '__wrapped__', function)
+                #         if not hasattr(value.value, 'func'):
+                #             # value.value is Name, so a variable in an fstring. __LOGGING_HANDLER
+                #             breakpoint()
+                #         formatting_function = wrapped_function.__globals__[value.value.func.id]
+                #         formatting_function_args = []
+                #         for arg in value.value.args:
+                #             if isinstance(arg, ast.JoinedStr):
+                #                 formatting_function_args.append(''.join([v.value for v in arg.values]))
+                #             else:
+                #                 formatting_function_args.append(arg.s)
+                #         try:
+                #             s = formatting_function(*formatting_function_args)
+                #         except AttributeError as e:
+                #             from pdbpp import post_mortem;
+                #             post_mortem()
+                #         yield target.id, VariablePage(s, target.id)
+                #         # breakpoint()
+                #     else:
+                #         yield target.id, VariablePage(value.s, target.id)
                 else:
                     # print(f'paginate_function({function}): {node.value=} is not a Constant')
-                    from astunparse import unparse
-                    wrapped_function = getattr(function, '__wrapped__', function)
-                    unparsed_value = unparse(node.value)
+                    wrapped_function = wrapped_function or getattr(function, '__wrapped__', function)
+                    unparsed_value = ast.unparse(node.value)
                     rendered: str = eval(unparsed_value, wrapped_function.__globals__)
                     yield target.id, VariablePage(rendered, target.id)
         else:
