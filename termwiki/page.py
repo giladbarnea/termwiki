@@ -271,17 +271,18 @@ class DirectoryPage(Page):
         return self._path
 
     def traverse(self, *, target=None) -> Generator[tuple[str, Page]]:
-        path = self.path()
-        for path in path.iterdir():
+        for path in self.path().iterdir():
             if path.name.startswith('.') or path.name.startswith('_'):
                 continue
+            path_stem = normalize_page_name(path.stem)
+            path_name = normalize_page_name(path.name)
             if path.is_dir():
-                yield path.name, DirectoryPage(path)
+                yield path_name, DirectoryPage(path)
             elif path.suffix != ".py":
-                yield path.stem, FilePage(path)
+                yield path_stem, FilePage(path)
             elif path.name != '__init__.py':
                 package = self.package()
-                yield normalize_page_name(path.stem), PythonFilePage(path, package)
+                yield path_stem, PythonFilePage(path, package)
 
         # Should not hard code pages.py, but self-named
         #  files (not only python) and subdirs etc
