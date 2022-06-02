@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import inspect
+from abc import abstractmethod
 from collections.abc import Generator, Sequence
 from importlib import import_module
 from pathlib import Path
@@ -131,11 +132,12 @@ class Page:
                 return page
         return None
 
+    @abstractmethod
     def read(self, *args, **kwargs) -> str:
         ...
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
-        ...
+        return NotImplemented
 
 
 class VariablePage(Page):
@@ -285,7 +287,10 @@ class DirectoryPage(Page):
             self._path = Path(package.__package__.replace('.', '/'))
         return self._path
 
-    def traverse(self, *, target=None) -> Generator[tuple[str, Page]]:
+    def read(self, *args, **kwargs) -> str:
+        return self[self.path().stem].read()
+
+    def traverse(self) -> Generator[tuple[str, Page]]:
         for path in self.path().iterdir():
             if path.name.startswith('.') or path.name.startswith('_'):
                 continue
