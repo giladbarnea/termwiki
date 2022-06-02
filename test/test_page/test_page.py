@@ -53,11 +53,11 @@ class TestFuzzyPageNames:
     def test_fuzzy_file_names(self):
         with_whitespace = mock_page_tree['with whitespace']
         assert with_whitespace
+
         with_whitespace_text = with_whitespace.read()
         assert with_whitespace_text == "with whitespace"
 
         withwhitespace = mock_page_tree['withwhitespace']
-        assert withwhitespace == with_whitespace
         withwhitespace_text = withwhitespace.read()
         assert withwhitespace_text == with_whitespace_text
 

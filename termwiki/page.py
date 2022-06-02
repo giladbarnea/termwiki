@@ -230,14 +230,7 @@ class PythonFilePage(Page):
         """Read the function with the same name as the module"""
         python_module = self.python_module()
         module_name = Path(python_module.__file__).stem
-        if hasattr(python_module, module_name):
-            # Should handle the case where it's a var
-            return getattr(python_module, module_name)()
-        # for page in self.traverse():
-        # if isinstance(page, ast.FunctionDef):
-        #     if module_name == page.name:
-        #     return page.body[0].value.s
-        return NotImplemented(module_name)
+        return self[module_name].read()
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         python_module: ModuleType = self.python_module()
@@ -288,7 +281,7 @@ class DirectoryPage(Page):
                 yield path.stem, FilePage(path)
             elif path.name != '__init__.py':
                 package = self.package()
-                yield path.stem, PythonFilePage(path, package)
+                yield normalize_page_name(path.stem), PythonFilePage(path, package)
 
         # Should not hard code pages.py, but self-named
         #  files (not only python) and subdirs etc
