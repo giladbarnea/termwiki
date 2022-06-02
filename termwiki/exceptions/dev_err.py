@@ -1,2 +1,0 @@
-class DevError(Exception):
-    pass

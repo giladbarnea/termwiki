@@ -57,7 +57,6 @@ console = None
 def _get_lexer(lang: Language) -> Lexer:
     lexer = lexers.get(lang)
     if lexer is None:
-        # ctor = __get_lexer_ctor(lang)
         lexer_class = lexer_classes[lang]
         lexer = lexer_class()
         lexers[lang] = lexer

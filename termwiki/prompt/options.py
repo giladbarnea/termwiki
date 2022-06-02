@@ -65,7 +65,7 @@ class Options(ABC):
         if has_duplicates(kw_opts.values()):
             raise ValueError(f"{repr(self)}\nset_kw_options() duplicate kw_opts: {repr(kw_opts)}")
         if 'free_input' in kw_opts:
-            raise DevError(f"{repr(self)}\nset_kw_options() | 'free_input' found in kw_opts, should have popped it out earlier.\nkw_opts: {repr(kw_opts)}")
+            raise RuntimeError(f"{repr(self)}\nset_kw_options() | 'free_input' found in kw_opts, should have popped it out earlier.\nkw_opts: {repr(kw_opts)}")
         non_flow_kw_opts = dict()
         for kw in kw_opts:
             opt = kw_opts[kw]

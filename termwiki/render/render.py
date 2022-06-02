@@ -6,8 +6,7 @@ from textwrap import indent, dedent
 from termwiki.common.types import Style, Language
 from termwiki.consts import IMPORT_RE, SYNTAX_HIGHLIGHT_START_RE, SYNTAX_HIGHLIGHT_END_RE
 from termwiki.page import Page
-from termwiki.render import syntax
-from termwiki.render.syntax import syntax_highlight
+from termwiki.render import syntax, syntax_highlight
 from termwiki.render.util import get_indent_level
 
 

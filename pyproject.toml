@@ -17,7 +17,7 @@ pytest = "^7.1.2"
 lark = { path = "../lark", develop=true }
 
 [tool.poetry.scripts]
-tw = 'termwiki.cli:get_page'
+tw = 'termwiki.cli:main'
 
 [tool.poetry.build]
 generate-setup-file = true
