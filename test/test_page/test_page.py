@@ -18,12 +18,13 @@ class TestFuzzyPageNames:
         assert with_underscore
         with_underscore_text = with_underscore.read()
         assert with_underscore_text
+        assert with_underscore_text == "with underscore"
         assert adhd_page['withunderscore'].read() == with_underscore_text
 
         _leading_underscore = adhd_page['_leading_underscore']
         assert _leading_underscore
         _leading_underscore_text = _leading_underscore.read()
-        assert _leading_underscore_text
+        assert _leading_underscore_text == "leading underscore"
         assert adhd_page['leading_underscore'].read() == _leading_underscore_text
         assert adhd_page['leading-underscore'].read() == _leading_underscore_text
         assert adhd_page['leadingunderscore'].read() == _leading_underscore_text
@@ -31,7 +32,7 @@ class TestFuzzyPageNames:
         _with_uppercase = adhd_page['_WITH_UPPERCASE']
         assert _with_uppercase
         _with_uppercase_text = _with_uppercase.read()
-        assert _with_uppercase_text
+        assert _with_uppercase_text == "with uppercase"
         assert adhd_page['with_uppercase'].read() == _with_uppercase_text
         assert adhd_page['with-uppercase'].read() == _with_uppercase_text
         assert adhd_page['withuppercase'].read() == _with_uppercase_text

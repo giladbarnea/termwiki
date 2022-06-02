@@ -14,6 +14,6 @@ def adhd():
     Meditation (15m) - focus on breathing and body-scan
       Signif. reduced attentional blinks
     """
-    with_underscore = f"""## With underscore"""
-    _leading_underscore = f"""## Leading underscore"""
-    _WITH_UPPERCASE = f"""## With uppercase"""
+    with_underscore = f"""with underscore"""
+    _leading_underscore = "leading underscore"
+    _WITH_UPPERCASE = "with uppercase"
