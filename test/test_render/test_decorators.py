@@ -25,9 +25,9 @@ class TestAliasDecorator:
         assert function_page_original.function == function_page_with_alias_decorator.function
         assert function_page_original.read() == function_page_with_alias_decorator_text
 
-        function_page_original = pages['another alias']
-        assert function_page_original.function == function_page_with_alias_decorator.function
-        assert function_page_original.read() == function_page_with_alias_decorator_text
+        function_page_another_alias = pages['another alias']
+        assert function_page_original.function == function_page_another_alias.function
+        assert function_page_original.read() == function_page_another_alias.read()
 
 
 class TestStyleDecorator:
