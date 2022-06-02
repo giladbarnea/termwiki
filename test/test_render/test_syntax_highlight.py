@@ -35,6 +35,6 @@ class TestIndentationMarkdown:
     """
 
     def test_click_option_indented_md(self):
-        text = Path('test/test_render/data/click.option.indented-md').read_text()
+        text = Path('test/data/click.option.indented-md').read_text()
         text_lines = text.splitlines()
 

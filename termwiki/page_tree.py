@@ -4,18 +4,18 @@ from collections.abc import Sequence
 from termwiki import private_pages
 from termwiki.page import DirectoryPage, Page, deep_search
 
-private_pages_tree = DirectoryPage(private_pages)
+pages_tree = DirectoryPage(private_pages)
 
 
 def get(page_path: Sequence[str] | str) -> tuple[list[str], Page]:
     if isinstance(page_path, str):
         page_path = page_path.split(' ')
-    return deep_search(private_pages_tree, page_path)
+    return deep_search(pages_tree, page_path)
 
     # if not pages:
-    #     return [], private_pages_tree
+    #     return [], pages_tree
     #
-    # for page_name, page in private_pages_tree.traverse():
+    # for page_name, page in pages_tree.traverse():
     #     current_level_pages[page_name].append(page)
     #
     # if name in current_level_pages:
@@ -33,7 +33,7 @@ def get(page_path: Sequence[str] | str) -> tuple[list[str], Page]:
     #         return current_level_pages[name]
 
     # for page_name, page in zip_pages(public_pages_tree.traverse(),
-    #                                  private_pages_tree.traverse(),
+    #                                  pages_tree.traverse(),
     #                                  ):
     #     # public_name, public_page = public
     #     # private_name, private_page = private
