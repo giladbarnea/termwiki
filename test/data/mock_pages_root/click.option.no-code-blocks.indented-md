@@ -1,0 +1,37 @@
+Option(Parameter): h1
+  // https://click.palletsprojects.com/en/8.0.x/options/
+  This is some text.
+  Some more text.
+
+  Some h2 headline
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Donec eget nunc eget nunc efficitur efficitur.
+    NOT HEADLINE
+
+    STILL NOT HEADLINE
+
+    YES HEADLINE (h3)
+
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+    ALSO YES HEADLINE (h3)
+      Tile gnicsipida rutetcesnoc ,tema tis rolod muspi merol.
+
+  Example h2
+    Multi-value options (h3)         // Tuple
+      :import click.option.multi-value
+
+    Multiple options (h3)            // Tuple[T]
+      @click.option('--message', '-m', multiple=True, type=T)
+
+    Boolean Flags (h3)
+      @click.option('--shout/--no-shout')
+
+    Feature Switches (h3)            // Multiple options
+      @click.option('--upper', 'transformation', flag_value='upper')
+
+    Prompt (h3)
+      >>> @click.option('--name', prompt='Your name please')
+
+    Dynamic Defaults (h3)
+      @click.option('--username', prompt=True)

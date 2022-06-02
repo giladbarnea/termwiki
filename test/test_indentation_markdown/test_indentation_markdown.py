@@ -14,8 +14,8 @@ class TestIndentationMarkdown:
     code highlight ``` is a block regardless of indentation
     """
 
-    def test_click_option_indented_md(self):
-        text = Path('test/data/mock_pages_root/click.option.indented-md').read_text()
+    def test_click_option_indented_md_no_code_blocks(self):
+        text = Path('test/data/mock_pages_root/click.option.no-code-blocks.indented-md').read_text()
         indentation_markdown = IndentationMarkdown(text)
         indentation_markdown.parse()
         print()
