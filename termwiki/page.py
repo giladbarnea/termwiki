@@ -112,9 +112,6 @@ def deep_search(page: Page, page_path: Sequence[str]) -> tuple[list[str], Page]:
 
 
 class Page:
-    def __init__(self, initial_depth: int = 1) -> None:
-        self.initial_depth = initial_depth
-
     def __getitem__(self, name: str) -> Page | None:
         name = normalize_page_name(name)
         for page_name, page in self.traverse():
@@ -144,8 +141,8 @@ class VariablePage(Page):
 
 
 class FunctionPage(Page):
-    def __init__(self, function: Callable[..., str], initial_depth: int = 1) -> None:
-        super().__init__(initial_depth=initial_depth)
+    def __init__(self, function: Callable[..., str]) -> None:
+        super().__init__()
         self.function = function
         self._python_module_ast: ast.Module = None
 
@@ -181,8 +178,8 @@ class FunctionPage(Page):
 
 
 class FilePage(Page):
-    def __init__(self, filename: str | Path, initial_depth: int = 1) -> None:
-        super().__init__(initial_depth=initial_depth)
+    def __init__(self, filename: str | Path) -> None:
+        super().__init__()
         self.filename = filename
 
     def __repr__(self) -> str:
@@ -197,8 +194,8 @@ class FilePage(Page):
 class PythonFilePage(Page):
     """A Python module representing a file (not a package)"""
 
-    def __init__(self, python_module: ModuleType | Path, parent: ModuleType = None, initial_depth: int = 1) -> None:
-        super().__init__(initial_depth=initial_depth)
+    def __init__(self, python_module: ModuleType | Path, parent: ModuleType = None) -> None:
+        super().__init__()
         self._python_module = python_module
         self._python_module_ast = None
         self.parent = parent
@@ -249,8 +246,8 @@ class PythonFilePage(Page):
 class DirectoryPage(Page):
     """A directory / package / namespace."""
 
-    def __init__(self, package: ModuleType | Path, initial_depth: int = 1) -> None:
-        super().__init__(initial_depth=initial_depth)
+    def __init__(self, package: ModuleType | Path) -> None:
+        super().__init__()
         self._package = package
 
     def __repr__(self) -> str:
