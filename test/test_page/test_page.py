@@ -12,6 +12,9 @@ class TestFuzzyPageNames:
             assert adhd_page[page_name].read()
         assert adhd_page['cognitive'].read() == adhd_page['mental'].read()
 
+    def test_name_collision(self):
+        """If a normalized name already exists, something should happen (de-normalize? error?)"""
+
     def test_fuzzy_variable_names(self):
         adhd_page = mock_page_tree['pages']['adhd']
         with_underscore = adhd_page['with_underscore']
@@ -46,3 +49,26 @@ class TestFuzzyPageNames:
         assert pages['with_uppercase_function'].read() == _with_uppercase_function_text
         assert pages['with-uppercase-function'].read() == _with_uppercase_function_text
         assert pages['withuppercasefunction'].read() == _with_uppercase_function_text
+
+    def test_fuzzy_file_names(self):
+        with_whitespace = mock_page_tree['with whitespace']
+        assert with_whitespace
+        with_whitespace_text = with_whitespace.read()
+        assert with_whitespace_text == "with whitespace"
+
+        withwhitespace = mock_page_tree['withwhitespace']
+        assert withwhitespace == with_whitespace
+        withwhitespace_text = withwhitespace.read()
+        assert withwhitespace_text == with_whitespace_text
+
+        assert with_whitespace['_WITH_WHITESPACE'].read() == with_whitespace_text
+        assert with_whitespace['with_whitespace'].read() == with_whitespace_text
+
+        assert withwhitespace['_WITH_WHITESPACE'].read() == with_whitespace_text
+        assert withwhitespace['withwhitespace'].read() == with_whitespace_text
+
+        assert with_whitespace['_UGLY_FUNCTION'].read() == "ugly function"
+        assert with_whitespace['uglyfunction'].read() == "ugly function"
+
+        assert withwhitespace['_UGLY_FUNCTION'].read() == "ugly function"
+        assert withwhitespace['ugly-function'].read() == "ugly function"

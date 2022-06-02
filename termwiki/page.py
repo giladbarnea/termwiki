@@ -251,6 +251,7 @@ class DirectoryPage(Page):
     def __init__(self, package: ModuleType | Path) -> None:
         super().__init__()
         self._package = package
+        self._path = None
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(package={self._package!r})'
@@ -265,7 +266,7 @@ class DirectoryPage(Page):
         return imported_package
 
     def path(self) -> Path:
-        if hasattr(self, '_path'):
+        if self._path is not None:
             return self._path
         package = self.package()
         # Namespaces __file__ attribute is None
