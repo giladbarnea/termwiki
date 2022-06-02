@@ -1,7 +1,7 @@
 from termwiki.render.decorators import style, alias
 
 
-def adhd():
+def no_return():
     diet = f"""## Diet
     Bad: sugary foods
     Probably: oligoantigenic (unless avoiding food X then coming back makes you allergic to it). Lancet study.
