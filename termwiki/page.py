@@ -9,8 +9,13 @@ from types import ModuleType
 from typing import Callable
 
 import termwiki
+from termwiki.consts import NON_LETTER_RE
 
 PROJECT_ROOT = Path(termwiki.__path__[0]).parent
+
+
+def normalize_page_name(page_name: str) -> str:
+    return NON_LETTER_RE.sub('', page_name).lower()
 
 
 def pformat_node(node: ast.AST, annotate_fields=True, include_attributes=False, indent=4):
@@ -21,14 +26,15 @@ def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, i
     print(pformat_node(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent))
 
 
-def paginate_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
+def traverse_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
     wrapped_function = None
     for node in python_module_ast.body[0].body:
         if isinstance(node, ast.Assign):
             target: ast.Name
             for target in node.targets:
+                target_id = normalize_page_name(target.id)
                 if isinstance(node.value, ast.Constant):
-                    yield target.id, VariablePage(node.value.value, target.id)
+                    yield target_id, VariablePage(node.value.value, target_id)
                 # elif isinstance(node.value, ast.JoinedStr):
                 #     values = node.value.values
                 # breakpoint()
@@ -55,17 +61,18 @@ def paginate_function(function: Callable[..., str], python_module_ast: ast.Modul
                 #     else:
                 #         yield target.id, VariablePage(value.s, target.id)
                 else:
-                    # print(f'paginate_function({function}): {node.value=} is not a Constant')
+                    # print(f'traverse_function({function}): {node.value=} is not a Constant')
                     wrapped_function = wrapped_function or getattr(function, '__wrapped__', function)
+                    (inspect.unwrap(function) is wrapped_function) or breakpoint()
                     unparsed_value = ast.unparse(node.value)
                     rendered: str = eval(unparsed_value, wrapped_function.__globals__)
-                    yield target.id, VariablePage(rendered, target.id)
+                    yield target_id, VariablePage(rendered, target_id)
         else:
-            print(f'paginate_function({function}): {node} is not an Assign')
+            print(f'traverse_function({function}): {node} is not an Assign')
             breakpoint()
 
 
-def paginate_module(module: ModuleType, python_module_ast: ast.Module):
+def traverse_module(module: ModuleType, python_module_ast: ast.Module):
     exclude_names = getattr(module, '__exclude__', {})
     for node in python_module_ast.body:
         if hasattr(node, 'name'):
@@ -75,20 +82,20 @@ def paginate_module(module: ModuleType, python_module_ast: ast.Module):
                 function = getattr(module, node.name)
                 yield node.name, FunctionPage(function)
             else:
-                print(f'paginate_module({module}): {node} has "name" but is not a FunctionDef')
+                print(f'traverse_module({module}): {node} has "name" but is not a FunctionDef')
                 breakpoint()
             continue
         if hasattr(node, 'names'):
             if isinstance(node, (ast.Import, ast.ImportFrom)):
                 continue
-            print(f'paginate_module({module}): {node} has "names" but is not an Import or ImportFrom')
+            print(f'traverse_module({module}): {node} has "names" but is not an Import or ImportFrom')
             breakpoint()
             for alias in node.names:
                 if alias.name not in exclude_names:
                     yield alias.name, getattr(module, alias.name)
             continue
         if isinstance(node, ast.Assign):
-            # print(f'paginate_module({module}): {node} is an Assign ({[n.id for n in node.targets]})')
+            # print(f'traverse_module({module}): {node} is an Assign ({[n.id for n in node.targets]})')
             continue
         breakpoint()
 
@@ -105,13 +112,13 @@ def deep_search(page: Page, page_path: Sequence[str]) -> tuple[list[str], Page]:
 
 
 class Page:
-
     def __init__(self, initial_depth: int = 1) -> None:
         self.initial_depth = initial_depth
 
-    def __getitem__(self, item: str) -> Page | None:
+    def __getitem__(self, name: str) -> Page | None:
+        name = normalize_page_name(name)
         for page_name, page in self.traverse():
-            if page_name == item:
+            if page_name == name:
                 return page
         return None
 
@@ -170,7 +177,7 @@ class FunctionPage(Page):
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, VariablePage]]:
         python_module_ast = self.python_module_ast()
-        yield from paginate_function(self.function, python_module_ast)
+        yield from traverse_function(self.function, python_module_ast)
 
 
 class FilePage(Page):
@@ -236,7 +243,7 @@ class PythonFilePage(Page):
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         python_module: ModuleType = self.python_module()
         python_module_ast: ast.Module = self.python_module_ast()
-        yield from paginate_module(python_module, python_module_ast)
+        yield from traverse_module(python_module, python_module_ast)
 
 
 class DirectoryPage(Page):

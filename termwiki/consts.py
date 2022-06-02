@@ -29,6 +29,7 @@ IMPORT_RE = re.compile('%import (?P<import_path>[\w.]+)')
 SUB_PAGE_RE = re.compile(r'_[A-Z\d_]*\s*=\s*(rf|fr|f)["\']{3}')
 WHITESPACE_RE = re.compile(r'\s*')
 COLOR_RE = re.compile(r'(\x1b\[(?:\d;?)*m)')
+NON_LETTER_RE = re.compile(r'[^a-zA-Z\d]')
 # what = re.compile(r'\b'
 #                   r'(?:'
 #                     # either 'one', 'two' or 'three', ending with ',' or end of word
