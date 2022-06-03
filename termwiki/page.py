@@ -19,6 +19,7 @@ PROJECT_ROOT = Path(termwiki.__path__[0]).parent
 def normalize_page_name(page_name: str) -> str:
     return NON_LETTER_RE.sub('', page_name).lower()
 
+
 def import_module_by_path(path: Path) -> ModuleType:
     if path.is_relative_to(PROJECT_ROOT):
         python_module_relative_path = path.relative_to(PROJECT_ROOT)
@@ -37,6 +38,33 @@ def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, i
     print(pformat_node(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent))
 
 
+def get_local_var_names_inside_joined_str(joined_str: ast.JoinedStr) -> list[str]:
+    var_names = []
+    for formatted_value in joined_str.values:
+        if isinstance(formatted_value, ast.FormattedValue) and isinstance(formatted_value.value, ast.Name):
+            var_names.append(formatted_value.value.id)
+    return var_names
+
+
+def get_local_variables(joined_str: ast.JoinedStr,
+                        parent: Callable[..., str],
+                        globals_: dict,
+                        ) -> dict:
+    isinstance(joined_str, ast.JoinedStr) or breakpoint()
+    local_var_names_in_fstring = get_local_var_names_inside_joined_str(joined_str)
+    function_def = ast.parse(inspect.getsource(parent)).body[0]
+    isinstance(function_def, ast.FunctionDef) or breakpoint()
+    local_variables = dict.fromkeys(local_var_names_in_fstring)
+    for assign in function_def.body:
+        if not isinstance(assign, ast.Assign):
+            continue
+        for target in assign.targets:
+            if target.id in local_var_names_in_fstring:
+                var_value = eval(ast.unparse(assign.value), globals_)
+                local_variables[target.id] = var_value
+    return local_variables
+
+
 def traverse_assign_node(node: ast.Assign, parent: Callable[..., str] | ModuleType) -> Generator[tuple[str, VariablePage]]:
     parent = inspect.unwrap(parent)  # parent isn't necessarily a function, but that's ok
     target: ast.Name
@@ -44,48 +72,36 @@ def traverse_assign_node(node: ast.Assign, parent: Callable[..., str] | ModuleTy
         target_id = normalize_page_name(target.id)
         if isinstance(node.value, ast.Constant):
             yield target_id, VariablePage(node.value.value, target_id)
-        # elif isinstance(node.value, ast.JoinedStr):
-        #     values = node.value.values
-        # breakpoint()
-        # for value in node.value.values:
-        #     if isinstance(value, ast.FormattedValue):
-        #         wrapped_function = getattr(function, '__wrapped__', function)
-        #         if not hasattr(value.value, 'func'):
-        #             # value.value is Name, so a variable in an fstring. __LOGGING_HANDLER
-        #             breakpoint()
-        #         formatting_function = wrapped_function.__globals__[value.value.func.id]
-        #         formatting_function_args = []
-        #         for arg in value.value.args:
-        #             if isinstance(arg, ast.JoinedStr):
-        #                 formatting_function_args.append(''.join([v.value for v in arg.values]))
-        #             else:
-        #                 formatting_function_args.append(arg.s)
-        #         try:
-        #             s = formatting_function(*formatting_function_args)
-        #         except AttributeError as e:
-        #             from pdbpp import post_mortem;
-        #             post_mortem()
-        #         yield target.id, VariablePage(s, target.id)
-        #         # breakpoint()
-        #     else:
-        #         yield target.id, VariablePage(value.s, target.id)
         else:
-            # noinspection PyTypeChecker
-            unparsed_value = ast.unparse(node.value)
-            globs = {}
+            globals_ = {}
             if hasattr(parent, '__globals__'):
-                globs = parent.__globals__
+                assert callable(parent) and not isinstance(parent, ModuleType), f'{parent} is not a function'
+                globals_ = parent.__globals__
             elif hasattr(parent, '__builtins__'):
-                globs = parent.__builtins__
+                assert not callable(parent) and isinstance(parent, ModuleType), f'{parent} is not a module'
+                globals_ = parent.__builtins__
             else:
                 raise AttributeError(f'traverse_assign_node({parent}): {parent} has neither __globals__ nor __builtins__')
-            rendered: str = eval(unparsed_value, globs)
+
+            unparsed_value = ast.unparse(node.value)
+            try:
+                rendered: str = eval(unparsed_value, globals_)
+            except NameError as e:
+                # This happens when the value is composed of other local variables
+                #  within the same function. E.g the value is "f'{x}'", then x is a local variable.
+                #  'x' isn't in the globals, so it's a NameError.
+                #  We're resolving the values of the composing local variables.
+
+                # noinspection PyTypeChecker
+                locals_ = get_local_variables(node.value, parent, globals_)
+                rendered = eval(unparsed_value, globals_, locals_)
             yield target_id, VariablePage(rendered, target_id)
 
 
 def traverse_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
-    # noinspection PyUnresolvedReferences
-    for node in python_module_ast.body[0].body:
+    # noinspection PyTypeChecker
+    function_def_ast: ast.FunctionDef = python_module_ast.body[0]
+    for node in function_def_ast.body:
         if isinstance(node, ast.Assign):
             yield from traverse_assign_node(node, function)
         else:
