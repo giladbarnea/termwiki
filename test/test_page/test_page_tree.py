@@ -12,7 +12,7 @@ class TestDirectory:
                      adhd() -> str
             """
             pages_page: PythonFilePage
-            paths, pages_page = page_tree.get('pages')
+            paths, pages_page = page_tree.deep_search('pages')
             adhd_page: FunctionPage = pages_page['adhd']
             adhd_text = adhd_page.read()
             adhd_text_lines = adhd_text.splitlines()
@@ -25,7 +25,7 @@ class TestDirectory:
 
         def test_implicit_pages_at_directory_root(self):
             adhd_page: FunctionPage
-            adhd_path, adhd_page = page_tree.get('adhd')
+            adhd_path, adhd_page = page_tree.deep_search('adhd')
             adhd_text = adhd_page.read()
             adhd_text_lines = adhd_text.splitlines()
             if '┌' in adhd_text_lines[0]:
@@ -36,7 +36,7 @@ class TestDirectory:
             assert title.lower() == 'adhd'
 
         def test_function_variable(self):
-            adhd_path, adhd_page = page_tree.get('adhd')
+            adhd_path, adhd_page = page_tree.deep_search('adhd')
             diet_page: FunctionPage = adhd_page['diet']
             diet_text = diet_page.read()
             diet_text_lines = diet_text.splitlines()
@@ -62,7 +62,7 @@ class TestDirectory:
                                   product() -> str
                     """
                     pecan_page: DirectoryPage
-                    pecan_page_paths, pecan_page = page_tree.get('pecan')
+                    pecan_page_paths, pecan_page = page_tree.deep_search('pecan')
                     product_page: PythonFilePage = pecan_page['product']
                     product_function_page: FunctionPage = product_page['product']
                     product_text = product_function_page.read()
@@ -83,7 +83,7 @@ class TestDirectory:
                                   product() -> str
                     """
                     pecan_page: DirectoryPage
-                    pecan_page_paths, pecan_page = page_tree.get('pecan')
+                    pecan_page_paths, pecan_page = page_tree.deep_search('pecan')
                     product_page: PythonFilePage = pecan_page['product']
                     product_text = product_page.read()
                     product_text_lines = product_text.splitlines()

@@ -7,12 +7,10 @@ from termwiki.render import render_page
 
 
 def get_page(page_path: Sequence[str]) -> bool:
-    found_path, page = page_tree.get(page_path)
+    found_path, page = page_tree.deep_search(page_path)
     if not page:
         print(f'Page not found! {page_path=} | {found_path=}')
         return False
-    # page_text = page.read()
-    # page_text or breakpoint()
     rendered_text = render_page(page)
     print(rendered_text)
     return True

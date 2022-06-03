@@ -33,7 +33,12 @@ class Block:
 
 
 class IndentationMarkdown:
-    """Parses text into an indentation-based tree of recursive Block objects"""
+    """Parses text into an indentation-based tree of recursive Block objects.
+
+    A headline is a line that has a lower indentation than its following line,
+
+
+    """
 
     def __init__(self, text: str):
         self.text = text

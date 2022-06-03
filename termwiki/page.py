@@ -74,6 +74,7 @@ def traverse_assign_node(node: ast.Assign, parent: Callable[..., str] | ModuleTy
 
 
 def traverse_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
+    # noinspection PyUnresolvedReferences
     for node in python_module_ast.body[0].body:
         if isinstance(node, ast.Assign):
             yield from traverse_assign_node(node, function)
@@ -116,24 +117,54 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
         breakpoint()
 
 
-def deep_search(page: Page, page_path: Sequence[str]) -> tuple[list[str], Page]:
-    if not page_path:
-        return [], page
-    sub_path, *page_path = page_path
-    sub_page = page[sub_path]
-    if not sub_page:
-        return [], page
-    found_paths, found_page = deep_search(sub_page, page_path)
-    return [sub_path] + found_paths, found_page
-
-
 class Page:
-    def __getitem__(self, name: str) -> Page | None:
+    def isearch(self, name: str) -> Generator[Page]:
+        """Yields all pages that match the name.
+        Multiple pages can match if e.g. a file and directory have the same name."""
         name = normalize_page_name(name)
         for page_name, page in self.traverse():
             if page_name == name:
-                return page
+                yield page
+
+    def search(self, name: str) -> Page | None:
+        """Returns the first page that matches the name."""
+        for page in self.isearch(name):
+            if page is None:
+                breakpoint()
+                continue
+            return page
+        breakpoint()
         return None
+
+    __getitem__ = search
+
+    def ideep_search(self, page_path: Sequence[str] | str) -> Generator[tuple[list[str], Page]]:
+        if not page_path:
+            yield [], self
+            return
+        if isinstance(page_path, str):
+            page_path = page_path.split(' ')
+        sub_path, *sub_page_path = page_path
+        any_sub_page = False
+        for sub_page in self.isearch(sub_path):
+            any_sub_page = True
+            for found_paths, found_page in sub_page.ideep_search(sub_page_path):
+                yield [sub_path] + found_paths, found_page
+        if not any_sub_page:
+            breakpoint()
+            yield [], self
+
+    def deep_search(self, page_path: Sequence[str] | str) -> tuple[list[str], Page]:
+        if not page_path:
+            return [], self
+        if isinstance(page_path, str):
+            page_path = page_path.split(' ')
+        sub_path, *sub_page_path = page_path
+        sub_page = self.search(sub_path)
+        if not sub_page:
+            return [], self
+        found_paths, found_page = sub_page.deep_search(sub_page_path)
+        return [sub_path] + found_paths, found_page
 
     @abstractmethod
     def read(self, *args, **kwargs) -> str:
@@ -162,7 +193,7 @@ class FunctionPage(Page):
     def __init__(self, function: Callable[..., str]) -> None:
         super().__init__()
         self.function = function
-        self._python_module_ast: ast.Module = None
+        self._python_module_ast = None
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(function={self.function.__qualname__})'
@@ -211,6 +242,7 @@ class FilePage(Page):
 
 class MarkdownFilePage(Page):
     """Traverses headings"""
+
 
 class PythonFilePage(Page):
     """A Python module representing a file (not a package)"""
@@ -294,9 +326,16 @@ class DirectoryPage(Page):
         return self._path
 
     def read(self, *args, **kwargs) -> str:
-        return self[self.path().stem].read()
+        path = self.path()
+        path_stem = path.stem
+        page = self.search(path_stem)
+        text = page.read()
+        return text
 
     def traverse(self) -> Generator[tuple[str, Page]]:
+        """Traverse the directory and yield (name, page) pairs.
+        Pages with the same name are both yielded (e.g. a sub-directory
+        and a file with the same name)."""
         for path in self.path().iterdir():
             if path.name.startswith('.') or path.name.startswith('_'):
                 continue
@@ -304,11 +343,12 @@ class DirectoryPage(Page):
             path_name = normalize_page_name(path.name)
             if path.is_dir():
                 yield path_name, DirectoryPage(path)
-            elif path.suffix != ".py":
-                yield path_stem, FilePage(path)
-            elif path.name != '__init__.py':
-                package = self.package()
-                yield path_stem, PythonFilePage(path, package)
+            else:
+                if path.suffix == '.py':
+                    package = self.package()
+                    yield path_stem, PythonFilePage(path, package)
+                else:
+                    yield path_stem, FilePage(path)
 
         # Should not hard code pages.py, but self-named
         #  files (not only python) and subdirs etc
