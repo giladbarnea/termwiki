@@ -185,7 +185,10 @@ class Page:
 
     def search(self, name: str) -> Page | None:
         """Returns the first page that matches 'name'.
-        Same as 'page["name"]'."""
+        Same as 'page["name"]'.
+        mock_page_tree.search('BAD') took 0.5ms.
+        mock_page_tree.search('bash') took ~0.1ms (first thing isearch yields).
+        """
         for page in self.isearch(name):
             # if page is None:
             #     log.warning(self, f'.search({name!r}): {page} is None')

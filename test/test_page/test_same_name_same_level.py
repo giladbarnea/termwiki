@@ -1,6 +1,6 @@
 import pytest
 
-from termwiki.log import log
+# from termwiki.log import log
 from termwiki.page import DirectoryPage, MarkdownFilePage
 from test.data import mock_pages_root
 
