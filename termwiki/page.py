@@ -391,6 +391,7 @@ class DirectoryPage(Page):
         and a file with the same name)."""
         self_directory_path = self.path()
         pages_with_same_name_as_us = []
+        # sorted(bla.iterdir()), sorted(bla.glob('*')) and glob.glob(bla) are all about 20 µs
         for path in sorted(self_directory_path.iterdir()):  # given e.g name/ and name.md, name/ comes first
             if path.name.startswith('.') or path.name.startswith('_'):
                 continue
