@@ -12,13 +12,13 @@ def test_bash():
     """bash/ dir exists as well as pages.py bash() function.
     bash/ dir has only an irrelevant file, but it's detected first by DirectoryPage.
     So we expect 'search', which filters falsy Pages, to return only the FunctionPage('bash')"""
-    orig_search = mock_page_tree.__class__.search
-    mock_page_tree.__class__.search = log.log_in_out(orig_search)
+    # orig_search = mock_page_tree.__class__.search
+    # mock_page_tree.__class__.search = log.log_in_out(orig_search)
     bash = mock_page_tree.search('bash')
     assert bash
     bash_text = bash.read()
     assert bash_text == "pages.py bash() function"
-    mock_page_tree.__class__.search = orig_search
+    # mock_page_tree.__class__.search = orig_search
 
 
 def test_readable():

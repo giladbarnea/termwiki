@@ -52,6 +52,7 @@ def get_local_variables(joined_str: ast.JoinedStr,
                         ) -> dict:
     isinstance(joined_str, ast.JoinedStr) or breakpoint()
     local_var_names_in_fstring = get_local_var_names_inside_joined_str(joined_str)
+    # In terms of reuse, FunctionPage.python_module_ast() also does this
     function_def = ast.parse(inspect.getsource(parent)).body[0]
     isinstance(function_def, ast.FunctionDef) or breakpoint()
     local_variables = dict.fromkeys(local_var_names_in_fstring)
@@ -145,11 +146,35 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
 
 
 class Page:
+    __pages__ = {}
+
+    def _cache_page(self, normalized_page_name: str, page: Page) -> Page:
+        if normalized_page_name in self.__pages__:
+            cached_page = self.__pages__[normalized_page_name]
+            if isinstance(cached_page, MergedPage):
+                cached_page.extend(page)
+            else:
+                self.__pages__[normalized_page_name] = MergedPage(cached_page, page)
+        self.__pages__[normalized_page_name] = page
+        return page
+
     def isearch(self, name: str) -> Generator[Page]:
         """Yields all pages that match 'name'.
         Multiple pages can match if e.g. a file and directory have the same name.
         Lowest level of the search-related methods."""
         name = normalize_page_name(name)
+        # if not hasattr(self, '_page_generator'):
+        #     self._page_generator = self.traverse()
+        #     self._page_generator.exhausted = False
+        # while True:
+        #     try:
+        #         page_name, page = next(self._page_generator)
+        #     except StopIteration:
+        #         self._page_generator.exhausted = True
+        #         break
+        #     else:
+        #         if page_name == name:
+        #             yield page
         for page_name, page in self.traverse():
             if page_name == name:
                 yield page
@@ -362,21 +387,30 @@ class DirectoryPage(Page):
         Pages with the same name are both yielded (e.g. a sub-directory
         and a file with the same name)."""
         self_directory_path = self.path()
+        pages_with_same_name_as_us = []
         for path in sorted(self_directory_path.iterdir()):  # given e.g name/ and name.md, name/ comes first
             if path.name.startswith('.') or path.name.startswith('_'):
                 continue
             path_stem = normalize_page_name(path.stem)
             path_name = normalize_page_name(path.name)
             if path.is_dir():
-                yield path_name, DirectoryPage(path)
+                directory_page = DirectoryPage(path)
+                self._cache_page(path_name, directory_page)
+                yield path_name, directory_page
             else:
                 if path.suffix == '.py':
                     package = self.package()
-                    yield path_stem, PythonFilePage(path, package)
+                    python_file_page = PythonFilePage(path, package)
+                    self._cache_page(path_stem, python_file_page)
+                    yield path_stem, python_file_page
                 elif path.suffix == '.md':
-                    yield path_stem, MarkdownFilePage(path)
+                    markdown_file_page = MarkdownFilePage(path)
+                    self._cache_page(path_stem, markdown_file_page)
+                    yield path_stem, markdown_file_page
                 else:
-                    yield path_stem, FilePage(path)
+                    file_page = FilePage(path)
+                    self._cache_page(path_stem, file_page)
+                    yield path_stem, file_page
 
         # Should not only hard code pages.py, but also self-named
         #  files (not only python) and subdirs etc
@@ -385,6 +419,7 @@ class DirectoryPage(Page):
             package = self.package()
             python_file_page = PythonFilePage(pages_python_file, package)
             for name, page in python_file_page.traverse():
+                self._cache_page(name, page)
                 yield name, page
 
         self_directory_name = self_directory_path.stem
@@ -393,3 +428,20 @@ class DirectoryPage(Page):
 
         # for subpath_with_same_name in self_directory_path.glob(f'{self_directory_name}*'):
         #     yield from self.search(subpath_with_same_name.name).traverse()
+
+
+class MergedPage(Page):
+    """A page that is the merge of several pages"""
+
+    def __init__(self, *pages: Page) -> None:
+        super().__init__()
+        self.pages = list(pages)
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(pages={self.pages!r})'
+
+    def read(self, *args, **kwargs) -> str:
+        return '\n\n-----------\n'.join(page.read() for page in self.pages)
+
+    def extend(self, *pages: Page) -> None:
+        self.pages.extend(pages)
