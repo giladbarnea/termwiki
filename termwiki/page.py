@@ -122,11 +122,16 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
 class Page:
     def isearch(self, name: str) -> Generator[Page]:
         """Yields all pages that match 'name'.
-        Multiple pages can match if e.g. a file and directory have the same name."""
+        Multiple pages can match if e.g. a file and directory have the same name.
+        Lowest level of the search-related methods."""
         name = normalize_page_name(name)
         for page_name, page in self.traverse():
             if page_name == name:
                 yield page
+
+    def search_all(self, name: str) -> list[Page]:
+        """Returns a list of all pages that match 'name'."""
+        return list(self.isearch(name))
 
     def search(self, name: str) -> Page | None:
         """Returns the first truthy page that matches 'name'.
@@ -134,11 +139,9 @@ class Page:
         for page in self.isearch(name):
             if page is None:
                 log.warning(self, f'.search({name!r}): {page} is None')
-                # breakpoint()
                 continue
             return page
         log.warning(self, f'.search({name!r}): nothing found')
-        # breakpoint()
         return None
 
     __getitem__ = search
@@ -246,7 +249,7 @@ class FilePage(Page):
         return file_content
 
 
-class MarkdownFilePage(Page):
+class MarkdownFilePage(FilePage): # maybe subclassing Page is better
     """Traverses headings"""
 
 
@@ -353,6 +356,8 @@ class DirectoryPage(Page):
                 if path.suffix == '.py':
                     package = self.package()
                     yield path_stem, PythonFilePage(path, package)
+                elif path.suffix == '.md':
+                    yield path_stem, MarkdownFilePage(path)
                 else:
                     yield path_stem, FilePage(path)
 
