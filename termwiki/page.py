@@ -119,7 +119,7 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
 
 class Page:
     def isearch(self, name: str) -> Generator[Page]:
-        """Yields all pages that match the name.
+        """Yields all pages that match 'name'.
         Multiple pages can match if e.g. a file and directory have the same name."""
         name = normalize_page_name(name)
         for page_name, page in self.traverse():
@@ -127,8 +127,8 @@ class Page:
                 yield page
 
     def search(self, name: str) -> Page | None:
-        """Returns the first page that matches the name.
-        Same as *page["name"]*."""
+        """Returns the first truthy page that matches 'name'.
+        Same as 'page["name"]'."""
         for page in self.isearch(name):
             if page is None:
                 breakpoint()
