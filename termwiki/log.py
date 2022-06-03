@@ -1,3 +1,6 @@
+from time import perf_counter_ns
+
+start = perf_counter_ns()
 import functools
 import os
 import sys
@@ -5,12 +8,15 @@ import sys
 from rich.console import Console
 from rich.theme import Theme
 
+after_imports = perf_counter_ns()
+
 
 def format_args(func):
     @functools.wraps(func)
-    def log_method(self, *args, **kwargs):
+    def log_method(*args, **kwargs):
+        self, *args = args
         log_level_tag = f"[{func.__name__}]"
-        formatted_args = log_level_tag + "\n · ".join(args)
+        formatted_args = log_level_tag + "\n· ".join(args)
         return func(self, formatted_args, **kwargs)
 
     return log_method
@@ -18,38 +24,25 @@ def format_args(func):
 
 class Logger(Console):
     _theme = {
-        "debug":   "dim",
-        "warn":    "yellow",
-        "warning": "yellow",
-        "error":   "red",
-        "fatal":   "bright_red",
-        "success": "green",
-        "prompt":  "b bright_cyan",
-        "title":   "b bright_white",
+        "debug": "dim", "warn": "yellow", "warning": "yellow", "error": "red", "fatal": "bright_red", "success": "green", "prompt": "b bright_cyan", "title": "b bright_white",
         }
 
     def __init__(self, **kwargs):
         PYCHARM_HOSTED = os.getenv("PYCHARM_HOSTED")
-        theme = kwargs.pop(
-                "theme",
-                Theme({**self._theme, **{k.upper(): v for k, v in self._theme.items()}}),
-                )
-        super().__init__(
-                # force_terminal=True,
+        theme = kwargs.pop("theme", Theme({**self._theme, **{k.upper(): v for k, v in self._theme.items()}}), )
+        super().__init__(# force_terminal=True,
                 # log_time_format='[%d.%m.%Y][%T]',
                 # safe_box=False,
                 # soft_wrap=True,
                 log_time=kwargs.pop("log_time", False),
-                color_system=kwargs.pop(
-                        "color_system", "auto" if PYCHARM_HOSTED else "truecolor"
-                        ),
+                color_system=kwargs.pop("color_system", "auto" if PYCHARM_HOSTED else "truecolor"),
                 tab_size=kwargs.pop("tab_size", 2),
                 log_path=kwargs.pop("log_path", True),
                 file=kwargs.pop("file", sys.stdout if PYCHARM_HOSTED else sys.stderr),
                 theme=theme,
                 width=kwargs.pop("width", os.getenv('COLUMNS', 130)),
-                **kwargs,
-                )
+                **kwargs, )
+
 
     def log_in_out(self, func_or_nothing=None, watch=()):
         """A decorator that logs the entry and exit of a function."""
@@ -77,7 +70,9 @@ class Logger(Console):
         def debug(self, *args, **kwargs):
             return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
     else:
-        def debug(self, *args, **kwargs): pass
+        def debug(self, *args, **kwargs):
+            pass
+
         print(" ! Logger.debug() disabled\n")
 
     @format_args
@@ -109,4 +104,10 @@ class Logger(Console):
         return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 
 
+after_definitions = perf_counter_ns()
 log = Logger()
+after_instantiation = perf_counter_ns()
+log.info(f'{after_imports - start:,.0f}ns after imports',
+         f'{after_definitions - after_imports:,.0f}ns after definitions',
+         f'{after_instantiation - after_definitions:,.0f}ns after instantiation',
+         f'{after_instantiation - start:,.0f}ns total')

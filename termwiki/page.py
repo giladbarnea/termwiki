@@ -11,6 +11,7 @@ from typing import Callable
 
 import termwiki
 from termwiki.consts import NON_LETTER_RE
+from termwiki.log import log
 
 PROJECT_ROOT = Path(termwiki.__path__[0]).parent
 
@@ -79,7 +80,7 @@ def traverse_function(function: Callable[..., str], python_module_ast: ast.Modul
         if isinstance(node, ast.Assign):
             yield from traverse_assign_node(node, function)
         else:
-            print(f'traverse_function({function}): {node} is not an Assign')
+            log.warning(f'traverse_function({function}): {node} is not an Assign')
             breakpoint()
 
 
@@ -99,13 +100,13 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
                     for alias in function.aliases:
                         yield normalize_page_name(alias), FunctionPage(function)
             else:
-                print(f'traverse_module({module}): {node} has "name" but is not a FunctionDef')
+                log.warning(f'traverse_module({module}): {node} has "name" but is not a FunctionDef')
                 breakpoint()
             continue
         if hasattr(node, 'names'):
             if isinstance(node, (ast.Import, ast.ImportFrom)):
                 continue
-            print(f'traverse_module({module}): {node} has "names" but is not an Import or ImportFrom')
+            log.warning(f'traverse_module({module}): {node} has "names" but is not an Import or ImportFrom')
             breakpoint()
             for alias in node.names:
                 if alias.name not in exclude_names:
