@@ -16,7 +16,7 @@ def format_args(func):
     def log_method(*args, **kwargs):
         self, *args = args
         log_level_tag = f"[{func.__name__}]"
-        formatted_args = log_level_tag + "\n· ".join(args)
+        formatted_args = log_level_tag + "\n· ".join(map(str,args))
         return func(self, formatted_args, **kwargs)
 
     return log_method
@@ -65,7 +65,7 @@ class Logger(Console):
         # We're called e.g as @log_in_out()
         return decorator
 
-    if os.getenv("TERMWIKI_DEBUG", "false").lower() in ("1", "true"):
+    if os.getenv("TERMWIKI_DEBUG", "true").lower() in ("1", "true"):
         @format_args
         def debug(self, *args, **kwargs):
             return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)

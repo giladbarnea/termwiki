@@ -115,6 +115,7 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
         if isinstance(node, ast.Assign):
             yield from traverse_assign_node(node, module)
             continue
+        log.warning(f"traverse_module({module}): {node} doesn't have 'name' nor 'names' and is not an Assign")
         breakpoint()
 
 
@@ -132,10 +133,12 @@ class Page:
         Same as 'page["name"]'."""
         for page in self.isearch(name):
             if page is None:
-                breakpoint()
+                log.warning(self, f'.search({name!r}): {page} is None')
+                # breakpoint()
                 continue
             return page
-        breakpoint()
+        log.warning(self, f'.search({name!r}): nothing found')
+        # breakpoint()
         return None
 
     __getitem__ = search
@@ -153,6 +156,7 @@ class Page:
             for found_paths, found_page in sub_page.ideep_search(sub_page_path):
                 yield [sub_path] + found_paths, found_page
         if not any_sub_page:
+            log.warning(self, f'.ideep_search({page_path!r}): nothing found')
             breakpoint()
             yield [], self
 
