@@ -127,7 +127,8 @@ class Page:
                 yield page
 
     def search(self, name: str) -> Page | None:
-        """Returns the first page that matches the name."""
+        """Returns the first page that matches the name.
+        Same as *page["name"]*."""
         for page in self.isearch(name):
             if page is None:
                 breakpoint()

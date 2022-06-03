@@ -39,3 +39,6 @@ def with_style_python_friendly_decorator():
 @alias('with_alias', 'another alias')
 def with_alias_decorator():
     return "with @alias('with_alias') decorator"
+
+def bash():
+    return "pages.py bash() function"

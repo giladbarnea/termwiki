@@ -18,5 +18,5 @@ class TestIndentationMarkdown:
         text = Path('test/data/mock_pages_root/click.option.no-code-blocks.indented-md').read_text()
         indentation_markdown = IndentationMarkdown(text)
         indentation_markdown.parse()
-        print()
-        print(indentation_markdown)
+        # print()
+        # print(indentation_markdown)
