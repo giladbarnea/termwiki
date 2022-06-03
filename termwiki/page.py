@@ -134,12 +134,12 @@ class Page:
         return list(self.isearch(name))
 
     def search(self, name: str) -> Page | None:
-        """Returns the first truthy page that matches 'name'.
+        """Returns the first page that matches 'name'.
         Same as 'page["name"]'."""
         for page in self.isearch(name):
-            if page is None:
-                log.warning(self, f'.search({name!r}): {page} is None')
-                continue
+            # if page is None:
+            #     log.warning(self, f'.search({name!r}): {page} is None')
+            #     continue
             return page
         log.warning(self, f'.search({name!r}): nothing found')
         return None
@@ -164,6 +164,7 @@ class Page:
             yield [], self
 
     def deep_search(self, page_path: Sequence[str] | str) -> tuple[list[str], Page]:
+        """Searches a possibly nested page by it's full path."""
         if not page_path:
             return [], self
         if isinstance(page_path, str):
@@ -218,15 +219,15 @@ class FunctionPage(Page):
         if text is not None:
             return text
         # If a function doesn't return, return its joined variables
-        values = [f'# {self.function.__qualname__}']
-        seen_pages = set()
+        variable_texts = [f'# {self.function.__qualname__}']
+        seen_variable_pages = set()
         for var_name, var_page in self.traverse():
-            if var_page.value in seen_pages:
+            if var_page.value in seen_variable_pages:
                 continue
-            seen_pages.add(var_page.value)
-            text = var_page.read()
-            values.append(text)
-        return '\n'.join(values)
+            seen_variable_pages.add(var_page.value)
+            variable_text = var_page.read()
+            variable_texts.append(variable_text)
+        return '\n'.join(variable_texts)
 
     __call__ = read
 
@@ -335,6 +336,7 @@ class DirectoryPage(Page):
         return self._path
 
     def read(self, *args, **kwargs) -> str:
+        """Reads any self-named page in the directory"""
         path = self.path()
         path_stem = path.stem
         page = self.search(path_stem)
@@ -345,7 +347,7 @@ class DirectoryPage(Page):
         """Traverse the directory and yield (name, page) pairs.
         Pages with the same name are both yielded (e.g. a sub-directory
         and a file with the same name)."""
-        for path in self.path().iterdir():
+        for path in sorted(self.path().iterdir()): # given e.g name/ and name.md, name/ comes first
             if path.name.startswith('.') or path.name.startswith('_'):
                 continue
             path_stem = normalize_page_name(path.stem)
@@ -361,7 +363,7 @@ class DirectoryPage(Page):
                 else:
                     yield path_stem, FilePage(path)
 
-        # Should not hard code pages.py, but self-named
+        # Should not only hard code pages.py, but also self-named
         #  files (not only python) and subdirs etc
         pages_python_file = self.path() / 'pages.py'
         if pages_python_file.exists():

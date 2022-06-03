@@ -1,9 +1,11 @@
-from termwiki.page import DirectoryPage, MarkdownFilePage
-from test.data import mock_pages_root
-from termwiki.log import log
 import pytest
 
+from termwiki.log import log
+from termwiki.page import DirectoryPage, MarkdownFilePage
+from test.data import mock_pages_root
+
 mock_page_tree = DirectoryPage(mock_pages_root)
+
 
 @pytest.mark.skip
 def test_bash():
@@ -17,6 +19,7 @@ def test_bash():
     bash_text = bash.read()
     assert bash_text == "pages.py bash() function"
     mock_page_tree.__class__.search = orig_search
+
 
 def test_readable():
     """readable/readable.py with 'readable' var exists,
@@ -34,5 +37,3 @@ def test_readable():
     readable_md_file = next((p for p in readables if isinstance(p, MarkdownFilePage)))
     readable_md_file_text = readable_md_file.read()
     assert readable_md_file_text == "readable.md content"
-
-
