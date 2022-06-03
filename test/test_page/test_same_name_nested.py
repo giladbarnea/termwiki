@@ -48,6 +48,12 @@ class TestDirectory:
         title = clean_str(no_return_text_lines[title_index])
         assert title.lower() == 'no_return'
 
+    def test_traverse_flattens_nested_pages_with_same_name(self):
+        readable_directory = mock_page_tree['readable']
+        assert isinstance(readable_directory, DirectoryPage)
+        pages = list(readable_directory.traverse())
+        # assert len(pages) == 2
+
 
 class TestFunction:
     def test_function_variable(self):

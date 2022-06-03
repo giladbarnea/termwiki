@@ -19,6 +19,15 @@ PROJECT_ROOT = Path(termwiki.__path__[0]).parent
 def normalize_page_name(page_name: str) -> str:
     return NON_LETTER_RE.sub('', page_name).lower()
 
+def import_module_by_path(path: Path) -> ModuleType:
+    if path.is_relative_to(PROJECT_ROOT):
+        python_module_relative_path = path.relative_to(PROJECT_ROOT)
+    else:
+        python_module_relative_path = path
+    python_module_name = '.'.join(python_module_relative_path.with_suffix('').parts)
+    imported_module = import_module(python_module_name)
+    return imported_module
+
 
 def pformat_node(node: ast.AST, annotate_fields=True, include_attributes=False, indent=4):
     return ast.dump(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent).replace(r'\n', '\n... ')
@@ -250,7 +259,7 @@ class FilePage(Page):
         return file_content
 
 
-class MarkdownFilePage(FilePage): # maybe subclassing Page is better
+class MarkdownFilePage(FilePage):  # maybe subclassing Page is better
     """Traverses headings"""
 
 
@@ -279,13 +288,7 @@ class PythonFilePage(Page):
             if hasattr(self.parent, self._python_module.stem):
                 self._python_module = getattr(self.parent, self._python_module.stem)
                 return self._python_module
-            python_module_path = Path(self._python_module)
-            if python_module_path.is_relative_to(PROJECT_ROOT):
-                python_module_relative_path = python_module_path.relative_to(PROJECT_ROOT)
-            else:
-                python_module_relative_path = python_module_path
-            python_module_name = str(python_module_relative_path.with_suffix('')).replace('/', '.')
-            self._python_module = import_module(python_module_name)
+            self._python_module = import_module_by_path(self._python_module)
             return self._python_module
 
     def read(self, *args, **kwargs) -> str:
@@ -314,14 +317,8 @@ class DirectoryPage(Page):
     def package(self) -> ModuleType:
         if isinstance(self._package, ModuleType):
             return self._package
-        if self._package.is_relative_to(PROJECT_ROOT):
-            package_relative_path = self._package.relative_to(PROJECT_ROOT)
-        else:
-            package_relative_path = self._package
-        import_path = '.'.join(package_relative_path.parts)
-        imported_package = import_module(import_path)
-        self._package = imported_package
-        return imported_package
+        self._package = import_module_by_path(self._package)
+        return self._package
 
     def path(self) -> Path:
         if self._path is not None:
@@ -335,11 +332,13 @@ class DirectoryPage(Page):
             self._path = Path(package.__package__.replace('.', '/'))
         return self._path
 
+    def stem(self) -> str:
+        return self.path().stem
+
     def read(self, *args, **kwargs) -> str:
         """Reads any self-named page in the directory"""
-        path = self.path()
-        path_stem = path.stem
-        page = self.search(path_stem)
+        self_stem = self.stem()
+        page = self.search(self_stem)
         text = page.read()
         return text
 
@@ -347,7 +346,8 @@ class DirectoryPage(Page):
         """Traverse the directory and yield (name, page) pairs.
         Pages with the same name are both yielded (e.g. a sub-directory
         and a file with the same name)."""
-        for path in sorted(self.path().iterdir()): # given e.g name/ and name.md, name/ comes first
+        self_directory_path = self.path()
+        for path in sorted(self_directory_path.iterdir()):  # given e.g name/ and name.md, name/ comes first
             if path.name.startswith('.') or path.name.startswith('_'):
                 continue
             path_stem = normalize_page_name(path.stem)
@@ -365,9 +365,16 @@ class DirectoryPage(Page):
 
         # Should not only hard code pages.py, but also self-named
         #  files (not only python) and subdirs etc
-        pages_python_file = self.path() / 'pages.py'
+        pages_python_file = self_directory_path / 'pages.py'
         if pages_python_file.exists():
             package = self.package()
             python_file_page = PythonFilePage(pages_python_file, package)
             for name, page in python_file_page.traverse():
                 yield name, page
+
+        self_directory_name = self_directory_path.stem
+        if self_directory_name == 'pages':
+            return  # Already traversed
+
+        # for subpath_with_same_name in self_directory_path.glob(f'{self_directory_name}*'):
+        #     yield from self.search(subpath_with_same_name.name).traverse()
