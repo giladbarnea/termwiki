@@ -68,8 +68,8 @@ Take this example:
 <pre>
 📂 ~/termwiki/
 ├── 📂 bash/
-│   ├── <b>array.md</b>       <span style="color: rgb(100,100,100)"># numbers=(1 2 3)</span>
-│   ├── <b>variable.md</b>    <span style="color: rgb(100,100,100)"># hello="world"</span>
+│   ├── <b>array.md</b>       <span style="color: grey"># numbers=(1 2 3)</span>
+│   ├── <b>variable.md</b>    <span style="color: grey"># hello="world"</span>
 </pre>
 
 - `tw bash` prints the contents of both `array.md` and `variable.md`, one after the other.
