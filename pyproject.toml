@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "termwiki"
 version = "0.2.0"
-description = "Interactive cheat sheets for the cmdline with support for rich markdown"
+description = "Personal knowledge management tool for the terminal, with a focus on zero-thought, zero-wait when getting to the bit you're interested in."
 authors = ["Gilad Barnea <giladbrn@gmail.com>"]
 readme = "README.md"
 

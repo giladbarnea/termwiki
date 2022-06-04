@@ -37,3 +37,9 @@ def test_readable():
     readable_md_file = next((p for p in readables if isinstance(p, MarkdownFilePage)))
     readable_md_file_text = readable_md_file.read()
     assert readable_md_file_text == "readable.md content"
+
+
+def test_searching_with_extension_returns_only_specific_page():
+    readable_markdown_file = mock_page_tree.search('readable.md')
+    readable_markdown_file_text = readable_markdown_file.read()
+    assert readable_markdown_file_text == "readable.md content"
