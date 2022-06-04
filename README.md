@@ -124,7 +124,7 @@ def bash():
     """
 ```
 
-`tw bash` renders the return value of the `bash()` function, even though the full nesting is `directory > file > function`.
+`tw bash` renders the return value of the `bash()` function, even though the `bash()` function is in a `bash.py` file which is in a `bash/` directory.
 
 **Two things to note here:**
 
