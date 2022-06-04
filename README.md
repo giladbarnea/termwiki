@@ -29,7 +29,7 @@ I also want to edit my notes as easily as editing a local file with my editor of
 
     tw PATH [TO NESTED PAGE...]
 
-`termwiki` parses the given page, then renders and prints it.
+`termwiki` parses the given page, then prints it.
 
 By default, pages are looked for in `~/termwiki`, or in `TERMWIKI_PATH` if set (multiple colon-separated paths are supported).
 
