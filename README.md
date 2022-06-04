@@ -36,8 +36,8 @@ By default, pages are looked for in `~/termwiki`, or in `TERMWIKI_PATH` if set (
 
 Let's say you have a:
 
-     ~/termwiki/
-    ├──   bash.md
+    📂 ~/termwiki/
+    ├──  bash.md
 
 Typing `tw bash` pretty-prints the contents of `bash.md`:
 
@@ -65,10 +65,10 @@ Together with the `[[including]]` syntax, and the ability to run Python code, th
 Take this example:
 
 ```bash
- ~/termwiki/
-├──  bash/
-│   ├──  array.md       # numbers=(1 2 3)
-│   ├──  variable.md    # hello="world"
+📂 ~/termwiki/
+├── 📂 bash/
+│   ├── array.md       # numbers=(1 2 3)
+│   ├── variable.md    # hello="world"
 ```
 
 - `tw bash` prints the contents of both files, one after the other.
@@ -84,11 +84,11 @@ You can control what `tw` renders when specifying a page, by nesting pages with 
 In our case, we would add a `bash.md` file alongside `array.md` and `for.md`:
 
 ```bash
- ~/termwiki/
-├──  bash/
-│   ├──  array.md       # numbers=(1 2 3)
-│   ├──  variable.md    # hello="world"
-│   ├──  bash.md
+📂 ~/termwiki/
+├── 📂 bash/
+│   ├── array.md       # numbers=(1 2 3)
+│   ├── variable.md    # hello="world"
+│   ├── bash.md
 ```
 
 Typing just `tw bash` now renders only `bash/bash.md`, not the other files.
