@@ -162,14 +162,16 @@ Sorted by importance:
 - Inline images and gifs
 - Embedding links
 - Proper syntax highlighting for <code>```lang</code> blocks
-- Headlines are pages
-- Comments
-- Custom `rich` formatting
+- Markdown `# Headlines` are pages
+- Comments that are <span style="color: grey"># grey</span>
+- `rich` formatting, or ascii color codes, are rendered even inside markdown. So this would actually `[bright_blue]work[/]`. 
 
 ## Alternatives
 
-`termwiki` might not be for you, in which case I would recommend either _Notion_ or _Dendron_.
+`termwiki` might not be for you, in which case I would recommend either _Notion_, _Dendron_ or _Dnote_.
 
 Notion is the fanciest out there, and it's really good for heavy-duty, "this is my life's work" kind of usage. It's web-based, rather slow, and has an editing learning curve.
 
 Dendron is local-first and lets you edit the files with your favorite editor, but it isn't a terminal tool (a VSCodium window), and doesn't support dynamic code execution; only static markdown files.
+
+Dnote has a CLI, but doesn't support page nesting nor markdown, and has a paid Pro plan.
