@@ -20,6 +20,8 @@ def no_return():
     _leading_underscore = "leading underscore"
     _WITH_UPPERCASE = "with uppercase"
 
+def no_return_no_assignment():
+    f"""a rogue string"""
 
 def _WITH_UPPERCASE_FUNCTION():
     return "with uppercase function"

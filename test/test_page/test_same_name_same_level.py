@@ -1,5 +1,3 @@
-import pytest
-
 # from termwiki.log import log
 from termwiki.page import DirectoryPage, MarkdownFilePage
 from test.data import mock_pages_root
@@ -7,8 +5,7 @@ from test.data import mock_pages_root
 mock_page_tree = DirectoryPage(mock_pages_root)
 
 
-@pytest.mark.skip
-def test_bash():
+def test_same_name_same_level_not_all_readable():
     """bash/ dir exists as well as pages.py bash() function.
     bash/ dir has only an irrelevant file, but it's detected first by DirectoryPage.
     So we expect 'search', which filters falsy Pages, to return only the FunctionPage('bash')"""
@@ -21,7 +18,7 @@ def test_bash():
     # mock_page_tree.__class__.search = orig_search
 
 
-def test_readable():
+def test_same_name_same_level_all_readable():
     """readable/readable.py with 'readable' var exists,
     as well as plain readable.md file."""
     readables = mock_page_tree.search_all('readable')
@@ -37,6 +34,9 @@ def test_readable():
     readable_md_file = next((p for p in readables if isinstance(p, MarkdownFilePage)))
     readable_md_file_text = readable_md_file.read()
     assert readable_md_file_text == "readable.md content"
+
+    # Assert MergedPage
+    assert mock_page_tree.search('readable').read()
 
 
 def test_searching_with_extension_returns_only_specific_page():

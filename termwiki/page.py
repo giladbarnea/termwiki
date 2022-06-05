@@ -66,6 +66,31 @@ def get_local_variables(joined_str: ast.JoinedStr,
     return local_variables
 
 
+def traverse_immutable_when_unparsed(node, parent, target_id):
+    """JoinedStr, Constant, Name, FormattedValue, or sometimes even a simple Expr,
+    when ast.unparse(node) returns a string that can be evaluated and used as-is."""
+    if hasattr(parent, '__globals__'):
+        assert callable(parent) and not isinstance(parent, ModuleType), f'{parent} is not a function'
+        globals_ = parent.__globals__
+    elif hasattr(parent, '__builtins__'):
+        assert not callable(parent) and isinstance(parent, ModuleType), f'{parent} is not a module'
+        globals_ = parent.__builtins__
+    else:
+        raise AttributeError(f'traverse_immutable_when_unparsed({node=}, {parent=}, {target_id=}): parent has neither __globals__ nor __builtins__. {type(parent) = }')
+    unparsed_value = ast.unparse(node.value)
+    try:
+        rendered: str = eval(unparsed_value, globals_)
+    except NameError as e:
+        # This happens when the value is composed of other local variables
+        #  within the same function. E.g the value is "f'{x}'", and x is a local variable.
+        #  'x' isn't in the globals, so it's a NameError.
+        #  We're resolving the values of the composing local variables.
+
+        locals_ = get_local_variables(node.value, parent, globals_)
+        rendered = eval(unparsed_value, globals_, locals_)
+    yield target_id, VariablePage(rendered, target_id)
+
+
 def traverse_assign_node(node: ast.Assign, parent: Callable[..., str] | ModuleType) -> Generator[tuple[str, VariablePage]]:
     parent = inspect.unwrap(parent)  # parent isn't necessarily a function, but that's ok
     target: ast.Name
@@ -74,29 +99,7 @@ def traverse_assign_node(node: ast.Assign, parent: Callable[..., str] | ModuleTy
         if isinstance(node.value, ast.Constant):
             yield target_id, VariablePage(node.value.value, target_id)
         else:
-            globals_ = {}
-            if hasattr(parent, '__globals__'):
-                assert callable(parent) and not isinstance(parent, ModuleType), f'{parent} is not a function'
-                globals_ = parent.__globals__
-            elif hasattr(parent, '__builtins__'):
-                assert not callable(parent) and isinstance(parent, ModuleType), f'{parent} is not a module'
-                globals_ = parent.__builtins__
-            else:
-                raise AttributeError(f'traverse_assign_node({parent}): {parent} has neither __globals__ nor __builtins__')
-
-            unparsed_value = ast.unparse(node.value)
-            try:
-                rendered: str = eval(unparsed_value, globals_)
-            except NameError as e:
-                # This happens when the value is composed of other local variables
-                #  within the same function. E.g the value is "f'{x}'", then x is a local variable.
-                #  'x' isn't in the globals, so it's a NameError.
-                #  We're resolving the values of the composing local variables.
-
-                # noinspection PyTypeChecker
-                locals_ = get_local_variables(node.value, parent, globals_)
-                rendered = eval(unparsed_value, globals_, locals_)
-            yield target_id, VariablePage(rendered, target_id)
+            yield from traverse_immutable_when_unparsed(node, parent, target_id)
 
 
 def traverse_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
@@ -106,8 +109,8 @@ def traverse_function(function: Callable[..., str], python_module_ast: ast.Modul
         if isinstance(node, ast.Assign):
             yield from traverse_assign_node(node, function)
         else:
-            log.warning(f'traverse_function({function}): {node} is not an Assign')
-            breakpoint()
+            assert hasattr(node, 'value'), f'{node} has no value attribute' or breakpoint()
+            yield from traverse_immutable_when_unparsed(node, function, function_def_ast.name)
 
 
 def traverse_module(module: ModuleType, python_module_ast: ast.Module):
