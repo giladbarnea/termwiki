@@ -16,6 +16,8 @@ from termwiki.log import log
 
 PROJECT_ROOT = Path(termwiki.__path__[0]).parent
 
+UNSET = object()
+
 
 def normalize_page_name(page_name: str) -> str:
     return NON_LETTER_RE.sub('', page_name).lower()
@@ -198,8 +200,29 @@ class CachingGenerator(Generic[T]):
         self._cache_getter = cache_getter
 
 
+R = TypeVar('R')
+
+
+class CachedProperty(Generic[T]):
+    instance: T
+    method: Callable[[T, ...], R]
+
+    def __init__(self, method: Callable[[T, ...], R]):
+        self.method = method
+
+    def __get__(self, instance: T, owner: Type[T]):
+        if instance is None:
+            return self
+        if cached := getattr(instance, f'__{self.method.__name__}_return_value__', UNSET) is not UNSET:
+            return cached
+        return_value = self.method(instance)
+        setattr(instance, f'__{self.method.__name__}_return_value__', return_value)
+        return return_value
+
+
 class Page:
     def __init__(self):
+        self.__text__ = None
         self.__pages__ = {}
         self.__aliases__ = {}
         self.__traverse_exhaused__ = False
@@ -209,12 +232,10 @@ class Page:
             log.warning(f'{cls}.traverse is already a CachingGenerator')
             return
         traverse = CachingGenerator(cls.traverse)
-        # traverse.on_exhaust(lambda self: setattr(self, '_traversed', True))
         traverse.cacher(lambda self, page: self._cache_page(page))
         traverse.cache_getter(lambda self: self.__pages__.items())
         cls.traverse = traverse
 
-    # def _cache_page(self, normalized_page_name: str, page: Page) -> Page:
     def _cache_page(self, page_tuple: tuple[str, Page]) -> Page:
         normalized_page_name, page = page_tuple
         if normalized_page_name in self.__pages__:
@@ -227,44 +248,40 @@ class Page:
             self.__pages__[normalized_page_name] = page
         return self.__pages__[normalized_page_name]
 
-    def isearch(self, name: str) -> Generator[Page]:
-        """Yields all pages that match 'name'.
-        Multiple pages can match if e.g. a file and directory have the same name.
-        Lowest level of the search-related methods."""
-        name = normalize_page_name(name)
-        # if not hasattr(self, '_page_generator'):
-        #     self._page_generator = self.traverse()
-        #     self._page_generator.exhausted = False
-        # while True:
-        #     try:
-        #         page_name, page = next(self._page_generator)
-        #     except StopIteration:
-        #         self._page_generator.exhausted = True
-        #         break
-        #     else:
-        #         if page_name == name:
-        #             yield page
-        for page_name, page in self.traverse():
-            if page_name == name:
-                yield page
+    # def isearch(self, name: str) -> Generator[Page]:
+    #     """Yields all pages that match 'name'.
+    #     Multiple pages can match if e.g. a file and directory have the same name.
+    #     Lowest level of the search-related methods."""
+    #     name = normalize_page_name(name)
+    #     # if not hasattr(self, '_page_generator'):
+    #     #     self._page_generator = self.traverse()
+    #     #     self._page_generator.exhausted = False
+    #     # while True:
+    #     #     try:
+    #     #         page_name, page = next(self._page_generator)
+    #     #     except StopIteration:
+    #     #         self._page_generator.exhausted = True
+    #     #         break
+    #     #     else:
+    #     #         if page_name == name:
+    #     #             yield page
+    #     for page_name, page in self.traverse():
+    #         if page_name == name:
+    #             yield page
 
-    def search_all(self, name: str) -> list[Page]:
-        """Returns a list of all pages that match 'name'."""
-        return list(self.isearch(name))
-
-    def searchold(self, name: str) -> Page | None:
-        """Returns the first page that matches 'name'.
-        Same as 'page["name"]'.
-        mock_page_tree.search('BAD') took 0.5ms.
-        mock_page_tree.search('bash') took ~0.1ms (first thing isearch yields).
-        """
-        for page in self.isearch(name):
-            # if page is None:
-            #     log.warning(self, f'.search({name!r}): {page} is None')
-            #     continue
-            return page
-        log.warning(self, f'.searchold({name!r}): nothing found')
-        return None
+    # def searchold(self, name: str) -> Page | None:
+    #     """Returns the first page that matches 'name'.
+    #     Same as 'page["name"]'.
+    #     mock_page_tree.search('BAD') took 0.5ms.
+    #     mock_page_tree.search('bash') took ~0.1ms (first thing isearch yields).
+    #     """
+    #     for page in self.isearch(name):
+    #         # if page is None:
+    #         #     log.warning(self, f'.search({name!r}): {page} is None')
+    #         #     continue
+    #         return page
+    #     log.warning(self, f'.searchold({name!r}): nothing found')
+    #     return None
 
     def search(self, name: str) -> Page | None:
         if not self.__traverse_exhaused__:
@@ -277,22 +294,22 @@ class Page:
 
     __getitem__ = search
 
-    def ideep_search(self, page_path: Sequence[str] | str) -> Generator[tuple[list[str], Page]]:
-        if not page_path:
-            yield [], self
-            return
-        if isinstance(page_path, str):
-            page_path = page_path.split(' ')
-        sub_path, *sub_page_path = page_path
-        any_sub_page = False
-        for sub_page in self.isearch(sub_path):
-            any_sub_page = True
-            for found_paths, found_page in sub_page.ideep_search(sub_page_path):
-                yield [sub_path] + found_paths, found_page
-        if not any_sub_page:
-            log.warning(self, f'.ideep_search({page_path!r}): nothing found')
-            breakpoint()
-            yield [], self
+    # def ideep_search(self, page_path: Sequence[str] | str) -> Generator[tuple[list[str], Page]]:
+    #     if not page_path:
+    #         yield [], self
+    #         return
+    #     if isinstance(page_path, str):
+    #         page_path = page_path.split(' ')
+    #     sub_path, *sub_page_path = page_path
+    #     any_sub_page = False
+    #     for sub_page in self.isearch(sub_path):
+    #         any_sub_page = True
+    #         for found_paths, found_page in sub_page.ideep_search(sub_page_path):
+    #             yield [sub_path] + found_paths, found_page
+    #     if not any_sub_page:
+    #         log.warning(self, f'.ideep_search({page_path!r}): nothing found')
+    #         breakpoint()
+    #         yield [], self
 
     def deep_search(self, page_path: Sequence[str] | str) -> tuple[list[str], Page]:
         """Searches a possibly nested page by it's full path."""
@@ -310,6 +327,15 @@ class Page:
     @abstractmethod
     def read(self, *args, **kwargs) -> str:
         ...
+
+    @CachedProperty
+    def readable(self) -> bool:
+        try:
+            self.read()
+            return True
+        except Exception as e:
+            log.warning(self, f'.readable -> {type(e).__qualname__}: {e}')
+            return False
 
     @CachingGenerator
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
@@ -536,8 +562,9 @@ class MergedPage(Page):
     def read(self, *args, **kwargs) -> str:
         page_texts = []
         for page in self.pages:
-            page_text = page.read()
-            page_texts.append(page_text)
+            if page.readable:
+                page_text = page.read()
+                page_texts.append(page_text)
         return '\n\n-----------\n'.join(page_texts)
 
     def extend(self, *pages: Page) -> None:

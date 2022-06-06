@@ -21,7 +21,7 @@ def test_same_name_same_level_not_all_readable():
 def test_same_name_same_level_all_readable():
     """readable/readable.py with 'readable' var exists,
     as well as plain readable.md file."""
-    readables = mock_page_tree.search_all('readable')
+    readables = mock_page_tree.search('readable')
     assert len(readables) == 2
     # Not sure about Path.iterdir() order
     readable_directory = next((p for p in readables if isinstance(p, DirectoryPage)))
