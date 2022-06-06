@@ -5,7 +5,8 @@ mock_page_tree = DirectoryPage(mock_pages_root)
 
 
 def test_sanity():
-    function_page_with_no_return = mock_page_tree.search('pages').search('no_return')
+    pages = mock_page_tree.search('pages')
+    function_page_with_no_return = pages.search('no_return')
     for page_name in ('diet', 'behavior', 'cognitive', 'mental'):
         assert function_page_with_no_return.search(page_name)
         assert function_page_with_no_return.search(page_name).read()

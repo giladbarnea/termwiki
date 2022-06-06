@@ -3,11 +3,12 @@ from __future__ import annotations
 import ast
 import inspect
 from abc import abstractmethod
+from collections import Callable, Iterable, Iterator
 from collections.abc import Generator, Sequence
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType
-from typing import Callable
+from typing import Generic, TypeVar, Type
 
 import termwiki
 from termwiki.consts import NON_LETTER_RE
@@ -148,13 +149,74 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
         breakpoint()
 
 
+T = TypeVar('T')
+I = TypeVar('I')
+
+
+class CachingGenerator(Generic[T]):
+    instance: T
+    generator: Callable[[T, ...], Iterable[I]]
+    _cacher: Callable[[T, I], ...]
+    _cache_getter: Callable[[T], Iterator[I]]
+
+    def __init__(self, generator: Callable[[T, ...], Iterable[I]]):
+        self.generator = generator
+        self.instance: T = None
+        self._cacher = None
+        self._cache_getter = None
+
+    def __repr__(self):
+        repred = f'{self.__class__.__name__}({self.generator})'
+        if self.instance:
+            repred += f' (instance={repr(self.instance)[:40]}...)'
+        return repred
+
+    def __get__(self, instance: T, owner: Type[T]):
+        if instance is not None:
+            self.instance = instance
+        return self
+
+    def __call__(self, *args, **kwargs):
+        if self.instance is None:
+            raise AttributeError(f'{self.__class__.__name__} is not bound to an instance')
+
+        if getattr(self.instance, f'__{self.generator.__name__}_exhausted__', False):
+            log.warning(f'{self.instance.__class__.__qualname__}.{self.generator.__name__} is exhausted')
+            yield from self._cache_getter(self.instance)
+            return
+
+        for page in self.generator(self.instance, *args, **kwargs):
+            self._cacher(self.instance, page)
+            yield page
+
+        setattr(self.instance, f'__{self.generator.__name__}_exhausted__', True)
+
+    def cacher(self, cacher: Callable[[T, I], ...]):
+        self._cacher = cacher
+
+    def cache_getter(self, cache_getter: Callable[[T], Iterator[I]]):
+        self._cache_getter = cache_getter
+
+
 class Page:
     def __init__(self):
         self.__pages__ = {}
         self.__aliases__ = {}
-        self._traversed = False
+        self.__traverse_exhaused__ = False
 
-    def _cache_page(self, normalized_page_name: str, page: Page) -> Page:
+    def __init_subclass__(cls, **kwargs):
+        if isinstance(cls.traverse, CachingGenerator):
+            log.warning(f'{cls}.traverse is already a CachingGenerator')
+            return
+        traverse = CachingGenerator(cls.traverse)
+        # traverse.on_exhaust(lambda self: setattr(self, '_traversed', True))
+        traverse.cacher(lambda self, page: self._cache_page(page))
+        traverse.cache_getter(lambda self: self.__pages__.items())
+        cls.traverse = traverse
+
+    # def _cache_page(self, normalized_page_name: str, page: Page) -> Page:
+    def _cache_page(self, page_tuple: tuple[str, Page]) -> Page:
+        normalized_page_name, page = page_tuple
         if normalized_page_name in self.__pages__:
             cached_page = self.__pages__[normalized_page_name]
             if isinstance(cached_page, MergedPage):
@@ -204,12 +266,13 @@ class Page:
         log.warning(self, f'.searchold({name!r}): nothing found')
         return None
 
-
     def search(self, name: str) -> Page | None:
-        self.search_all(name)
-        if name not in self.__pages__:
-            log.warning(self, f'.search({name!r}): nothing found')
-        page = self.__pages__[name]
+        if not self.__traverse_exhaused__:
+            list(self.traverse())
+        normalized_page_name = normalize_page_name(name)
+        if normalized_page_name not in self.__pages__:
+            log.warning(self, f'.search({normalized_page_name!r}): nothing found')
+        page = self.__pages__[normalized_page_name]
         return page
 
     __getitem__ = search
@@ -248,8 +311,12 @@ class Page:
     def read(self, *args, **kwargs) -> str:
         ...
 
+    @CachingGenerator
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         return NotImplemented
+
+    # traverse.on_exhaust(lambda self: setattr(self, '_traversed', True))
+    traverse.cacher(lambda self, page: self._cache_page(page))
 
 
 class VariablePage(Page):
@@ -300,10 +367,10 @@ class FunctionPage(Page):
     __call__ = read
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, VariablePage]]:
-        self._traversed and breakpoint()
+        self.__traverse_exhaused__ and breakpoint()
         python_module_ast = self.python_module_ast()
         yield from traverse_function(self.function, python_module_ast)
-        self._traversed = True
+        # self.__traverse_exhaused__ = True
 
 
 class FilePage(Page):
@@ -358,11 +425,11 @@ class PythonFilePage(Page):
         return self[module_name].read()
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
-        self._traversed and breakpoint()
+        self.__traverse_exhaused__ and breakpoint()
         python_module: ModuleType = self.python_module()
         python_module_ast: ast.Module = self.python_module_ast()
         yield from traverse_module(python_module, python_module_ast)
-        self._traversed = True
+        # self.__traverse_exhaused__ = True
 
 
 class DirectoryPage(Page):
@@ -409,7 +476,7 @@ class DirectoryPage(Page):
         """Traverse the directory and yield (name, page) pairs.
         Pages with the same name are both yielded (e.g. a sub-directory
         and a file with the same name)."""
-        self._traversed and breakpoint()
+        self.__traverse_exhaused__ and breakpoint()
         self_directory_path = self.path()
         pages_with_same_name_as_us = []
         # sorted(bla.iterdir()), sorted(bla.glob('*')) and glob.glob(bla) are all about 20 µs
@@ -420,21 +487,21 @@ class DirectoryPage(Page):
             path_name = normalize_page_name(path.name)
             if path.is_dir():
                 directory_page = DirectoryPage(path)
-                self._cache_page(path_name, directory_page)
+                # self._cache_page(path_name, directory_page)
                 yield path_name, directory_page
             else:
                 if path.suffix == '.py':
                     package = self.package()
                     python_file_page = PythonFilePage(path, package)
-                    self._cache_page(path_stem, python_file_page)
+                    # self._cache_page(path_stem, python_file_page)
                     yield path_stem, python_file_page
                 elif path.suffix == '.md':
                     markdown_file_page = MarkdownFilePage(path)
-                    self._cache_page(path_stem, markdown_file_page)
+                    # self._cache_page(path_stem, markdown_file_page)
                     yield path_stem, markdown_file_page
                 else:
                     file_page = FilePage(path)
-                    self._cache_page(path_stem, file_page)
+                    # self._cache_page(path_stem, file_page)
                     yield path_stem, file_page
 
         # Should not only hard code pages.py, but also self-named
@@ -444,10 +511,10 @@ class DirectoryPage(Page):
             package = self.package()
             python_file_page = PythonFilePage(pages_python_file, package)
             for name, page in python_file_page.traverse():
-                self._cache_page(name, page)
+                # self._cache_page(name, page)
                 yield name, page
 
-        self._traversed = True
+        # self.__traverse_exhaused__ = True
         self_directory_name = self_directory_path.stem
         if self_directory_name == 'pages':
             return  # Already traversed
