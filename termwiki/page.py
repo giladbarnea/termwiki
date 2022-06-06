@@ -149,7 +149,10 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
 
 
 class Page:
-    __pages__ = {}
+    def __init__(self):
+        self.__pages__ = {}
+        self.__aliases__ = {}
+        self._traversed = False
 
     def _cache_page(self, normalized_page_name: str, page: Page) -> Page:
         if normalized_page_name in self.__pages__:
@@ -158,8 +161,9 @@ class Page:
                 cached_page.extend(page)
             else:
                 self.__pages__[normalized_page_name] = MergedPage(cached_page, page)
-        self.__pages__[normalized_page_name] = page
-        return page
+        else:
+            self.__pages__[normalized_page_name] = page
+        return self.__pages__[normalized_page_name]
 
     def isearch(self, name: str) -> Generator[Page]:
         """Yields all pages that match 'name'.
@@ -288,8 +292,10 @@ class FunctionPage(Page):
     __call__ = read
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, VariablePage]]:
+        self._traversed and breakpoint()
         python_module_ast = self.python_module_ast()
         yield from traverse_function(self.function, python_module_ast)
+        self._traversed = True
 
 
 class FilePage(Page):
@@ -344,9 +350,11 @@ class PythonFilePage(Page):
         return self[module_name].read()
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
+        self._traversed and breakpoint()
         python_module: ModuleType = self.python_module()
         python_module_ast: ast.Module = self.python_module_ast()
         yield from traverse_module(python_module, python_module_ast)
+        self._traversed = True
 
 
 class DirectoryPage(Page):
@@ -393,6 +401,7 @@ class DirectoryPage(Page):
         """Traverse the directory and yield (name, page) pairs.
         Pages with the same name are both yielded (e.g. a sub-directory
         and a file with the same name)."""
+        self._traversed and breakpoint()
         self_directory_path = self.path()
         pages_with_same_name_as_us = []
         # sorted(bla.iterdir()), sorted(bla.glob('*')) and glob.glob(bla) are all about 20 µs
@@ -430,6 +439,7 @@ class DirectoryPage(Page):
                 self._cache_page(name, page)
                 yield name, page
 
+        self._traversed = True
         self_directory_name = self_directory_path.stem
         if self_directory_name == 'pages':
             return  # Already traversed
@@ -449,7 +459,11 @@ class MergedPage(Page):
         return f'{self.__class__.__name__}(pages={self.pages!r})'
 
     def read(self, *args, **kwargs) -> str:
-        return '\n\n-----------\n'.join(page.read() for page in self.pages)
+        page_texts = []
+        for page in self.pages:
+            page_text = page.read()
+            page_texts.append(page_text)
+        return '\n\n-----------\n'.join(page_texts)
 
     def extend(self, *pages: Page) -> None:
         self.pages.extend(pages)
