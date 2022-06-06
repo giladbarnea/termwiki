@@ -4,12 +4,13 @@ import click
 
 from termwiki import page_tree
 from termwiki.render import render_page
+from termwiki.log import log
 
 
 def get_page(page_path: Sequence[str]) -> bool:
     found_path, page = page_tree.deep_search(page_path)
     if not page:
-        print(f'Page not found! {page_path=} | {found_path=}')
+        log.warning(f'Page not found! {page_path=} | {found_path=}')
         return False
     rendered_text = render_page(page)
     print(rendered_text)
@@ -30,7 +31,7 @@ def get_page(page_path: Sequence[str]) -> bool:
     # print(resolved_directives)
 
 def show_help():
-    print('Error: Must specify a page path.\n')
+    log.error('Must specify a page path.\n')
     ctx = main.context_class(main)
     print(main.get_help(ctx))
 
