@@ -7,7 +7,7 @@ from termwiki.common.types import Style, Language
 from termwiki.consts import IMPORT_RE, SYNTAX_HIGHLIGHT_START_RE, SYNTAX_HIGHLIGHT_END_RE
 from termwiki.page import Page
 from termwiki.render import syntax, syntax_highlight
-from termwiki.render.util import get_indent_level
+from termwiki.render.util import get_indent_level, enumerate_lines
 
 
 def render_page(page: Page,
@@ -69,7 +69,7 @@ def render_page(page: Page,
             groupdict: dict = syntax_highlight_start_match.groupdict()
             lang: Language = groupdict['lang']
             highlighted_lines_count: int = groupdict['count'] and int(groupdict['count'])
-            enumerate_lines: bool = bool(groupdict['line_numbers'])
+            should_enumerate_lines: bool = bool(groupdict['line_numbers'])
             # style precedence:
             # 1. %mysql friendly
             # 2. @syntax(python='friendly')
@@ -106,7 +106,7 @@ def render_page(page: Page,
                     #  Consider highlighting until end of string (better behavior and maybe solves this bug?)
                     text = lines[idx + 1]
                     highlighted = syntax_highlight(text, lang, style)
-                    if enumerate_lines:
+                    if should_enumerate_lines:
                         breakpoint()
                     highlighted_strs.append(highlighted)
                     idx = highlighting_idx
@@ -114,7 +114,7 @@ def render_page(page: Page,
                 else:
                     if SYNTAX_HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
                         text = '\n'.join(lines[idx + 1:highlighting_idx])
-                        if enumerate_lines:
+                        if should_enumerate_lines:
                             # pygments adds color codes to start of line, even if
                             # it's indented. Tighten this up before adding line numbers.
                             indent_level = get_indent_level(text)
