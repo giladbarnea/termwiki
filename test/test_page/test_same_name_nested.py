@@ -1,4 +1,4 @@
-from termwiki.page import FunctionPage, PythonFilePage, DirectoryPage
+from termwiki.page import FunctionPage, PythonFilePage, DirectoryPage, MergedPage
 from test.data import mock_pages_root
 from test.util import clean_str
 
@@ -23,7 +23,7 @@ class TestDirectory:
         else:
             title_index = 0
         title = clean_str(no_return_text_lines[title_index])
-        assert title.lower() == 'no_return'
+        assert title.lower() == 'diet'
 
         # root['pages']['no_return']
         pages_page = mock_page_tree.search('pages')
@@ -35,7 +35,7 @@ class TestDirectory:
         else:
             title_index = 0
         title = clean_str(no_return_text_lines[title_index])
-        assert title.lower() == 'no_return'
+        assert title.lower() == 'diet'
 
         # root['no_return']
         no_return_page: FunctionPage = mock_page_tree.search('no_return')
@@ -46,13 +46,13 @@ class TestDirectory:
         else:
             title_index = 0
         title = clean_str(no_return_text_lines[title_index])
-        assert title.lower() == 'no_return'
+        assert title.lower() == 'diet'
 
     def test_traverse_flattens_nested_pages_with_same_name(self):
-        readable_directory = mock_page_tree['readable']
-        assert isinstance(readable_directory, DirectoryPage)
-        pages = list(readable_directory.traverse())
-        # assert len(pages) == 2
+        only_down_directory = mock_page_tree['only_down']
+        assert isinstance(only_down_directory, DirectoryPage)
+        only_down_directory_text = only_down_directory.read()
+        assert only_down_directory_text == 'only_down'
 
 
 class TestFunction:
@@ -76,13 +76,19 @@ class TestPythonFile:
     def test_self_named_variable(self):
         """
         root/
-            readable/
-                 readable.py
-                    readable: str = "readable variable in readable/readable.py"
+        ├─ readable.md
+        ├─ readable/
+        │ ├─ readable.py
+        │ │  ├─ readable: str = "readable variable in readable/readable.py"
+
+        Should return page(s) which have a 'readable' subpage:
+        merged_readable_markdown_and_directory.search('readable').
+        Since readable.md doesn't, and readable/ dir does, it should return
+        readable/readable.py.
         """
-        readable_directory: DirectoryPage
-        readable_directory_paths, readable_directory = mock_page_tree.deep_search('readable')
-        readable_python_file: PythonFilePage = readable_directory.search('readable')
+        merged_readable_markdown_and_directory: MergedPage = mock_page_tree.search('readable')
+        assert len(merged_readable_markdown_and_directory.pages) == 2
+        readable_python_file: PythonFilePage = merged_readable_markdown_and_directory.search('readable')
         readable_variable: FunctionPage = readable_python_file.search('readable')
         readable_text = readable_variable.read()
         assert readable_text == "readable variable in readable/readable.py"

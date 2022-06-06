@@ -283,12 +283,10 @@ class Page:
     #     log.warning(self, f'.searchold({name!r}): nothing found')
     #     return None
 
-    def search(self, name: str) -> Page | None:
+    def search(self, name: str) -> Page:
         if not self.__traverse_exhaused__:
             list(self.traverse())
         normalized_page_name = normalize_page_name(name)
-        if normalized_page_name not in self.__pages__:
-            log.warning(self, f'.search({normalized_page_name!r}): nothing found')
         page = self.__pages__[normalized_page_name]
         return page
 
@@ -339,9 +337,8 @@ class Page:
 
     @CachingGenerator
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
-        return NotImplemented
+        raise NotImplementedError(f'{self.__class__.__qualname__}.traverse()')
 
-    # traverse.on_exhaust(lambda self: setattr(self, '_traversed', True))
     traverse.cacher(lambda self, page: self._cache_page(page))
 
 
@@ -380,7 +377,7 @@ class FunctionPage(Page):
         if text is not None:
             return text
         # If a function doesn't return, return its joined variables
-        variable_texts = [f'# {self.function.__qualname__}']
+        variable_texts = []
         seen_variable_pages = set()
         for var_name, var_page in self.traverse():
             if var_page.value in seen_variable_pages:
@@ -396,7 +393,6 @@ class FunctionPage(Page):
         self.__traverse_exhaused__ and breakpoint()
         python_module_ast = self.python_module_ast()
         yield from traverse_function(self.function, python_module_ast)
-        # self.__traverse_exhaused__ = True
 
 
 class FilePage(Page):
@@ -455,7 +451,6 @@ class PythonFilePage(Page):
         python_module: ModuleType = self.python_module()
         python_module_ast: ast.Module = self.python_module_ast()
         yield from traverse_module(python_module, python_module_ast)
-        # self.__traverse_exhaused__ = True
 
 
 class DirectoryPage(Page):
@@ -540,7 +535,6 @@ class DirectoryPage(Page):
                 # self._cache_page(name, page)
                 yield name, page
 
-        # self.__traverse_exhaused__ = True
         self_directory_name = self_directory_path.stem
         if self_directory_name == 'pages':
             return  # Already traversed
@@ -557,7 +551,11 @@ class MergedPage(Page):
         self.pages = list(pages)
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(pages={self.pages!r})'
+        return f'{self.__class__.__name__}(pages={repr(self.pages)[:40]})'
+
+    def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
+        for page in self.pages:
+            yield from page.traverse(*args, **kwargs)
 
     def read(self, *args, **kwargs) -> str:
         page_texts = []
