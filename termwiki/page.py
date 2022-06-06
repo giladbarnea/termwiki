@@ -375,7 +375,8 @@ class DirectoryPage(Page):
             self._path = Path(package.__file__).parent
         else:
             # Also works: self.package.__spec__.submodule_search_locations[0]
-            self._path = Path(package.__package__.replace('.', '/'))
+            # self._path = Path(package.__package__.replace('.', '/'))
+            self._path = Path(package.__path__[0])
         return self._path
 
     def stem(self) -> str:
