@@ -190,7 +190,7 @@ class Page:
         """Returns a list of all pages that match 'name'."""
         return list(self.isearch(name))
 
-    def search(self, name: str) -> Page | None:
+    def searchold(self, name: str) -> Page | None:
         """Returns the first page that matches 'name'.
         Same as 'page["name"]'.
         mock_page_tree.search('BAD') took 0.5ms.
@@ -201,8 +201,16 @@ class Page:
             #     log.warning(self, f'.search({name!r}): {page} is None')
             #     continue
             return page
-        log.warning(self, f'.search({name!r}): nothing found')
+        log.warning(self, f'.searchold({name!r}): nothing found')
         return None
+
+
+    def search(self, name: str) -> Page | None:
+        self.search_all(name)
+        if name not in self.__pages__:
+            log.warning(self, f'.search({name!r}): nothing found')
+        page = self.__pages__[name]
+        return page
 
     __getitem__ = search
 
