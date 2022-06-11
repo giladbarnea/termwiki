@@ -44,7 +44,10 @@ def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, i
 def get_local_var_names_inside_joined_str(joined_str: ast.JoinedStr) -> list[str]:
     var_names = []
     for formatted_value in joined_str.values:
-        if isinstance(formatted_value, ast.FormattedValue) and isinstance(formatted_value.value, ast.Name):
+        if isinstance(formatted_value, ast.FormattedValue) \
+                and isinstance(formatted_value.value, ast.Name):
+            # We care only about {local_var} fstrings, aka formatted_value.value: ast.Name
+            # because anything else (ast.Call etc) is found in globals_
             var_names.append(formatted_value.value.id)
     return var_names
 
@@ -55,17 +58,27 @@ def get_local_variables(joined_str: ast.JoinedStr,
                         ) -> dict:
     isinstance(joined_str, ast.JoinedStr) or breakpoint()
     local_var_names_in_fstring = get_local_var_names_inside_joined_str(joined_str)
-    # In terms of reuse, FunctionPage.python_module_ast() also does this
-    function_def = ast.parse(inspect.getsource(parent)).body[0]
-    isinstance(function_def, ast.FunctionDef) or breakpoint()
     local_variables = dict.fromkeys(local_var_names_in_fstring)
-    for assign in function_def.body:
-        if not isinstance(assign, ast.Assign):
-            continue
-        for target in assign.targets:
-            if target.id in local_var_names_in_fstring:
-                var_value = eval(ast.unparse(assign.value), globals_)
-                local_variables[target.id] = var_value
+    # In terms of reuse, FunctionPage.python_module_ast() also does this
+    # traverse_assign_node(source_node, parent)
+    source_parent_node: ast.Module = ast.parse(inspect.getsource(parent))
+    source_node = source_parent_node.body[0]
+    if isinstance(source_node, ast.FunctionDef):
+        for assign in source_node.body:
+            if not isinstance(assign, ast.Assign):
+                continue
+            for target in assign.targets:
+                if target.id in local_var_names_in_fstring:
+                    var_value = eval(ast.unparse(assign.value), globals_)
+                    local_variables[target.id] = var_value
+    elif isinstance(source_node, ast.Assign):
+        # breakpoint()
+        for var_name, var_value in traverse_assign_node(source_node, parent):
+            local_variables[var_name] = var_value
+    else:
+        raise NotImplementedError(f'get_local_variables(...) | {source_node=} '
+                                  f'not FunctionDef nor Assign. {source_parent_node=}'
+                                  f'{parent=}')
     return local_variables
 
 
@@ -113,7 +126,7 @@ def traverse_function(function: Callable[..., str], python_module_ast: ast.Modul
             yield from traverse_assign_node(node, function)
         else:
             assert hasattr(node, 'value'), f'{node} has no value attribute' or breakpoint()
-            yield from traverse_immutable_when_unparsed(node, function, function_def_ast.name)
+            yield from traverse_immutable_when_unparsed(node, function, function_def_ast.name) # note: when node is ast.Return, function_def_ast.name is the function name
 
 
 def traverse_module(module: ModuleType, python_module_ast: ast.Module):
@@ -175,6 +188,8 @@ class CachingGenerator(Generic[T]):
 
     def __get__(self, instance: T, owner: Type[T]):
         if instance is not None:
+            # if self.instance:
+            #     assert self.instance is instance, f'{self} is not bound to {instance}'
             self.instance = instance
         return self
 
@@ -220,11 +235,9 @@ class CachedProperty(Generic[T]):
         return return_value
 
 
-class Page:
+class Traversable:
     def __init__(self):
-        self.__text__ = None
         self.__pages__ = {}
-        self.__aliases__ = {}
         self.__traverse_exhaused__ = False
 
     def __init_subclass__(cls, **kwargs):
@@ -247,6 +260,64 @@ class Page:
         else:
             self.__pages__[normalized_page_name] = page
         return self.__pages__[normalized_page_name]
+
+    @CachingGenerator
+    def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
+        raise NotImplementedError(f'{self.__class__.__qualname__}.traverse()')
+
+    traverse.cacher(lambda self, page: self._cache_page(page))
+
+    def search(self, name: str) -> Page:
+        if not self.__traverse_exhaused__:
+            list(self.traverse())
+        normalized_page_name = normalize_page_name(name)
+        page = self.__pages__[normalized_page_name]
+        return page
+
+    __getitem__ = search
+
+    def deep_search(self, page_path: Sequence[str] | str) -> tuple[list[str], Page]:
+        """Searches a possibly nested page by it's full path."""
+        if not page_path:
+            return [], self
+        if isinstance(page_path, str):
+            page_path = page_path.split(' ')
+        sub_path, *sub_page_path = page_path
+        sub_page = self.search(sub_path)
+        if not sub_page:
+            return [], self
+        if not hasattr(sub_page, 'deep_search'):
+            return [sub_path], sub_page
+        found_paths, found_page = sub_page.deep_search(sub_page_path)
+        return [sub_path] + found_paths, found_page
+
+
+class Page:
+    def __init__(self):
+        # self.__pages__ = {}
+        # self.__traverse_exhaused__ = False
+        self.__aliases__ = {}
+
+    # def __init_subclass__(cls, **kwargs):
+    #     if isinstance(cls.traverse, CachingGenerator):
+    #         log.warning(f'{cls}.traverse is already a CachingGenerator')
+    #         return
+    #     traverse = CachingGenerator(cls.traverse)
+    #     traverse.cacher(lambda self, page: self._cache_page(page))
+    #     traverse.cache_getter(lambda self: self.__pages__.items())
+    #     cls.traverse = traverse
+
+    # def _cache_page(self, page_tuple: tuple[str, Page]) -> Page:
+    #     normalized_page_name, page = page_tuple
+    #     if normalized_page_name in self.__pages__:
+    #         cached_page = self.__pages__[normalized_page_name]
+    #         if isinstance(cached_page, MergedPage):
+    #             cached_page.extend(page)
+    #         else:
+    #             self.__pages__[normalized_page_name] = MergedPage(cached_page, page)
+    #     else:
+    #         self.__pages__[normalized_page_name] = page
+    #     return self.__pages__[normalized_page_name]
 
     # def isearch(self, name: str) -> Generator[Page]:
     #     """Yields all pages that match 'name'.
@@ -283,14 +354,14 @@ class Page:
     #     log.warning(self, f'.searchold({name!r}): nothing found')
     #     return None
 
-    def search(self, name: str) -> Page:
-        if not self.__traverse_exhaused__:
-            list(self.traverse())
-        normalized_page_name = normalize_page_name(name)
-        page = self.__pages__[normalized_page_name]
-        return page
-
-    __getitem__ = search
+    # def search(self, name: str) -> Page:
+    #     if not self.__traverse_exhaused__:
+    #         list(self.traverse())
+    #     normalized_page_name = normalize_page_name(name)
+    #     page = self.__pages__[normalized_page_name]
+    #     return page
+    #
+    # __getitem__ = search
 
     # def ideep_search(self, page_path: Sequence[str] | str) -> Generator[tuple[list[str], Page]]:
     #     if not page_path:
@@ -309,18 +380,18 @@ class Page:
     #         breakpoint()
     #         yield [], self
 
-    def deep_search(self, page_path: Sequence[str] | str) -> tuple[list[str], Page]:
-        """Searches a possibly nested page by it's full path."""
-        if not page_path:
-            return [], self
-        if isinstance(page_path, str):
-            page_path = page_path.split(' ')
-        sub_path, *sub_page_path = page_path
-        sub_page = self.search(sub_path)
-        if not sub_page:
-            return [], self
-        found_paths, found_page = sub_page.deep_search(sub_page_path)
-        return [sub_path] + found_paths, found_page
+    # def deep_search(self, page_path: Sequence[str] | str) -> tuple[list[str], Page]:
+    #     """Searches a possibly nested page by it's full path."""
+    #     if not page_path:
+    #         return [], self
+    #     if isinstance(page_path, str):
+    #         page_path = page_path.split(' ')
+    #     sub_path, *sub_page_path = page_path
+    #     sub_page = self.search(sub_path)
+    #     if not sub_page:
+    #         return [], self
+    #     found_paths, found_page = sub_page.deep_search(sub_page_path)
+    #     return [sub_path] + found_paths, found_page
 
     @abstractmethod
     def read(self, *args, **kwargs) -> str:
@@ -335,11 +406,11 @@ class Page:
             log.warning(self, f'.readable -> {type(e).__qualname__}: {e}')
             return False
 
-    @CachingGenerator
-    def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
-        raise NotImplementedError(f'{self.__class__.__qualname__}.traverse()')
-
-    traverse.cacher(lambda self, page: self._cache_page(page))
+    # @CachingGenerator
+    # def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
+    #     raise NotImplementedError(f'{self.__class__.__qualname__}.traverse()')
+    #
+    # traverse.cacher(lambda self, page: self._cache_page(page))
 
 
 class VariablePage(Page):
@@ -357,7 +428,7 @@ class VariablePage(Page):
         return str(self.value)
 
 
-class FunctionPage(Page):
+class FunctionPage(Traversable, Page):
     def __init__(self, function: Callable[..., str]) -> None:
         super().__init__()
         self.function = function
@@ -413,7 +484,7 @@ class MarkdownFilePage(FilePage):  # maybe subclassing Page is better
     """Traverses headings"""
 
 
-class PythonFilePage(Page):
+class PythonFilePage(Traversable, Page):
     """A Python module representing a file (not a package)"""
 
     def __init__(self, python_module: ModuleType | Path, parent: ModuleType = None) -> None:
@@ -453,7 +524,7 @@ class PythonFilePage(Page):
         yield from traverse_module(python_module, python_module_ast)
 
 
-class DirectoryPage(Page):
+class DirectoryPage(Traversable, Page):
     """A directory / package / namespace."""
 
     def __init__(self, package: ModuleType | Path) -> None:
@@ -543,7 +614,7 @@ class DirectoryPage(Page):
         #     yield from self.search(subpath_with_same_name.name).traverse()
 
 
-class MergedPage(Page):
+class MergedPage(Traversable, Page):
     """A page that is the merge of several pages"""
 
     def __init__(self, *pages: Page) -> None:
@@ -555,7 +626,8 @@ class MergedPage(Page):
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         for page in self.pages:
-            yield from page.traverse(*args, **kwargs)
+            if hasattr(page, 'traverse'):
+                yield from page.traverse()
 
     def read(self, *args, **kwargs) -> str:
         page_texts = []

@@ -24,14 +24,14 @@ def test_same_name_same_level_all_readable():
     merged_readable_markdown_and_directory: MergedPage = mock_page_tree.search('readable')
     assert len(merged_readable_markdown_and_directory.pages) == 2
 
-    readable_directory = next((p for p in merged_readable_markdown_and_directory if isinstance(p, DirectoryPage)))
+    readable_directory = next((p for p in merged_readable_markdown_and_directory.pages if isinstance(p, DirectoryPage)))
 
     readable_directory_text = readable_directory.read()
     assert readable_directory_text == "readable variable in readable/readable.py"
     assert readable_directory.search('readable')
     assert readable_directory.search('readable').read() == readable_directory_text
 
-    readable_md_file = next((p for p in merged_readable_markdown_and_directory if isinstance(p, MarkdownFilePage)))
+    readable_md_file = next((p for p in merged_readable_markdown_and_directory.pages if isinstance(p, MarkdownFilePage)))
     readable_md_file_text = readable_md_file.read()
     assert readable_md_file_text == "readable.md content"
 

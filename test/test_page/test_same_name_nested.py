@@ -1,4 +1,4 @@
-from termwiki.page import FunctionPage, PythonFilePage, DirectoryPage, MergedPage
+from termwiki.page import FunctionPage, PythonFilePage, DirectoryPage, MergedPage, VariablePage
 from test.data import mock_pages_root
 from test.util import clean_str
 
@@ -89,7 +89,11 @@ class TestPythonFile:
         merged_readable_markdown_and_directory: MergedPage = mock_page_tree.search('readable')
         assert len(merged_readable_markdown_and_directory.pages) == 2
         readable_python_file: PythonFilePage = merged_readable_markdown_and_directory.search('readable')
-        readable_variable: FunctionPage = readable_python_file.search('readable')
+        assert isinstance(readable_python_file, PythonFilePage)
+        readable_function: FunctionPage = readable_python_file.search('readable')
+        assert isinstance(readable_function, FunctionPage)
+        readable_variable: VariablePage = readable_function.search('readable')
+        assert isinstance(readable_variable, VariablePage)
         readable_text = readable_variable.read()
         assert readable_text == "readable variable in readable/readable.py"
 
