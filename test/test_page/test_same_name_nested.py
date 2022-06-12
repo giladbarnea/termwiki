@@ -1,3 +1,4 @@
+from textwrap import shorten
 from termwiki.page import FunctionPage, PythonFilePage, DirectoryPage, MergedPage, VariablePage
 from test.data import mock_pages_root
 from test.util import clean_str
@@ -86,15 +87,24 @@ class TestPythonFile:
         Since readable.md doesn't, and readable/ dir does, it should return
         readable/readable.py.
         """
+        # * First, manually search one by one until 'readable' var
         merged_readable_markdown_and_directory: MergedPage = mock_page_tree.search('readable')
         assert len(merged_readable_markdown_and_directory.pages) == 2
         readable_python_file: PythonFilePage = merged_readable_markdown_and_directory.search('readable')
-        assert isinstance(readable_python_file, PythonFilePage)
+        assert isinstance(readable_python_file, PythonFilePage), readable_python_file
         readable_function: FunctionPage = readable_python_file.search('readable')
-        assert isinstance(readable_function, FunctionPage)
+        assert isinstance(readable_function, FunctionPage), readable_function
         readable_variable: VariablePage = readable_function.search('readable')
-        assert isinstance(readable_variable, VariablePage)
+        assert isinstance(readable_variable, VariablePage), readable_variable
         readable_text = readable_variable.read()
-        assert readable_text == "readable variable in readable/readable.py"
+        assert readable_text == "readable variable in readable/readable.py readable()", shorten(readable_text, 55)
 
-        assert mock_page_tree.search('readable').read() == readable_text
+        # * Second, test that read() does deep search if needed
+        readable_directory: DirectoryPage = merged_readable_markdown_and_directory.pages[0]
+        assert isinstance(readable_directory, DirectoryPage), readable_directory
+        assert readable_directory.read() == readable_text
+        assert readable_directory.search('readable').read() == readable_text
+        assert readable_python_file.read() == readable_text
+        assert readable_python_file.search('readable').read() == readable_text
+        assert readable_function.read() == readable_text
+        assert readable_function.search('readable').read() == readable_text

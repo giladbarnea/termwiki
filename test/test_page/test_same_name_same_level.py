@@ -27,7 +27,7 @@ def test_same_name_same_level_all_readable():
     readable_directory = next((p for p in merged_readable_markdown_and_directory.pages if isinstance(p, DirectoryPage)))
 
     readable_directory_text = readable_directory.read()
-    assert readable_directory_text == "readable variable in readable/readable.py"
+    assert readable_directory_text == "readable variable in readable/readable.py readable()"
     assert readable_directory.search('readable')
     assert readable_directory.search('readable').read() == readable_directory_text
 

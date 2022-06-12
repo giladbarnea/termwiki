@@ -1,4 +1,5 @@
-readable = "readable variable in readable/readable.py"
+def readable():
+    _readable = "readable variable in readable/readable.py readable()"
 
 # test traverse_assign_node() get_local_variables() part which fails if parent is a module
 _level = "module"
