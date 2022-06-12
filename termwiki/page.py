@@ -69,7 +69,7 @@ def get_local_variables(joined_str: ast.JoinedStr,
                 continue
             for target in assign.targets:
                 if target.id in local_var_names_in_fstring:
-                    var_value = eval(ast.unparse(assign.value), globals_)
+                    var_value = eval_node(assign.value, parent, globals_)
                     local_variables[target.id] = var_value
     elif isinstance(source_node, ast.Assign):
         # breakpoint()
@@ -82,6 +82,21 @@ def get_local_variables(joined_str: ast.JoinedStr,
     return local_variables
 
 
+def eval_node(node, parent, globals_):
+    unparsed_value = ast.unparse(node)
+    try:
+        evaled: str = eval(unparsed_value, globals_)
+    except NameError as e:
+        # This happens when the value is composed of other local variables
+        #  within the same function. E.g the value is "f'{x}'", and x is a local variable.
+        #  'x' isn't in the globals, so it's a NameError.
+        #  We're resolving the values of the composing local variables.
+
+        locals_ = get_local_variables(node, parent, globals_)
+        evaled = eval(unparsed_value, globals_, locals_)
+    return evaled
+
+
 def traverse_immutable_when_unparsed(node, parent, target_id):
     """JoinedStr, Constant, Name, FormattedValue, or sometimes even a simple Expr,
     when ast.unparse(node) returns a string that can be evaluated and used as-is."""
@@ -92,18 +107,9 @@ def traverse_immutable_when_unparsed(node, parent, target_id):
         assert not callable(parent) and isinstance(parent, ModuleType), f'{parent} is not a module'
         globals_ = parent.__builtins__
     else:
-        raise AttributeError(f'traverse_immutable_when_unparsed({node=}, {parent=}, {target_id=}): parent has neither __globals__ nor __builtins__. {type(parent) = }')
-    unparsed_value = ast.unparse(node.value)
-    try:
-        rendered: str = eval(unparsed_value, globals_)
-    except NameError as e:
-        # This happens when the value is composed of other local variables
-        #  within the same function. E.g the value is "f'{x}'", and x is a local variable.
-        #  'x' isn't in the globals, so it's a NameError.
-        #  We're resolving the values of the composing local variables.
-
-        locals_ = get_local_variables(node.value, parent, globals_)
-        rendered = eval(unparsed_value, globals_, locals_)
+        raise AttributeError(f'traverse_immutable_when_unparsed({node=}, {parent=}, {target_id=}): '
+                             f'parent has neither __globals__ nor __builtins__. {type(parent) = }')
+    rendered = eval_node(node.value, parent, globals_)
     yield target_id, VariablePage(rendered, target_id)
 
 
@@ -126,7 +132,7 @@ def traverse_function(function: Callable[..., str], python_module_ast: ast.Modul
             yield from traverse_assign_node(node, function)
         else:
             assert hasattr(node, 'value'), f'{node} has no value attribute' or breakpoint()
-            yield from traverse_immutable_when_unparsed(node, function, function_def_ast.name) # note: when node is ast.Return, function_def_ast.name is the function name
+            yield from traverse_immutable_when_unparsed(node, function, function_def_ast.name)  # note: when node is ast.Return, function_def_ast.name is the function name
 
 
 def traverse_module(module: ModuleType, python_module_ast: ast.Module):
