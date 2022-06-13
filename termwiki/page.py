@@ -204,7 +204,7 @@ class CachingGenerator(Generic[T]):
             raise AttributeError(f'{self.__class__.__name__} is not bound to an instance')
 
         if getattr(self.instance, f'__{self.generator.__name__}_exhausted__', False):
-            log.warning(f'{self.instance.__class__.__qualname__}.{self.generator.__name__} is exhausted')
+            # log.warning(f'{self.instance.__class__.__qualname__}.{self.generator.__name__} is exhausted')
             yield from self._cache_getter(self.instance)
             return
 

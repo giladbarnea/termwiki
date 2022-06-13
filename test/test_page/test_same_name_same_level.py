@@ -1,4 +1,3 @@
-# from termwiki.log import log
 from termwiki.page import DirectoryPage, MarkdownFilePage, MergedPage
 from test.data import mock_pages_root
 
@@ -7,13 +6,14 @@ mock_page_tree = DirectoryPage(mock_pages_root)
 
 def test_same_name_same_level_not_all_readable():
     """bash/ dir exists as well as pages.py bash() function.
-    bash/ dir has only an irrelevant file, but it's detected first by DirectoryPage.
-    So we expect 'search', which filters falsy Pages, to return only the FunctionPage('bash')"""
+    bash/ dir has only an unreadable file.
+    So we expect 'read', which skips unreadable Pages,
+    to return only the contents of bash() function."""
     # orig_search = mock_page_tree.__class__.search
     # mock_page_tree.__class__.search = log.log_in_out(orig_search)
     bash = mock_page_tree.search('bash')
     assert bash
-    bash_text = bash.read()
+    bash_text = bash['foo'].read()
     assert bash_text == "pages.py bash() function"
     # mock_page_tree.__class__.search = orig_search
 

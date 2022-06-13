@@ -42,4 +42,5 @@ def with_alias_decorator():
     return "with @alias('with_alias') decorator"
 
 def bash():
-    return "pages.py bash() function"
+    foo = "pages.py bash() function"
+    xargs = "bash.xargs" # the only 'xargs' page in tree
