@@ -1,14 +1,31 @@
-from collections.abc import Sequence
+from __future__ import annotations
+
+import subprocess
 import sys
+from collections.abc import Sequence
+from typing import Iterable
+
 import click
 
 from termwiki import page_tree
-from termwiki.render import render_page
 from termwiki.log import log
+from termwiki.render import render_page
+
+
+def fuzzy_search(iterable: Iterable[str], search_term: str) -> str | None:
+    command = 'echo "' + '\n'.join(iterable) + f'" | fzf --reverse -q {search_term}'
+    try:
+        output = subprocess.check_output(command, shell=True)
+    except subprocess.CalledProcessError as e:
+        return None
+    return output.decode('utf-8').strip()
 
 
 def get_page(page_path: Sequence[str]) -> bool:
-    found_path, page = page_tree.deep_search(page_path)
+    # todo: on_not_found=fuzzy_search is problematic, because what if
+    #  want page from another indentation?
+    found_path, page = page_tree.deep_search(page_path, on_not_found=fuzzy_search)
+
     if not page:
         log.warning(f'Page not found! {page_path=} | {found_path=}')
         return False
@@ -30,6 +47,7 @@ def get_page(page_path: Sequence[str]) -> bool:
     # resolved_directives = render_page(page_text)
     # print(resolved_directives)
 
+
 def show_help():
     log.error('Must specify a page path.\n')
     ctx = main.context_class(main)
@@ -45,5 +63,3 @@ def main(page_path: tuple[str]):
         sys.exit(1)
     ok = get_page(page_path)
     sys.exit(0 if ok else 1)
-
-

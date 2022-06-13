@@ -241,6 +241,14 @@ class CachedProperty(Generic[T]):
         return return_value
 
 
+class PageNotFound(KeyError):
+
+    def __init__(self, traversable: Traversable, page_name: str, *args):
+        super().__init__(*args)
+        self.traversable = traversable
+        self.page_name = page_name
+
+
 class Traversable:
     def __init__(self):
         self.__pages__ = {}
@@ -273,28 +281,43 @@ class Traversable:
 
     traverse.cacher(lambda self, page: self._cache_page(page))
 
-    def search(self, name: str) -> Page:
+    # traverse._cacher = lambda self, page: self._cache_page(page)
+
+    def search(self,
+               name: str,
+               *,
+               on_not_found: Callable[[Iterable[str], str], str | None] = None) -> Page:
         if not self.__traverse_exhaused__:
             list(self.traverse())
         normalized_page_name = normalize_page_name(name)
-        page = self.__pages__[normalized_page_name]
-        return page
+        if normalized_page_name in self.__pages__:
+            return self.__pages__[normalized_page_name]
+        if on_not_found is None:
+            raise PageNotFound(self, normalized_page_name)
+        page_name = on_not_found(self.__pages__.keys(), normalized_page_name)
+        if page_name is None:
+            raise PageNotFound(self, normalized_page_name)
+        return self.__pages__[page_name]
 
     __getitem__ = search
 
-    def deep_search(self, page_path: Sequence[str] | str) -> tuple[list[str], Page]:
+    def deep_search(self,
+                    page_path: Sequence[str] | str,
+                    *,
+                    on_not_found: Callable[[Iterable[str], str], str | None] = None,
+                    ) -> tuple[list[str], Page]:
         """Searches a possibly nested page by it's full path."""
         if not page_path:
             return [], self
         if isinstance(page_path, str):
             page_path = page_path.split(' ')
         sub_path, *sub_page_path = page_path
-        sub_page = self.search(sub_path)
+        sub_page = self.search(sub_path, on_not_found=on_not_found)
         if not sub_page:
             return [], self
         if not hasattr(sub_page, 'deep_search'):
             return [sub_path], sub_page
-        found_paths, found_page = sub_page.deep_search(sub_page_path)
+        found_paths, found_page = sub_page.deep_search(sub_page_path, on_not_found=on_not_found)
         return [sub_path] + found_paths, found_page
 
 
