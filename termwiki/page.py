@@ -340,6 +340,7 @@ class Traversable:
         merged_sub_pages_text = merged_sub_pages.read()
         return merged_sub_pages_text
 
+
 class Page:
     def __init__(self):
         # self.__pages__ = {}
