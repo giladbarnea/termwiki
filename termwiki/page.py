@@ -330,7 +330,8 @@ class Traversable:
         return merged_sub_pages
 
     def read(self, *args, **kwargs) -> str:
-        # """Read the contained function / variable / class with the same name as the module"""
+        """Tries to read a sub-page with the same name as this page.
+        If not found, the sub-pages are merged and the merged page is read."""
         name = self.name()
         page = self.search(name)
         if page:
