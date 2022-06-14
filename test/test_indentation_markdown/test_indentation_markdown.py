@@ -15,7 +15,8 @@ class TestIndentationMarkdown:
     """
 
     def test_click_option_indented_md_no_code_blocks(self):
-        text = Path('test/data/mock_pages_root/click.option.no-code-blocks.indented-md').read_text()
+        # todo: check out private_pagse karabiner for example
+        text = Path('test/data/mock_pages_root/indentation_markdown/click.option.no-code-blocks.indented-md').read_text()
         indentation_markdown = IndentationMarkdown(text)
         indentation_markdown.parse()
         # print()
