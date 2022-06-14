@@ -6,7 +6,6 @@ from collections.abc import Sequence
 from typing import Iterable
 
 import click
-
 from termwiki import page_tree
 from termwiki.log import log
 from termwiki.render import render_page
@@ -24,23 +23,13 @@ def fuzzy_search(iterable: Iterable[str], search_term: str) -> str | None:
 def get_page(page_path: Sequence[str]) -> bool:
     # todo: on_not_found=fuzzy_search is problematic, because what if
     #  want page from another indentation?
-    found_path, page = page_tree.deep_search(page_path, on_not_found=fuzzy_search)
+    found_path, page = page_tree.deep_search(page_path,
+                                             on_not_found=fuzzy_search,
+                                             deep_search_sub_pages=True)
 
     if not page:
         log.warning(f'Page not found! {page_path=} | {found_path=}')
         return False
-
-    page_path = list(page_path)
-    while page_path[len(found_path):]:
-        # maybe move this logic into page.py
-        merged_sub_pages = page.merge_pages()
-        unfound_page_path = page_path[len(found_path):]
-        deep_found_path, page = merged_sub_pages.deep_search(unfound_page_path)
-        if not page:
-            log.warning(f'Traversed only part of the path. {page_path=} | {found_path=} | {found_path2=}')
-            return False
-        found_path += deep_found_path
-
 
     rendered_text = render_page(page)
     print(rendered_text)

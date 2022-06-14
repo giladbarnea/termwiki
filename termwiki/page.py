@@ -329,6 +329,7 @@ class Traversable(Page):
                     page_path: Sequence[str] | str,
                     *,
                     on_not_found: Callable[[Iterable[str], str], str | None] = None,
+                    deep_search_sub_pages: bool = False,
                     ) -> tuple[list[str], Page]:
         """Searches a possibly nested page by it's full path.
         The main justification for this method is its return value,
@@ -340,11 +341,23 @@ class Traversable(Page):
         sub_path, *sub_page_path = page_path
         sub_page: Page | Traversable = self.search(sub_path, on_not_found=on_not_found)
         if not sub_page:
-            return [], self
+            if not deep_search_sub_pages:
+                return [], self
+            merged_sub_pages = self.merge_pages()
+            return merged_sub_pages.deep_search(page_path,
+                                                on_not_found=on_not_found,
+                                                deep_search_sub_pages=True)
         if not hasattr(sub_page, 'deep_search'):
             return [sub_path], sub_page
         sub_page: Traversable
+        if not sub_page_path:
+            return [sub_path], sub_page
         found_paths, found_page = sub_page.deep_search(sub_page_path, on_not_found=on_not_found)
+        if not found_paths and deep_search_sub_pages:
+            merged_sub_pages = found_page.merge_pages()
+            return merged_sub_pages.deep_search(sub_page_path,
+                                                on_not_found=on_not_found,
+                                                deep_search_sub_pages=True)
         return [sub_path] + found_paths, found_page
 
     def merge_pages(self) -> MergedPage:
