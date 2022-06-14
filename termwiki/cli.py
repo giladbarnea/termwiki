@@ -29,23 +29,22 @@ def get_page(page_path: Sequence[str]) -> bool:
     if not page:
         log.warning(f'Page not found! {page_path=} | {found_path=}')
         return False
+
+    page_path = list(page_path)
+    while page_path[len(found_path):]:
+        # maybe move this logic into page.py
+        merged_sub_pages = page.merge_pages()
+        unfound_page_path = page_path[len(found_path):]
+        deep_found_path, page = merged_sub_pages.deep_search(unfound_page_path)
+        if not page:
+            log.warning(f'Traversed only part of the path. {page_path=} | {found_path=} | {found_path2=}')
+            return False
+        found_path += deep_found_path
+
+
     rendered_text = render_page(page)
     print(rendered_text)
     return True
-    # first_level_name, *pages = pages
-    # first_level_pages = page_tree.get(first_level_name)
-    # if len(first_level_pages) > 1:
-    #     if not pages:
-    #         print(f'Not Implemented yet! {first_level_name = !r}, {first_level_pages = }')
-    #         return
-    #     print('Should iterate over pages, see which page doesnt dead-end')
-    #     breakpoint()
-    # page = first_level_pages[0]
-    # for page_name in pages:
-    #     page = page[page_name]
-    # page_text = page.read()
-    # resolved_directives = render_page(page_text)
-    # print(resolved_directives)
 
 
 def show_help():
