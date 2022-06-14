@@ -28,7 +28,7 @@ def get_page(page_path: Sequence[str]) -> bool:
                                              deep_search_sub_pages=True)
 
     if not page:
-        log.warning(f'Page not found! {page_path=} | {found_path=}')
+        log.error(f'Page not found! {page_path=} | {found_path=}')
         return False
 
     rendered_text = render_page(page)
