@@ -365,8 +365,12 @@ class Traversable(Page):
         return merged_sub_pages
 
     def read(self, *args, **kwargs) -> str:
-        """Tries to read a sub-page with the same name as this page.
-        If not found, the sub-pages are merged and the merged page is read."""
+        """Tries to read a sub-page with the same name as itself.
+        If not found, the sub-pages are merged and the merged page is read.
+
+        Subclasses that have an inherent way to return their own content
+        should override this method, and call super().read() in case of failure.
+        """
         name = self.name()
         page = self.search(name)
         if page:

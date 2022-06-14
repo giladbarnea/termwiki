@@ -1,8 +1,19 @@
 from __future__ import annotations
 
+import re
 from collections import deque
+from collections.abc import Sized
 
 from termwiki.render.util import get_indent_level
+
+
+def traverse_block(block: Block):
+    for line in block.lines:
+        if isinstance(line, Header):
+            yield line
+            yield from traverse_block(line.block)
+        else:
+            yield line
 
 
 def first_truthy_line_index(lines: list) -> int:
@@ -12,22 +23,80 @@ def first_truthy_line_index(lines: list) -> int:
     raise IndexError('All lines are empty')
 
 
+def short_repr(obj: Sized) -> str:
+    if isinstance(obj, str):
+        lines = obj.splitlines()
+        if len(lines) > 2:
+            return repr('\n'.join([lines[0], '…', lines[-1]]))
+        return repr(obj)
+
+    if len(obj) > 2:
+        empty_sequence_repr = repr(type(obj)())
+        match = re.match(r'\w+', empty_sequence_repr)
+        if match:
+            type_name = match.group()
+            parens = empty_sequence_repr[match.end():]
+            left_parens, right_parens = parens[:len(parens)], parens[len(parens):]
+        else:
+            left_parens, right_parens = empty_sequence_repr
+        return f'{left_parens}{obj[0]!r}, ..., {obj[-1]!r}{right_parens}'
+    return repr(obj)
+
+
+class Line(str):
+    def __new__(cls, text: str, *args, **kwargs):
+        return str.__new__(cls, text)
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({super().__repr__()})'
+
+
+class Header(Line):
+
+    def __new__(cls, text: str, level: int, block: Block = None):
+        self = super().__new__(cls, text)
+        self.level = level
+        self.block = block
+        return self
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({short_repr(str(self))}, level={self.level}, block={self.block.short_repr()})'
+
+
 class Block:
-    def __init__(self,
-                 indent_level: int,
-                 parent: Block = None,
-                 lines: list[str] = None,
-                 first_line_index: int = None):
+    def __init__(self, indent_level: int, parent: Block = None, lines: list[Line] = None, start_index: int = None):
         self.indent_level = indent_level
         self.children: deque[Block] = deque()
         self.parent: Block = parent
-        self.lines = lines or []
-        self.first_line_index = first_line_index
+        self.lines: list[Line] = lines or []
+        self.start_index = start_index
+
+    def index_of_last_truthy_line(self) -> int:
+        for i in reversed(range(len(self.lines))):
+            if self.lines[i].rstrip():
+                return i
+        raise IndexError('All lines are empty')
+
+    def headerize_last_line(self, global_indent_size: int) -> Header:
+        index_of_last_truthy_line = self.index_of_last_truthy_line()
+        assert isinstance(self.lines[index_of_last_truthy_line], str), type(self.lines[index_of_last_truthy_line])
+        last_truthy_line = self.lines[index_of_last_truthy_line]
+        # +1 because indent=0 -> h1
+        header_level = (self.indent_level // global_indent_size) + 1
+        header = Header(last_truthy_line, header_level)
+        self.lines[index_of_last_truthy_line] = header
+        return header
+
+    def short_repr(self):
+        return f'{self.__class__.__name__}(start_index={self.start_index}, ' \
+               f'indent_level={self.indent_level}, ...)'
 
     def __repr__(self):
-        representation = f'Block(indent_level={self.indent_level}, lines={self.lines}'
+        representation = f'{self.__class__.__name__}(start_index={self.start_index}, ' \
+                         f'indent_level={self.indent_level}, \n\t' \
+                         f'lines={short_repr(self.lines)}'
         if self.children:
-            representation += f', children={", ".join(map(repr, self.children))}'
+            representation += f',\n\tchildren={short_repr(self.children)}'
         representation += ')'
         return representation
 
@@ -50,34 +119,59 @@ class IndentationMarkdown:
         i = first_truthy_line_index(lines)
         first_line = lines[i].rstrip()
         indent_level = get_indent_level(first_line)
-        current_block = Block(indent_level, lines=[first_line], first_line_index=i)
+        global_indent_size = indent_level
+        current_block = Block(indent_level, lines=[Line(first_line)], start_index=i)
         self.blocks.append(current_block)
         i += 1
         while i < lines_count:
             line = lines[i].rstrip()
             if not line:
-                current_block.lines.append(' ' * current_block.indent_level + line)
+                current_block.lines.append(Line(' ' * current_block.indent_level))
                 i += 1
                 continue
+
             indent_level = get_indent_level(line)
+            if global_indent_size == 0:
+                # this doesn't account for when first line is indented a lot
+                global_indent_size = indent_level
+            elif indent_level % global_indent_size != 0:
+                raise SyntaxError(f'Inconsistent indentation: '
+                                  f'global indent size is {global_indent_size}, '
+                                  f'but line (#{i}) indent size is {indent_level}.\n'
+                                  f'Line: {line}')
+            line = Line(line)
             if indent_level > current_block.indent_level:
-                block = Block(indent_level=indent_level,
-                              parent=current_block,
-                              lines=[line],
-                              first_line_index=i)
+                empty_trailing_lines = deque()
+                while not current_block.lines[-1].rstrip():
+                    empty_trailing_lines.appendleft(current_block.lines.pop())
+                block = Block(indent_level=indent_level, parent=current_block, lines=[*empty_trailing_lines, line], start_index=i)
+                header = current_block.headerize_last_line(global_indent_size)
+                header.block = block
                 current_block.children.append(block)
                 current_block = block
             elif indent_level == current_block.indent_level:
                 current_block.lines.append(line)
             else:
                 while indent_level < current_block.indent_level:
+                    if current_block.parent is None:
+                        # probably self.blocks.append( new block )
+                        breakpoint()
                     current_block = current_block.parent
-                    current_block is None and breakpoint()
                 current_block.lines.append(line)
             i += 1
 
+    def iter_tokens(self):
+        for block in self.blocks:
+            yield from traverse_block(block)
+
+    __iter__ = iter_tokens
+
+    def iter_text(self):
+        for token in self:
+            yield str(token)
+
     def __repr__(self):
-        representation = f'IndentationMarkdown(\n'
+        representation = f'{self.__class__.__name__}(\n'
         for block in self.blocks:
             representation += ' ' * block.indent_level + f'{block}\n'
         representation += ')'

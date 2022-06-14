@@ -8,6 +8,7 @@ from typing import Callable
 
 from termwiki.common.types import PageFunction
 
+
 def style(default_style: str = None, **language_styles):
     """Allows a page_function to be styled with a string or a dict of styles.
 
@@ -30,7 +31,9 @@ def style(default_style: str = None, **language_styles):
             page_function.styles = {}
         page_function.styles.update(language_styles)
         return page_function
+
     return decorator
+
 
 def alias(*aliases) -> Callable[[PageFunction], PageFunction]:
     def decorator(page_function: PageFunction) -> PageFunction:
@@ -45,3 +48,11 @@ def alias(*aliases) -> Callable[[PageFunction], PageFunction]:
 
     return decorator
 
+
+def title(_title) -> Callable[[PageFunction], PageFunction]:
+    def decorator(page_function: PageFunction) -> PageFunction:
+        if not hasattr(page_function, 'title'):
+            page_function.title = _title
+        return page_function
+
+    return decorator
