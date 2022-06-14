@@ -57,7 +57,7 @@ class TestDirectory:
 
 
 class TestFunction:
-    def test_function_variable(self):
+    def test_search_variable(self):
         no_return_path, no_return_page = mock_page_tree.deep_search('no_return')
         diet_page: FunctionPage = no_return_page.search('diet')
         diet_text = diet_page.read()
@@ -66,6 +66,8 @@ class TestFunction:
         assert title.lower() == 'diet'
         assert diet_text_lines[1].strip() == 'Bad: sugary foods'
 
+    def test_self_named_variable(self):
+        pass
 
 class TestNestedDirectory:
     def test_self_named_python_file(self):
@@ -75,18 +77,23 @@ class TestNestedDirectory:
 
 class TestPythonFile:
     def test_self_named_variable(self):
+        pass
+
+    def test_self_named_function(self):
         """
         root/
-        ├─ readable.md
-        ├─ readable/
-        │ ├─ readable.py
-        │ │  ├─ readable: str = "readable variable in readable/readable.py"
+           readable.md
+           readable/
+              readable.py
+                  def readable() -> str
+                      readable = "readable variable in readable/readable.py"
 
         Should return page(s) which have a 'readable' subpage:
         merged_readable_markdown_and_directory.search('readable').
         Since readable.md doesn't, and readable/ dir does, it should return
         readable/readable.py.
         """
+        # todo: this is almost identical to test_same_name_same_level.test_same_name_same_level_all_readable
         # * First, manually search one by one until 'readable' var
         merged_readable_markdown_and_directory: MergedPage = mock_page_tree.search('readable')
         assert len(merged_readable_markdown_and_directory.pages) == 2
