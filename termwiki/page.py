@@ -248,8 +248,26 @@ class PageNotFound(KeyError):
         self.traversable = traversable
         self.page_name = page_name
 
+class Page:
+    # def __init__(self):
+    #     # self.__pages__ = {}
+    #     # self.__traverse_exhaused__ = False
+    #     self.__aliases__ = {}
 
-class Traversable:
+    @abstractmethod
+    def read(self, *args, **kwargs) -> str:
+        ...
+
+    @CachedProperty
+    def readable(self) -> bool:
+        try:
+            self.read()
+            return True
+        except Exception as e:
+            log.warning(f'{self!r}.readable {type(e).__qualname__}: {e}')
+            return False
+
+class Traversable(Page):
     def __init__(self):
         self.__pages__ = {}
         self.__traverse_exhaused__ = False
@@ -341,27 +359,6 @@ class Traversable:
         merged_sub_pages_text = merged_sub_pages.read()
         return merged_sub_pages_text
 
-
-class Page:
-    def __init__(self):
-        # self.__pages__ = {}
-        # self.__traverse_exhaused__ = False
-        self.__aliases__ = {}
-
-    @abstractmethod
-    def read(self, *args, **kwargs) -> str:
-        ...
-
-    @CachedProperty
-    def readable(self) -> bool:
-        try:
-            self.read()
-            return True
-        except Exception as e:
-            log.warning(self, f'.readable -> {type(e).__qualname__}: {e}')
-            return False
-
-
 class VariablePage(Page):
     """Variables within functions, or variables at module level"""
 
@@ -377,7 +374,7 @@ class VariablePage(Page):
         return str(self.value)
 
 
-class FunctionPage(Traversable, Page):
+class FunctionPage(Traversable):
     def __init__(self, function: Callable[..., str | None]) -> None:
         super().__init__()
         self.function = function
@@ -440,7 +437,7 @@ class MarkdownFilePage(FilePage):  # maybe subclassing Page is better
     """Traverses headings"""
 
 
-class PythonFilePage(Traversable, Page):
+class PythonFilePage(Traversable):
     """A Python module representing a file (not a package)"""
 
     def __init__(self, python_module: ModuleType | Path, parent: ModuleType = None) -> None:
@@ -479,7 +476,7 @@ class PythonFilePage(Traversable, Page):
         yield from traverse_module(python_module, python_module_ast)
 
 
-class DirectoryPage(Traversable, Page):
+class DirectoryPage(Traversable):
     """A directory / package / namespace."""
 
     def __init__(self, package: ModuleType | Path) -> None:
@@ -564,7 +561,7 @@ class DirectoryPage(Traversable, Page):
         #     yield from self.search(subpath_with_same_name.name).traverse()
 
 
-class MergedPage(Traversable, Page):
+class MergedPage(Traversable):
     """A page that is the merge of several pages"""
 
     def __init__(self, *pages: Page) -> None:
