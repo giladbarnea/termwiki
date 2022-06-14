@@ -248,6 +248,7 @@ class PageNotFound(KeyError):
         self.traversable = traversable
         self.page_name = page_name
 
+
 class Page:
     # def __init__(self):
     #     # self.__pages__ = {}
@@ -267,6 +268,7 @@ class Page:
             log.warning(f'{self!r}.readable {type(e).__qualname__}: {e}')
             return False
 
+
 class Traversable(Page):
     def __init__(self):
         self.__pages__ = {}
@@ -280,6 +282,10 @@ class Traversable(Page):
         traverse.cacher(lambda self, page: self._cache_page(page))
         traverse.cache_getter(lambda self: self.__pages__.items())
         cls.traverse = traverse
+
+    @abstractmethod
+    def name(self) -> str:
+        ...
 
     def _cache_page(self, page_tuple: tuple[str, Page]) -> Page:
         normalized_page_name, page = page_tuple
@@ -332,16 +338,14 @@ class Traversable(Page):
         if isinstance(page_path, str):
             page_path = page_path.split(' ')
         sub_path, *sub_page_path = page_path
-        sub_page = self.search(sub_path, on_not_found=on_not_found)
+        sub_page: Page | Traversable = self.search(sub_path, on_not_found=on_not_found)
         if not sub_page:
             return [], self
         if not hasattr(sub_page, 'deep_search'):
             return [sub_path], sub_page
+        sub_page: Traversable
         found_paths, found_page = sub_page.deep_search(sub_page_path, on_not_found=on_not_found)
         return [sub_path] + found_paths, found_page
-
-    def name(self) -> str:
-        raise NotImplementedError(f'{self.__class__.__qualname__}.name()')
 
     def merge_pages(self) -> MergedPage:
         merged_sub_pages = MergedPage(*self.__pages__.values())
@@ -358,6 +362,7 @@ class Traversable(Page):
         merged_sub_pages = self.merge_pages()
         merged_sub_pages_text = merged_sub_pages.read()
         return merged_sub_pages_text
+
 
 class VariablePage(Page):
     """Variables within functions, or variables at module level"""
