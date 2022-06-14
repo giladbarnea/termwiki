@@ -286,17 +286,17 @@ class Traversable:
     def search(self,
                name: str,
                *,
-               on_not_found: Callable[[Iterable[str], str], str | None] = None) -> Page:
+               on_not_found: Callable[[Iterable[str], str], str | None] = None) -> Page | None:
         if not self.__traverse_exhaused__:
             list(self.traverse())
         normalized_page_name = normalize_page_name(name)
         if normalized_page_name in self.__pages__:
             return self.__pages__[normalized_page_name]
         if on_not_found is None:
-            raise PageNotFound(self, normalized_page_name)
+            return None
         page_name = on_not_found(self.__pages__.keys(), normalized_page_name)
         if page_name is None:
-            raise PageNotFound(self, normalized_page_name)
+            return None
         return self.__pages__[page_name]
 
     __getitem__ = search
@@ -306,7 +306,9 @@ class Traversable:
                     *,
                     on_not_found: Callable[[Iterable[str], str], str | None] = None,
                     ) -> tuple[list[str], Page]:
-        """Searches a possibly nested page by it's full path."""
+        """Searches a possibly nested page by it's full path.
+        The main justification for this method is its return value,
+        which includes a 'trace' of the path taken to find the page."""
         if not page_path:
             return [], self
         if isinstance(page_path, str):
@@ -320,107 +322,29 @@ class Traversable:
         found_paths, found_page = sub_page.deep_search(sub_page_path, on_not_found=on_not_found)
         return [sub_path] + found_paths, found_page
 
+    def name(self) -> str:
+        raise NotImplementedError(f'{self.__class__.__qualname__}.name()')
+
+    def merge_pages(self) -> MergedPage:
+        merged_sub_pages = MergedPage(*self.__pages__.values())
+        return merged_sub_pages
+
+    def read(self, *args, **kwargs) -> str:
+        # """Read the contained function / variable / class with the same name as the module"""
+        name = self.name()
+        page = self.search(name)
+        if page:
+            return page.read()
+        log.warning(f'No self-page found in {self} for {name!r}')
+        merged_sub_pages = self.merge_pages()
+        merged_sub_pages_text = merged_sub_pages.read()
+        return merged_sub_pages_text
 
 class Page:
     def __init__(self):
         # self.__pages__ = {}
         # self.__traverse_exhaused__ = False
         self.__aliases__ = {}
-
-    # def __init_subclass__(cls, **kwargs):
-    #     if isinstance(cls.traverse, CachingGenerator):
-    #         log.warning(f'{cls}.traverse is already a CachingGenerator')
-    #         return
-    #     traverse = CachingGenerator(cls.traverse)
-    #     traverse.cacher(lambda self, page: self._cache_page(page))
-    #     traverse.cache_getter(lambda self: self.__pages__.items())
-    #     cls.traverse = traverse
-
-    # def _cache_page(self, page_tuple: tuple[str, Page]) -> Page:
-    #     normalized_page_name, page = page_tuple
-    #     if normalized_page_name in self.__pages__:
-    #         cached_page = self.__pages__[normalized_page_name]
-    #         if isinstance(cached_page, MergedPage):
-    #             cached_page.extend(page)
-    #         else:
-    #             self.__pages__[normalized_page_name] = MergedPage(cached_page, page)
-    #     else:
-    #         self.__pages__[normalized_page_name] = page
-    #     return self.__pages__[normalized_page_name]
-
-    # def isearch(self, name: str) -> Generator[Page]:
-    #     """Yields all pages that match 'name'.
-    #     Multiple pages can match if e.g. a file and directory have the same name.
-    #     Lowest level of the search-related methods."""
-    #     name = normalize_page_name(name)
-    #     # if not hasattr(self, '_page_generator'):
-    #     #     self._page_generator = self.traverse()
-    #     #     self._page_generator.exhausted = False
-    #     # while True:
-    #     #     try:
-    #     #         page_name, page = next(self._page_generator)
-    #     #     except StopIteration:
-    #     #         self._page_generator.exhausted = True
-    #     #         break
-    #     #     else:
-    #     #         if page_name == name:
-    #     #             yield page
-    #     for page_name, page in self.traverse():
-    #         if page_name == name:
-    #             yield page
-
-    # def searchold(self, name: str) -> Page | None:
-    #     """Returns the first page that matches 'name'.
-    #     Same as 'page["name"]'.
-    #     mock_page_tree.search('BAD') took 0.5ms.
-    #     mock_page_tree.search('bash') took ~0.1ms (first thing isearch yields).
-    #     """
-    #     for page in self.isearch(name):
-    #         # if page is None:
-    #         #     log.warning(self, f'.search({name!r}): {page} is None')
-    #         #     continue
-    #         return page
-    #     log.warning(self, f'.searchold({name!r}): nothing found')
-    #     return None
-
-    # def search(self, name: str) -> Page:
-    #     if not self.__traverse_exhaused__:
-    #         list(self.traverse())
-    #     normalized_page_name = normalize_page_name(name)
-    #     page = self.__pages__[normalized_page_name]
-    #     return page
-    #
-    # __getitem__ = search
-
-    # def ideep_search(self, page_path: Sequence[str] | str) -> Generator[tuple[list[str], Page]]:
-    #     if not page_path:
-    #         yield [], self
-    #         return
-    #     if isinstance(page_path, str):
-    #         page_path = page_path.split(' ')
-    #     sub_path, *sub_page_path = page_path
-    #     any_sub_page = False
-    #     for sub_page in self.isearch(sub_path):
-    #         any_sub_page = True
-    #         for found_paths, found_page in sub_page.ideep_search(sub_page_path):
-    #             yield [sub_path] + found_paths, found_page
-    #     if not any_sub_page:
-    #         log.warning(self, f'.ideep_search({page_path!r}): nothing found')
-    #         breakpoint()
-    #         yield [], self
-
-    # def deep_search(self, page_path: Sequence[str] | str) -> tuple[list[str], Page]:
-    #     """Searches a possibly nested page by it's full path."""
-    #     if not page_path:
-    #         return [], self
-    #     if isinstance(page_path, str):
-    #         page_path = page_path.split(' ')
-    #     sub_path, *sub_page_path = page_path
-    #     sub_page = self.search(sub_path)
-    #     if not sub_page:
-    #         return [], self
-    #     found_paths, found_page = sub_page.deep_search(sub_page_path)
-    #     return [sub_path] + found_paths, found_page
 
     @abstractmethod
     def read(self, *args, **kwargs) -> str:
@@ -434,12 +358,6 @@ class Page:
         except Exception as e:
             log.warning(self, f'.readable -> {type(e).__qualname__}: {e}')
             return False
-
-    # @CachingGenerator
-    # def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
-    #     raise NotImplementedError(f'{self.__class__.__qualname__}.traverse()')
-    #
-    # traverse.cacher(lambda self, page: self._cache_page(page))
 
 
 class VariablePage(Page):
@@ -458,7 +376,7 @@ class VariablePage(Page):
 
 
 class FunctionPage(Traversable, Page):
-    def __init__(self, function: Callable[..., str]) -> None:
+    def __init__(self, function: Callable[..., str | None]) -> None:
         super().__init__()
         self.function = function
         self._python_module_ast = None
@@ -472,11 +390,18 @@ class FunctionPage(Traversable, Page):
         self._python_module_ast: ast.Module = ast.parse(inspect.getsource(self.function))
         return self._python_module_ast
 
+    def name(self):
+        return self.function.__name__
+
     def read(self, *args, **kwargs) -> str:
         text = self.function(*args, **kwargs)
         if text is not None:
             return text
-        # If a function doesn't return, return its joined variables
+        # If a function doesn't return:
+        #  search for self-named variable
+        #  if not found, return its joined variables values
+        # todo: super doesn't skip variables pointing to the same object
+        return super().read(*args, **kwargs)
         variable_texts = []
         seen_variable_pages = set()
         for var_name, var_page in self.traverse():
@@ -540,11 +465,10 @@ class PythonFilePage(Traversable, Page):
         self._python_module = import_module_by_path(self._python_module)
         return self._python_module
 
-    def read(self, *args, **kwargs) -> str:
-        """Read the function with the same name as the module"""
+    def name(self):
         python_module = self.python_module()
         module_name = Path(python_module.__file__).stem
-        return self[module_name].read()
+        return module_name
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         self.__traverse_exhaused__ and breakpoint()
@@ -586,12 +510,7 @@ class DirectoryPage(Traversable, Page):
     def stem(self) -> str:
         return self.path().stem
 
-    def read(self, *args, **kwargs) -> str:
-        """Reads any self-named page in the directory"""
-        self_stem = self.stem()
-        page = self.search(self_stem)
-        text = page.read()
-        return text
+    name = stem
 
     def traverse(self) -> Generator[tuple[str, Page]]:
         """Traverse the directory and yield (name, page) pairs.
@@ -664,7 +583,7 @@ class MergedPage(Traversable, Page):
             if page.readable:
                 page_text = page.read()
                 page_texts.append(page_text)
-        return '\n\n-----------\n'.join(page_texts)
+        return '\n\n'.join(page_texts)
 
     def extend(self, *pages: Page) -> None:
         self.pages.extend(pages)
