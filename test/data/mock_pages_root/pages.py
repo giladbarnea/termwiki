@@ -1,4 +1,4 @@
-from termwiki.render.decorators import style, alias
+from termwiki.page.decorators import style, alias
 
 def no_return():
     diet = f"""## Diet

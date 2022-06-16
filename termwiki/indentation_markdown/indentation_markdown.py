@@ -1,19 +1,26 @@
+"""
+tokens:
+text // comment
+:table ... /:table
+:import
+>>>
+❯ or $
+```lang ... ```
+:python ... /:python
+"""
 from __future__ import annotations
 
 import re
 from collections import deque
 from collections.abc import Sized
-
 from termwiki.render.util import get_indent_level
 
 
 def traverse_block(block: Block):
     for line in block.lines:
+        yield line
         if isinstance(line, Header):
-            yield line
             yield from traverse_block(line.block)
-        else:
-            yield line
 
 
 def first_truthy_line_index(lines: list) -> int:
@@ -24,11 +31,15 @@ def first_truthy_line_index(lines: list) -> int:
 
 
 def short_repr(obj: Sized) -> str:
-    if isinstance(obj, str):
+    if type(obj) is str:
+        obj: str
         lines = obj.splitlines()
         if len(lines) > 2:
             return repr('\n'.join([lines[0], '…', lines[-1]]))
         return repr(obj)
+
+    if hasattr(obj, 'short_repr'):
+        return obj.short_repr()
 
     if len(obj) > 2:
         empty_sequence_repr = repr(type(obj)())
@@ -38,8 +49,9 @@ def short_repr(obj: Sized) -> str:
             parens = empty_sequence_repr[match.end():]
             left_parens, right_parens = parens[:len(parens)], parens[len(parens):]
         else:
+            type_name = ''
             left_parens, right_parens = empty_sequence_repr
-        return f'{left_parens}{obj[0]!r}, ..., {obj[-1]!r}{right_parens}'
+        return f'{type_name}{left_parens}{obj[0]!r}, ..., {obj[-1]!r}{right_parens}'
     return repr(obj)
 
 
@@ -60,7 +72,7 @@ class Header(Line):
         return self
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({short_repr(str(self))}, level={self.level}, block={self.block.short_repr()})'
+        return f'{self.__class__.__name__}({short_repr(str(self))}, level={self.level}, block={short_repr(self.block)})'
 
 
 class Block:

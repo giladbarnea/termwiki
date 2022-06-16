@@ -166,7 +166,14 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
         if isinstance(node, ast.Assign):
             yield from traverse_assign_node(node, module)
             continue
-        log.warning(f"traverse_module({module}): {node} doesn't have 'name' nor 'names' and is not an Assign")
+        if isinstance(node, ast.Expr):
+            if isinstance(node.value, ast.Constant):
+                node_value = node.value.value
+                if module.__doc__ == node_value:
+                    # yield '__doc__', VariablePage(node_value, '__doc__')
+                    continue
+
+        log.warning(f"traverse_module({module}): {node} doesn't have 'name' nor 'names', and is not an Assign nor an Expr for module.__doc__")
         breakpoint()
 
 

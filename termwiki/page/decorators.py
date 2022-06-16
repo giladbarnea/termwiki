@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import ast
-import inspect
 import sys
-from functools import wraps
 from typing import Callable
 
 from termwiki.common.types import PageFunction
