@@ -9,13 +9,17 @@ import click
 from termwiki import page_tree
 from termwiki.log import log
 from termwiki.render import render_page
-
-
+from termwiki.log import log
+@log.log_in_out
 def fuzzy_search(iterable: Iterable[str], search_term: str) -> str | None:
-    command = 'echo "' + '\n'.join(iterable) + f'" | fzf --reverse -q {search_term}'
+    # --exit-0 --select-1 --inline-info
+    command = 'echo "' + '\n'.join(iterable) + (f'" | fzf --header-first --header="{search_term} not found; did you mean..." '
+                                               # f'--no-select-1 --no-exit-0 '
+                                               f'--cycle --reverse -q {search_term}')
     try:
         output = subprocess.check_output(command, shell=True)
     except subprocess.CalledProcessError as e:
+        log.error(f'Fuzzy search failed with {type(e).__qualname__}: {e}')
         return None
     return output.decode('utf-8').strip()
 

@@ -4,7 +4,7 @@
 
 # Small
 
-- [ ] fuzziness with fzf
+- [x] fuzziness with fzf
 - [ ] add command: `tw edit git [EDITOR]`
 - [x] support for nested sub_pages (e.g. `docker images ps`)
 - [x] Refactoring:
@@ -69,10 +69,13 @@
 - (sub)pages can reference other (sub)pages (simple `import` maybe? or directive?)
 - "See also: blabla" is clickable (`Textual`)
 - in README.md: "optimized for zero mental overhead, specifically when getting to the info"
+- Automatic h1-h6 headings based on indentation
+
+### Information depth control
 - mouseclick or kb shortcut to collapse / expand sub_pages when shown
+- `tw pecan --depth 2` to show only 2 levels of sub_pages
 - `tw python magic-` for collapsed from specific hierarchy
 - `tw python slots` should work even though `slots` is a python.datamodel.special_method_names() variable
-- Automatic h1-h6 headings based on indentation
 
 ### %import use cases
 

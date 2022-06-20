@@ -7,13 +7,14 @@ text // comment
 ❯ or $
 ```lang ... ```
 :python ... /:python
+![](...)
+rich tags: [b] ... [/b]
 """
 from __future__ import annotations
 
-import re
 from collections import deque
-from collections.abc import Sized
 from termwiki.render.util import get_indent_level
+from termwiki.util import short_repr
 
 
 def traverse_block(block: Block):
@@ -28,31 +29,6 @@ def first_truthy_line_index(lines: list) -> int:
         if line.strip():
             return i
     raise IndexError('All lines are empty')
-
-
-def short_repr(obj: Sized) -> str:
-    if type(obj) is str:
-        obj: str
-        lines = obj.splitlines()
-        if len(lines) > 2:
-            return repr('\n'.join([lines[0], '…', lines[-1]]))
-        return repr(obj)
-
-    if hasattr(obj, 'short_repr'):
-        return obj.short_repr()
-
-    if len(obj) > 2:
-        empty_sequence_repr = repr(type(obj)())
-        match = re.match(r'\w+', empty_sequence_repr)
-        if match:
-            type_name = match.group()
-            parens = empty_sequence_repr[match.end():]
-            left_parens, right_parens = parens[:len(parens)], parens[len(parens):]
-        else:
-            type_name = ''
-            left_parens, right_parens = empty_sequence_repr
-        return f'{type_name}{left_parens}{obj[0]!r}, ..., {obj[-1]!r}{right_parens}'
-    return repr(obj)
 
 
 class Line(str):

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import inspect
+import os
 from abc import abstractmethod
 from collections import Callable, Iterable, Iterator
 from collections.abc import Generator, Sequence
@@ -13,10 +14,9 @@ from typing import Generic, TypeVar, Type
 import termwiki
 from termwiki.consts import NON_LETTER_RE
 from termwiki.log import log
+from termwiki.util import short_repr
 
 PROJECT_ROOT = Path(termwiki.__path__[0]).parent
-
-UNSET = object()
 
 
 def normalize_page_name(page_name: str) -> str:
@@ -230,23 +230,17 @@ class CachingGenerator(Generic[T]):
 
 R = TypeVar('R')
 
-
-class CachedProperty(Generic[T]):
+class cached_property(Generic[T]):
     instance: T
     method: Callable[[T, ...], R]
-
     def __init__(self, method: Callable[[T, ...], R]):
         self.method = method
 
-    def __get__(self, instance: T, owner: Type[T]):
+    def __get__(self, instance: T, cls: Type[T]) -> R:
         if instance is None:
             return self
-        if cached := getattr(instance, f'__{self.method.__name__}_return_value__', UNSET) is not UNSET:
-            return cached
-        return_value = self.method(instance)
-        setattr(instance, f'__{self.method.__name__}_return_value__', return_value)
-        return return_value
-
+        value = instance.__dict__[self.method.__name__] = self.method(instance)
+        return value
 
 class PageNotFound(KeyError):
 
@@ -266,7 +260,7 @@ class Page:
     def read(self, *args, **kwargs) -> str:
         ...
 
-    @CachedProperty
+    @cached_property
     def readable(self) -> bool:
         try:
             self.read()
@@ -332,6 +326,7 @@ class Traversable(Page):
 
     __getitem__ = search
 
+    # @log.log_in_out
     def deep_search(self,
                     page_path: Sequence[str] | str,
                     *,
@@ -343,6 +338,8 @@ class Traversable(Page):
         which includes a 'trace' of the path taken to find the page."""
         if not page_path:
             return [], self
+        if isinstance(self, MergedPage) and not self.pages:
+            breakpoint()
         if isinstance(page_path, str):
             page_path = page_path.split(' ')
         sub_path, *sub_page_path = page_path
@@ -598,7 +595,37 @@ class MergedPage(Traversable):
         self.pages = list(pages)
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(pages={repr(self.pages)[:40]})'
+        if self.pages:
+            shorten_line = lambda line: line[:30] + ' ... ' + line[-30:] if len(line) > 65 else line
+            first_page_repr = repr(self.pages[0])
+            first_page_short_repr = shorten_line(first_page_repr)
+            if len(self.pages) == 1:
+                pages_repr = f'[{first_page_short_repr}]'
+            else:
+                second_page_repr = repr(self.pages[1])
+                second_page_short_repr = shorten_line(second_page_repr)
+                if len(self.pages) == 2:
+                    pages_repr = f'[\n\t\t{first_page_short_repr},\n\t\t{second_page_short_repr}]'
+                else:
+                    last_page_repr = repr(self.pages[-1])
+                    last_page_short_repr = shorten_line(last_page_repr)
+                    if len(self.pages) == 3:
+                        pages_repr = f'[\n\t\t{first_page_short_repr},' \
+                                     f'\n\t\t{second_page_short_repr},' \
+                                     f'\n\t\t{last_page_short_repr}]'
+                    else:
+                        pages_repr = f'[\n\t\t{first_page_short_repr},' \
+                                     f'\n\t\t{second_page_short_repr},' \
+                                     f'\n\t\t... ({len(self.pages) - 3} more),' \
+                                     f'\n\t\t{last_page_short_repr}]'
+
+
+        else:
+            pages_repr = '[]'
+
+        if os.environ.get('PYCHARM_HOSTED'):
+            pages_repr = pages_repr.replace('\n\t\t', ", ")
+        return f'{self.__class__.__name__}(pages={pages_repr})'
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         for page in self.pages:

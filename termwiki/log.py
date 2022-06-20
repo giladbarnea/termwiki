@@ -1,4 +1,5 @@
 import functools
+import inspect
 import os
 import sys
 
@@ -44,11 +45,24 @@ class Logger(Console):
         def decorator(func):
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
-                comma_sep_args = ", ".join(map(repr, args))
-                comma_sep_kwargs = ", ".join(f"{k}={v!r}" for k, v in kwargs.items())
-                self.debug(f"➡️️ [b white]Entered[/b white] {func.__name__}({comma_sep_args + comma_sep_kwargs})")
+                # comma_sep_args = ", ".join(map(repr, args))
+                # comma_sep_kwargs = ", ".join(f"{k}={v!r}" for k, v in kwargs.items())
+                func_name = func.__name__
+                if args and hasattr(args[0], func_name):
+                    self_arg, *rest = args
+                    prefix = f"{self_arg!r}.{func_name}"
+                    bound_func = func.__get__(self_arg, type(args[0]))
+                    signature = inspect.signature(bound_func)
+                    bound_args = signature.bind(*rest, **kwargs)
+                else:
+                    prefix = func_name
+                    signature = inspect.signature(func)
+                    bound_args = signature.bind(*args, **kwargs)
+                pretty_signature = f'{prefix}{str(bound_args)[16:-1]}'
+                # self.debug(f"➡️️ [b white]Entered[/b white] {func_name}({comma_sep_args + (', ' if args and kwargs else '') + comma_sep_kwargs})")
+                self.debug(f"➡️️ [b white]Entered[/b white] {pretty_signature}")
                 ret = func(*args, **kwargs)
-                self.debug(f"⬅️️️ Exiting {func.__name__}(...) -> {ret!r}")
+                self.debug(f"⬅️️️ Exiting {prefix}(...) -> {ret!r}")
                 return ret
 
             return wrapper
