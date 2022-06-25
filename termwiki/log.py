@@ -20,7 +20,14 @@ def format_args(func):
 
 class Logger(Console):
     _theme = {
-        "debug": "dim", "warn": "yellow", "warning": "yellow", "error": "red", "fatal": "bright_red", "success": "green", "prompt": "b bright_cyan", "title": "b bright_white",
+        "debug":   "dim",
+        "warn":    "yellow",
+        "warning": "yellow",
+        "error":   "red",
+        "fatal":   "bright_red",
+        "success": "green",
+        "prompt":  "b bright_cyan",
+        "title":   "b bright_white",
         }
 
     def __init__(self, **kwargs):

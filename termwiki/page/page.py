@@ -14,7 +14,6 @@ from typing import Generic, TypeVar, Type
 import termwiki
 from termwiki.consts import NON_LETTER_RE
 from termwiki.log import log
-from termwiki.util import short_repr
 
 PROJECT_ROOT = Path(termwiki.__path__[0]).parent
 
@@ -210,7 +209,7 @@ class CachingGenerator(Generic[T]):
         if self.instance is None:
             raise AttributeError(f'{self.__class__.__name__} is not bound to an instance')
 
-        if getattr(self.instance, f'__{self.generator.__name__}_exhausted__', False):
+        if getattr(self.instance, f'__traverse_exhausted__', False):
             # log.warning(f'{self.instance.__class__.__qualname__}.{self.generator.__name__} is exhausted')
             yield from self._cache_getter(self.instance)
             return
@@ -219,20 +218,22 @@ class CachingGenerator(Generic[T]):
             self._cacher(self.instance, page)
             yield page
 
-        setattr(self.instance, f'__{self.generator.__name__}_exhausted__', True)
+        setattr(self.instance, f'__traverse_exhausted__', True)
 
-    def cacher(self, cacher: Callable[[T, I], ...]):
+    def set_cacher(self, cacher: Callable[[T, I], ...]):
         self._cacher = cacher
 
-    def cache_getter(self, cache_getter: Callable[[T], Iterator[I]]):
+    def set_cache_getter(self, cache_getter: Callable[[T], Iterator[I]]):
         self._cache_getter = cache_getter
 
 
 R = TypeVar('R')
 
+
 class cached_property(Generic[T]):
     instance: T
     method: Callable[[T, ...], R]
+
     def __init__(self, method: Callable[[T, ...], R]):
         self.method = method
 
@@ -241,6 +242,7 @@ class cached_property(Generic[T]):
             return self
         value = instance.__dict__[self.method.__name__] = self.method(instance)
         return value
+
 
 class PageNotFound(KeyError):
 
@@ -273,6 +275,7 @@ class Page:
 class Traversable(Page):
     def __init__(self):
         self.__pages__ = {}
+        """Cache of visited (traversed) pages. Populated and used by 'traverse' method."""
         self.__traverse_exhaused__ = False
 
     def __init_subclass__(cls, **kwargs):
@@ -280,8 +283,8 @@ class Traversable(Page):
             log.warning(f'{cls}.traverse is already a CachingGenerator')
             return
         traverse = CachingGenerator(cls.traverse)
-        traverse.cacher(lambda self, page: self._cache_page(page))
-        traverse.cache_getter(lambda self: self.__pages__.items())
+        traverse.set_cacher(lambda self, page: self._cache_page(page))
+        traverse.set_cache_getter(lambda self: self.__pages__.items())
         cls.traverse = traverse
 
     @abstractmethod
@@ -304,7 +307,7 @@ class Traversable(Page):
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         raise NotImplementedError(f'{self.__class__.__qualname__}.traverse()')
 
-    traverse.cacher(lambda self, page: self._cache_page(page))
+    traverse.set_cacher(lambda self, page: self._cache_page(page))
 
     # traverse._cacher = lambda self, page: self._cache_page(page)
 
@@ -312,6 +315,9 @@ class Traversable(Page):
                name: str,
                *,
                on_not_found: Callable[[Iterable[str], str], str | None] = None) -> Page | None:
+        """Search a Page among immediate children of this Traversable.
+        If not found, and 'on_not_found' is given, it will be called with
+        the names of the immediate children. Otherwise None is returned."""
         if not self.__traverse_exhaused__:
             list(self.traverse())
         normalized_page_name = normalize_page_name(name)
@@ -331,40 +337,50 @@ class Traversable(Page):
                     page_path: Sequence[str] | str,
                     *,
                     on_not_found: Callable[[Iterable[str], str], str | None] = None,
-                    deep_search_sub_pages: bool = False,
+                    recursive: bool = False,
                     ) -> tuple[list[str], Page]:
         """Searches a possibly nested page by it's full path.
-        The main justification for this method is its return value,
-        which includes a 'trace' of the path taken to find the page."""
+        The main justifications for this method over 'search' are:
+        - its return tuple, with the first item being the path taken from here to the page (including up to the page),
+        - its ability to search recursively.
+
+
+        """
         if not page_path:
             return [], self
-        if isinstance(self, MergedPage) and not self.pages:
-            breakpoint()
+        # if isinstance(self, MergedPage) and not self.pages:
+        #     breakpoint()
         if isinstance(page_path, str):
             page_path = page_path.split(' ')
-        sub_path, *sub_page_path = page_path
-        sub_page: Page | Traversable = self.search(sub_path, on_not_found=on_not_found)
-        if not sub_page:
-            if not deep_search_sub_pages:
+        first_page_path, *second_and_on_page_paths = page_path
+        first_page: Page | Traversable = self.search(first_page_path, on_not_found=on_not_found)
+        if not first_page:
+            if not recursive:
                 return [], self
-            merged_sub_pages = self.merge_pages()
-            return merged_sub_pages.deep_search(page_path,
-                                                on_not_found=on_not_found,
-                                                deep_search_sub_pages=True)
-        if not hasattr(sub_page, 'deep_search'):
-            return [sub_path], sub_page
-        sub_page: Traversable
-        if not sub_page_path:
-            return [sub_path], sub_page
-        found_paths, found_page = sub_page.deep_search(sub_page_path, on_not_found=on_not_found)
-        if not found_paths and deep_search_sub_pages:
-            merged_sub_pages = found_page.merge_pages()
-            return merged_sub_pages.deep_search(sub_page_path,
-                                                on_not_found=on_not_found,
-                                                deep_search_sub_pages=True)
-        return [sub_path] + found_paths, found_page
+            merged_sub_pages = self.merge_sub_pages()
+            found_paths, found_page = merged_sub_pages.deep_search(page_path,
+                                                                   on_not_found=on_not_found,
+                                                                   recursive=True)
+            return found_paths, found_page
 
-    def merge_pages(self) -> MergedPage:
+        if not second_and_on_page_paths \
+                or not hasattr(first_page, 'deep_search'):
+            return [first_page_path], first_page
+
+        first_page: Traversable
+
+        found_paths, found_page = first_page.deep_search(second_and_on_page_paths,
+                                                         on_not_found=on_not_found,
+                                                         recursive=recursive)
+        return [first_page_path] + found_paths, found_page
+        # if not found_paths and recursive:
+        #     merged_sub_pages = found_page.merge_pages()
+        #     return merged_sub_pages.deep_search(second_and_on_page_paths,
+        #                                         on_not_found=on_not_found,
+        #                                         recursive=True)
+        # return [first_page_path] + found_paths, found_page
+
+    def merge_sub_pages(self) -> MergedPage:
         merged_sub_pages = MergedPage(*self.__pages__.values())
         return merged_sub_pages
 
@@ -380,7 +396,7 @@ class Traversable(Page):
         if page:
             return page.read()
         log.warning(f'No self-page found in {self} for {name!r}')
-        merged_sub_pages = self.merge_pages()
+        merged_sub_pages = self.merge_sub_pages()
         merged_sub_pages_text = merged_sub_pages.read()
         return merged_sub_pages_text
 

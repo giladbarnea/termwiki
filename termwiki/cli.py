@@ -7,7 +7,6 @@ from typing import Iterable
 
 import click
 from termwiki import page_tree
-from termwiki.log import log
 from termwiki.render import render_page
 from termwiki.log import log
 @log.log_in_out
@@ -29,7 +28,7 @@ def get_page(page_path: Sequence[str]) -> bool:
     #  want page from another indentation?
     found_path, page = page_tree.deep_search(page_path,
                                              on_not_found=fuzzy_search,
-                                             deep_search_sub_pages=True)
+                                             recursive=True)
 
     if not page:
         log.error(f'Page not found! {page_path=} | {found_path=}')
