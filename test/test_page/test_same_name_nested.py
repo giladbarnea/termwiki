@@ -1,7 +1,7 @@
 from textwrap import shorten
 from termwiki.page import FunctionPage, PythonFilePage, DirectoryPage, MergedPage, VariablePage
 from test.data import mock_pages_root
-from test.util import clean_str
+from termwiki.util import clean_str
 
 mock_page_tree = DirectoryPage(mock_pages_root)
 

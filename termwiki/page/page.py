@@ -14,6 +14,7 @@ from typing import Generic, TypeVar, Type
 import termwiki
 from termwiki.consts import NON_LETTER_RE
 from termwiki.log import log
+from termwiki.util import decolor, short_repr, clean_str
 
 PROJECT_ROOT = Path(termwiki.__path__[0]).parent
 
@@ -344,7 +345,9 @@ class Traversable(Page):
         - its return tuple, with the first item being the path taken from here to the page (including up to the page),
         - its ability to search recursively.
 
-
+        Note: when searching recursively, the tree is traversed all the way down,
+        and unless there's only one matching page in the tree, a MergedPage
+        is returned containing a flat list of all the matching pages.
         """
         if not page_path:
             return [], self
@@ -410,7 +413,8 @@ class VariablePage(Page):
         self.name = name
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(value={self.value!r}, name={self.name!r})'
+        # todo: when it's IndentationMarkdown, decoloring value should be less hacky
+        return f'{self.__class__.__name__}(name={self.name!r}, value={short_repr(clean_str(self.value))})'
 
     def read(self, *args, **kwargs) -> str:
         return str(self.value)
@@ -489,7 +493,7 @@ class PythonFilePage(Traversable):
         self.parent = parent
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(python_module={self._python_module!r}, parent={self.parent!r})'
+        return f'{self.__class__.__name__}(python_module={self._python_module!r})'
 
     def python_module_ast(self) -> ast.Module:
         if self._python_module_ast:
@@ -640,8 +644,19 @@ class MergedPage(Traversable):
             pages_repr = '[]'
 
         if os.environ.get('PYCHARM_HOSTED'):
-            pages_repr = pages_repr.replace('\n\t\t', ", ")
+            pages_repr = pages_repr.replace('\n\t\t', "", 1).replace('\n\t\t', ", ") # remove first \n\t\t
         return f'{self.__class__.__name__}(pages={pages_repr})'
+
+    def merge_sub_pages(self) -> MergedPage:
+        sub_pages = []
+        for page in self.pages:
+            if isinstance(page, MergedPage):
+                print('self:\n', self)
+                print('page:\n', page)
+                raise RuntimeError(f'MergedPage.merge_sub_pages, one of the sub-pages is a MergedPage! this should not happen (I think). printed self and page above')
+            sub_pages.extend(list(page.__pages__.values()))
+        merged_sub_pages = MergedPage(*sub_pages)
+        return merged_sub_pages
 
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         for page in self.pages:

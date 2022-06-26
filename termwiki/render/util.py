@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from termwiki.consts import WHITESPACE_RE, COLOR_RE
+from termwiki.consts import WHITESPACE_RE
+from termwiki.util import decolor
 
 
 def get_indent_level(text: str) -> int:
@@ -20,5 +21,3 @@ def enumerate_lines(text: str, *, ljust: int = 0) -> str:
     return enumerated_text
 
 
-def decolor(text):
-    return COLOR_RE.sub('', text)
