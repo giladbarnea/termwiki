@@ -1,6 +1,6 @@
 from termwiki import page_tree
 from termwiki.render.syntax import syntax_highlight
-from test.util import decolor
+from termwiki.util import decolor
 
 
 class TestMarkdown:
