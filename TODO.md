@@ -1,59 +1,56 @@
-# Pre-research
+# Features
 
-- [ ] https://github.com/chubin/cheat.sh
+## CLI
 
-# Small
+- [ ] **edit**: `tw edit git [EDITOR]`
+- [ ] **-l, --list**
 
-- [ ] add command: `tw edit git [EDITOR]`
+### Information depth control
 
-# Big
+- [ ] mouseclick or kb shortcut to collapse / expand sub_pages when shown
+- [ ] `tw pecan --depth 2` to show only 2 levels of sub_pages
+- [ ] `tw python magic-` for collapsed from specific hierarchy
 
-- [ ] `rich` markup (e.g. `[i]...[/]`)
-    - [ ] see `rich/examples/log.py`
-- [ ] migrate to `prompt-toolkit`? or `rich/Textual`?
+## General Brain dump
 
-# Bugs
+- [ ] (sub)pages can reference other (sub)pages (simple `import` maybe? or directive?)
+- [ ] "See also: blabla" is clickable (`Textual`)
+- [ ] in README.md: "optimized for zero mental overhead, specifically when getting to the info"
 
-- [ ] `tw bash --list` prints `_args` and `_arguments` as separate. should display `_args, _arguments`
-- [ ] `tw regex --list` errors because regex is a sub_page, should warn and print sub_page instead
-- [ ] `tw cmdl` shows one "Did you mean any of these? [0] cmd", and only after selection shows "Exists in several pages". Should sublist pages in first screen "cmd:\n[0]python cmd" etc
-- [ ] `tw --doctor` says `pytest` doesn't print `_CONFTEST` even though it's a substring of `pytest.config`
+## `Page`
 
----
-
-## Markdown / Python hybrid
-
-- https://github.com/lark-parser/lark
-- https://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/
-- Markdown parsers:
-  - [commonmark](https://github.com/readthedocs/commonmark.py)
-  - [markdown-it](https://markdown-it-py.readthedocs.io/en/latest/using.html#the-parser)
-    - https://github.com/executablebooks/mdit-py-plugins/blob/master/mdit_py_plugins/colon_fence.py
-    - https://markdown-it-py.readthedocs.io/en/latest/using.html#the-parser
-
-## `Page` Behavior
 - Can this be ast parsed? when `tw ws`
+
 ```python
 def ws():
     # https://example.com
 ```
 
-## General Brain dump
+- [ ] **aliases** for everything, even sub_pages. like rst directives?
 
-* a `python` **submodule** is a page, and it contains functions which are sub_pages etc
-* aliases for everything, even sub_pages. like rst directives?
-* (sub)pages can reference other (sub)pages (simple `import` maybe? or directive?)
-* "See also: blabla" is clickable (`Textual`)
-* in README.md: "optimized for zero mental overhead, specifically when getting to the info"
-* Automatic h1-h6 headings based on indentation
+---
 
-### Information depth control
-[ ] mouseclick or kb shortcut to collapse / expand sub_pages when shown
-[ ] `tw pecan --depth 2` to show only 2 levels of sub_pages
-[ ] `tw python magic-` for collapsed from specific hierarchy
-[ ] `tw python slots` should work even though `slots` is a python.datamodel.special_method_names() variable
+## IndentationMarkdown
 
-### %import use cases
+- https://github.com/lark-parser/lark
+- https://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/
+- Markdown parsers:
+    - [commonmark](https://github.com/readthedocs/commonmark.py)
+    - [markdown-it](https://markdown-it-py.readthedocs.io/en/latest/using.html#the-parser)
+        - https://github.com/executablebooks/mdit-py-plugins/blob/master/mdit_py_plugins/colon_fence.py
+        - https://markdown-it-py.readthedocs.io/en/latest/using.html#the-parser
+
+### Parsing
+
+- [ ] Automatic h1-h6 headings based on indentation (?)
+
+### Tokens
+
+- [ ] rich markup (e.g. `[i]...[/]`)
+
+### :import
+
+#### use cases:
 
 - %import python.datamodel with python/datamodel.py and datamodel() method in datamodel.py
 - %import python.datamodel.numeric with python/datamodel.py and numeric() method in datamodel.py
@@ -83,11 +80,25 @@ def ws():
     - https://github.com/seebye/ueberzug#dependencies
 
 ---
+
+# Similar projects
+
+- [ ] https://github.com/chubin/cheat.sh
+
+---
+
+# Bugs
+
+- [ ] `tw python slots` should work even though `slots` is a python.datamodel.special_method_names() variable
+- [ ] `tw sed` prints restructured_text and not `bash > sed`. Should give more weight to next-level page if exact match.
+
+---
+
 # Done
-## Small
 
 - [x] fuzziness with fzf
 - [x] support for nested sub_pages (e.g. `docker images ps`)
+- [x] a `python` **submodule** is a page, and it contains functions which are sub_pages etc
 - [x] Refactoring:
     - [x] migrate all pages in main.py to separate files
     - [x] `populator.py`
