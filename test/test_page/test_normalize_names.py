@@ -12,10 +12,12 @@ def test_sanity():
         assert function_page_with_no_return.search(page_name).read()
     assert function_page_with_no_return.search('cognitive').read() == function_page_with_no_return.search('mental').read()
 
+
 def test_name_collision():
     """If a normalized name already exists, something should happen (de-normalize? error?)"""
 
-def test_fuzzy_variable_names():
+
+def test_normalize_variable_names():
     function_page_with_no_return = mock_page_tree['pages']['no_return']
     with_underscore = function_page_with_no_return['with_underscore']
     assert with_underscore
@@ -40,7 +42,8 @@ def test_fuzzy_variable_names():
     assert function_page_with_no_return['with-uppercase'].read() == _with_uppercase_text
     assert function_page_with_no_return['withuppercase'].read() == _with_uppercase_text
 
-def test_fuzzy_function_names():
+
+def test_normalize_function_names():
     pages = mock_page_tree['pages']
     _with_uppercase_function = pages['_WITH_UPPERCASE_FUNCTION']
     assert _with_uppercase_function
@@ -50,7 +53,8 @@ def test_fuzzy_function_names():
     assert pages['with-uppercase-function'].read() == _with_uppercase_function_text
     assert pages['withuppercasefunction'].read() == _with_uppercase_function_text
 
-def test_fuzzy_file_names():
+
+def test_normalize_file_names():
     with_whitespace = mock_page_tree['with whitespace']
     assert with_whitespace
 
@@ -73,7 +77,8 @@ def test_fuzzy_file_names():
     assert withwhitespace['_UGLY_FUNCTION'].read() == "ugly function"
     assert withwhitespace['ugly-function'].read() == "ugly function"
 
-def test_fuzzy_directory_names():
+
+def test_normalize_directory_names():
     ugly_names = ('ugly dirname_', 'ugly_dirname', 'ugly dirname', 'UGLY_DIRNAME', 'uglydirname')
     for ugly_name in ugly_names:
         ugly_dirname_directory = mock_page_tree[ugly_name]

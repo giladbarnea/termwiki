@@ -20,12 +20,12 @@ class TestIndentationMarkdown:
         text_lines = text.splitlines()
         indentation_markdown = IndentationMarkdown(text)
         indentation_markdown.parse()
-        import debug
-        for token in indentation_markdown:
-            pp(token,
-               include_file_name=False,
-               include_function_name=False,
-               include_arg_name=False,
-               include_type=True)
+        # import debug
+        # for token in indentation_markdown:
+        #     pp(token,
+        #        include_file_name=False,
+        #        include_function_name=False,
+        #        include_arg_name=False,
+        #        include_type=True)
         for i, line in enumerate(indentation_markdown.iter_text()):
             assert text_lines[i] == line.rstrip(), f'{i}: {text_lines[i]!r} != {line.rstrip()!r}'

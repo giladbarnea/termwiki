@@ -14,7 +14,7 @@ from typing import Generic, TypeVar, Type
 import termwiki
 from termwiki.consts import NON_LETTER_RE
 from termwiki.log import log
-from termwiki.util import decolor, short_repr, clean_str
+from termwiki.util import short_repr, clean_str
 
 PROJECT_ROOT = Path(termwiki.__path__[0]).parent
 
@@ -179,9 +179,11 @@ def traverse_module(module: ModuleType, python_module_ast: ast.Module):
 
 T = TypeVar('T')
 I = TypeVar('I')
+R = TypeVar('R')
 
 
 class CachingGenerator(Generic[T]):
+    # todo: i'm considering caching much simpler, like cached_property
     instance: T
     generator: Callable[[T, ...], Iterable[I]]
     _cacher: Callable[[T, I], ...]
@@ -228,9 +230,6 @@ class CachingGenerator(Generic[T]):
         self._cache_getter = cache_getter
 
 
-R = TypeVar('R')
-
-
 class cached_property(Generic[T]):
     instance: T
     method: Callable[[T, ...], R]
@@ -243,14 +242,6 @@ class cached_property(Generic[T]):
             return self
         value = instance.__dict__[self.method.__name__] = self.method(instance)
         return value
-
-
-class PageNotFound(KeyError):
-
-    def __init__(self, traversable: Traversable, page_name: str, *args):
-        super().__init__(*args)
-        self.traversable = traversable
-        self.page_name = page_name
 
 
 class Page:
@@ -388,18 +379,21 @@ class Traversable(Page):
         return merged_sub_pages
 
     def read(self, *args, **kwargs) -> str:
-        """Tries to read a sub-page with the same name as itself.
+        """Searches for self.name() within immediate sub-pages.
+        If found, reads the self-named sub-page and returns.
         If not found, the sub-pages are merged and the merged page is read.
 
         Subclasses that have an inherent way to return their own content
         should override this method, and call super().read() in case of failure.
         """
+        # todo: if deep_search had a depth parameter, this would be equivalent to
+        #  self.deep_search(self.name(), recursive=True, depth=2)
         name = self.name()
         page = self.search(name)
         if page:
             return page.read()
-        log.warning(f'No self-page found in {self} for {name!r}')
-        merged_sub_pages = self.merge_sub_pages()
+        # log.warning(f'No self-page found in {self} for {name!r}')
+        merged_sub_pages: MergedPage = self.merge_sub_pages()
         merged_sub_pages_text = merged_sub_pages.read()
         return merged_sub_pages_text
 
@@ -589,8 +583,7 @@ class DirectoryPage(Traversable):
                     # self._cache_page(path_stem, file_page)
                     yield path_stem, file_page
 
-        # Should not only hard code pages.py, but also self-named
-        #  files (not only python) and subdirs etc
+        # todo: not sure this belongs here. read() also does something similar (inherently lazier)
         pages_python_file = self_directory_path / 'pages.py'
         if pages_python_file.exists():
             package = self.package()
@@ -599,9 +592,9 @@ class DirectoryPage(Traversable):
                 # self._cache_page(name, page)
                 yield name, page
 
-        self_directory_name = self_directory_path.stem
-        if self_directory_name == 'pages':
-            return  # Already traversed
+        # self_directory_name = self_directory_path.stem
+        # if self_directory_name == 'pages':
+        #     return  # Already traversed
 
         # for subpath_with_same_name in self_directory_path.glob(f'{self_directory_name}*'):
         #     yield from self.search(subpath_with_same_name.name).traverse()
@@ -644,7 +637,7 @@ class MergedPage(Traversable):
             pages_repr = '[]'
 
         if os.environ.get('PYCHARM_HOSTED'):
-            pages_repr = pages_repr.replace('\n\t\t', "", 1).replace('\n\t\t', ", ") # remove first \n\t\t
+            pages_repr = pages_repr.replace('\n\t\t', "", 1).replace('\n\t\t', ", ")  # remove first \n\t\t
         return f'{self.__class__.__name__}(pages={pages_repr})'
 
     def merge_sub_pages(self) -> MergedPage:
