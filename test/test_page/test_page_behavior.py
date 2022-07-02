@@ -79,6 +79,11 @@ class TestDirectory:
         assert isinstance(only_down_variable, VariablePage)
         assert only_down_variable.read() == 'only_down'
 
+    def test_searching_with_extension_returns_only_specific_page():
+        readable_markdown_file = mock_page_tree.search('readable.md')
+        readable_markdown_file_text = readable_markdown_file.read()
+        assert readable_markdown_file_text == "readable.md content"
+
 
 class TestFunction:
     def test_search_variable(self):
