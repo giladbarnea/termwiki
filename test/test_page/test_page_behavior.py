@@ -7,6 +7,7 @@ exact name match is deeper than fzf ~match,
 self-named pages as default,
 read() merges sub-pages if no self-named sub-page was found,
 functions without return values,
+searching with suffix resolves when 2 same normalized names exist,
 """
 
 from termwiki.page import FunctionPage, DirectoryPage, VariablePage, PythonFilePage, MarkdownFilePage, MergedPage
@@ -79,8 +80,9 @@ class TestDirectory:
         assert isinstance(only_down_variable, VariablePage)
         assert only_down_variable.read() == 'only_down'
 
-    def test_searching_with_extension_returns_only_specific_page():
+    def test_searching_with_extension_returns_only_specific_page(self):
         readable_markdown_file = mock_page_tree.search('readable.md')
+        assert isinstance(readable_markdown_file, MarkdownFilePage)
         readable_markdown_file_text = readable_markdown_file.read()
         assert readable_markdown_file_text == "readable.md content"
 

@@ -40,9 +40,14 @@ def ws():
         - https://github.com/executablebooks/mdit-py-plugins/blob/master/mdit_py_plugins/colon_fence.py
         - https://markdown-it-py.readthedocs.io/en/latest/using.html#the-parser
 
+### Figure out:
+
+- [ ] Heading like "cmdline options" should be searchable by `tw cmdline`
+
 ### Parsing
 
-- [ ] Automatic h1-h6 headings based on indentation (?)
+- [ ] Automatic h1-h6 headings based on indentation
+- [ ] headings are pages
 
 ### Tokens
 
@@ -84,6 +89,8 @@ def ws():
 # Similar projects
 
 - [ ] https://github.com/chubin/cheat.sh
+- [ ] geek-note
+- [ ] https://github.com/xolox/vim-notes
 
 ---
 
