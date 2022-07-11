@@ -48,6 +48,7 @@ def get_local_var_names_inside_joined_str(joined_str: ast.JoinedStr) -> list[str
                 and isinstance(formatted_value.value, ast.Name):
             # We care only about {local_var} fstrings, aka formatted_value.value: ast.Name
             # because anything else (ast.Call etc) is found in globals_
+            # todo: this is not true if joined_str is module-level variable!
             var_names.append(formatted_value.value.id)
     return var_names
 
@@ -58,6 +59,7 @@ def get_local_variables(joined_str: ast.JoinedStr,
                         ) -> dict:
     isinstance(joined_str, ast.JoinedStr) or breakpoint()
     local_var_names_in_fstring = get_local_var_names_inside_joined_str(joined_str)
+    local_var_names_in_fstring or breakpoint()
     local_variables = dict.fromkeys(local_var_names_in_fstring)
     # In terms of reuse, FunctionPage.python_module_ast() also does this
     # traverse_assign_node(source_node, parent)
@@ -75,26 +77,40 @@ def get_local_variables(joined_str: ast.JoinedStr,
         # breakpoint()
         for var_name, var_value in traverse_assign_node(source_node, parent):
             local_variables[var_name] = var_value
+    elif isinstance(source_node, ast.ImportFrom):
+        # untested! wrote quickly
+        for alias in source_node.names:
+            if alias.asname:
+                var_name = alias.asname
+            else:
+                var_name = alias.name
+            var_value = getattr(parent, var_name)
+            local_variables[var_name] = var_value
     else:
-        raise NotImplementedError(f'get_local_variables(...) | {source_node=} '
-                                  f'not FunctionDef nor Assign. {source_parent_node=}'
-                                  f'{parent=}')
+        breakpoint()
+        raise NotImplementedError(f'get_local_variables(...)\n\t{source_node=}'
+                                  f'\n\tnot FunctionDef, not Assign nor ImportFrom\n\t{source_parent_node=}'
+                                  f'\n\t{parent=}')
     return local_variables
 
 
 def eval_node(node, parent, globals_):
-    unparsed_value = ast.unparse(node)
     try:
-        evaled: str = eval(unparsed_value, globals_)
-    except NameError as e:
-        # This happens when the value is composed of other local variables
-        #  within the same function. E.g the value is "f'{x}'", and x is a local variable.
-        #  'x' isn't in the globals, so it's a NameError.
-        #  We're resolving the values of the composing local variables.
+        unparsed_value = ast.unparse(node)
+        try:
+            evaled: str = eval(unparsed_value, globals_)
+        except NameError as e:
+            # This happens when the value is composed of other local variables
+            #  within the same function. E.g the value is "f'{x}'", and x is a local variable.
+            #  'x' isn't in the globals, so it's a NameError.
+            #  We're resolving the values of the composing local variables.
 
-        locals_ = get_local_variables(node, parent, globals_)
-        evaled = eval(unparsed_value, globals_, locals_)
-    return evaled
+            locals_ = get_local_variables(node, parent, globals_)
+            evaled = eval(unparsed_value, globals_, locals_)
+        return evaled
+    except Exception as e:
+        print(e)
+        breakpoint()
 
 
 def traverse_immutable_when_unparsed(node, parent, target_id):
@@ -103,12 +119,14 @@ def traverse_immutable_when_unparsed(node, parent, target_id):
     if hasattr(parent, '__globals__'):
         assert callable(parent) and not isinstance(parent, ModuleType), f'{parent} is not a function'
         globals_ = parent.__globals__
+    elif isinstance(parent, ModuleType):
+        globals_ = {var:val for var,val in vars(parent).items() if not var.startswith('__')} # todo: more specific, also think about module-level alias etc
     elif hasattr(parent, '__builtins__'):
-        assert not callable(parent) and isinstance(parent, ModuleType), f'{parent} is not a module'
+        assert not callable(parent), f'{parent} is a callable'
         globals_ = parent.__builtins__
     else:
-        raise AttributeError(f'traverse_immutable_when_unparsed({node=}, {parent=}, {target_id=}): '
-                             f'parent has neither __globals__ nor __builtins__. {type(parent) = }')
+        raise AttributeError(f'traverse_immutable_when_unparsed(\n\t{node=},\n\t{parent=},\n\t{target_id=}): '
+                             f'parent has neither __globals__ nor is it a ModuleType, not does it have __builtins__.\n\t{type(parent) = }')
     rendered = eval_node(node.value, parent, globals_)
     yield target_id, VariablePage(rendered, target_id)
 
