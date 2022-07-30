@@ -56,5 +56,5 @@ def bg(text):
     return f'\x1b[38;2;201;209;217;48;2;39;40;34m{text}\x1b[0m'
 
 
-def black(text, **kwargs):
+def blk(text, **kwargs):
     return colors.black(text, **kwargs)
