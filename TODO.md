@@ -34,6 +34,7 @@ def ws():
 
 - https://github.com/lark-parser/lark
 - https://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/
+- https://github.com/pyparsing/pyparsing (simple)
 - Markdown parsers:
     - [commonmark](https://github.com/readthedocs/commonmark.py)
     - [markdown-it](https://markdown-it-py.readthedocs.io/en/latest/using.html#the-parser)

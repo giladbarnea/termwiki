@@ -3,6 +3,8 @@ tokens:
 text // comment
 text // comment `with code`
 :table ... /:table
+:image ./pic.png
+:image ./pic.png 50x60
 :import
 >>>
 ❯ or $
