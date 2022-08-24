@@ -166,6 +166,9 @@ Sorted by importance:
 - Comments that are <span style="color: grey"># grey</span>
 - `rich` formatting, or ascii color codes, are rendered even inside markdown. So this would actually `[bright_blue]work[/]`. 
 
+## Roadmap
+- [ ] Knowledge graph
+
 ## Alternatives
 
 `termwiki` might not be for you, in which case I would recommend either _Notion_, _Dendron_ or _Dnote_.
