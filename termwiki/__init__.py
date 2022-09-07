@@ -3,6 +3,9 @@ import os
 from sys import path
 
 from rich.traceback import install
+from rich.console import Console
+console = Console(color_system='truecolor')
+print(f'{os.get_terminal_size() = }')
 import click
 import bdb
 

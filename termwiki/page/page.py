@@ -4,12 +4,11 @@ import ast
 import inspect
 import os
 from abc import abstractmethod
-from collections import Callable, Iterable, Iterator
-from collections.abc import Generator, Sequence
+from collections.abc import Generator, Sequence, Iterable, Iterator
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType
-from typing import Generic, TypeVar, Type
+from typing import Generic, TypeVar, Type, Callable
 
 import termwiki
 from termwiki.consts import NON_LETTER_RE

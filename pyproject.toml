@@ -6,9 +6,9 @@ authors = ["Gilad Barnea <giladbrn@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 click = "^8.0.3"
-fuzzysearch = "^0.7.3"
+fuzzysearch = { version = "^0.7.3", optional = true }
 Pygments = "^2.10.0"
 rich = "^12"
 more-termcolor = "^1.1.3"
@@ -16,6 +16,7 @@ more-termcolor = "^1.1.3"
 # pytest = "^7.1.2"
 #lark = { path = "../lark", develop=true }
 # markdown-it-py = { path ="../markdown-it-py", develop=true }
+types-Pygments = "^2.13.0"
 
 [tool.poetry.scripts]
 tw = 'termwiki.cli:main'
@@ -27,7 +28,8 @@ generate-setup-file = true
 pytest = "^7.1.2"
 ipython = "^8.4.0"
 ipython-autoimport = "^0.4"
-# ast-magic = "^1.0.1"
+#astload = "^0" # tree from ast.dump. what about ast.unparse?
+#asteria = "^0" # 'parentize' for .left .parent .child etc
 pdbpp = { path = "../pdbpp/", develop = true, optional = true }
 pytest-cov = "^3.0.0"
 appmap = { version = "^1.5.1", optional = true }
