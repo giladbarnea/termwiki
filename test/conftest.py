@@ -52,10 +52,30 @@ def pytest_report_teststatus(report: CollectReport | TestReport, config: Config)
 #     return None
 
 
-# def pytest_exception_interact(node: Union[Item, Collector], call: CallInfo[Any], report: Union[CollectReport, TestReport]) -> None:
-#     call.excinfo: code.ExceptionInfo
-#     call.excinfo.getrepr()
-#     return None
+ def pytest_exception_interact(node, call, report) -> None:
+    import importlib
+    import os
+
+    import _pytest
+    import pluggy
+    from rich.traceback import Traceback
+
+    PYCHARM_HOSTED = os.environ.get("PYCHARM_HOSTED")
+    width = max(int(os.getenv("COLUMNS", 130)), 130) if PYCHARM_HOSTED else None
+    traceback = Traceback.from_exception(
+        call.excinfo.type,
+        call.excinfo.value,
+        call.excinfo.tb,
+        width=width,
+        show_locals=True,
+        suppress=(_pytest, importlib, pluggy),
+    )
+    height = max(int(os.getenv("LINES", 100)), 100) if PYCHARM_HOSTED else None
+
+    from rich.console import Console
+
+    console = Console(width=width, height=height)
+    console.print(traceback)
 
 
 # def pytest_enter_pdb(config: Config, pdb: pdb.Pdb) -> None:
