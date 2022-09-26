@@ -8,7 +8,7 @@ from rich.console import Console
 console = Console(color_system='truecolor')
 try:
     columns, rows = os.get_terminal_size()
-    print(f'{columns = }, {rows = }')
+    # print(f'{columns = }, {rows = }')
 except OSError as e:
     print(repr(e),
           f'{hasattr(sys.stderr, "isatty") = }',

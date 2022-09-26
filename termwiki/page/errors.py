@@ -1,0 +1,2 @@
+class PageNotFound(Exception):
+    pass
