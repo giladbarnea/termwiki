@@ -3,8 +3,13 @@ import inspect
 import os
 import sys
 
-from rich.console import Console
+from rich.console import Console as RichConsole
 from rich.theme import Theme
+from rich.logging import RichHandler
+import logging
+
+DEBUG = os.getenv("TERMWIKI_DEBUG", "true").lower() in ("1", "true")
+PYCHARM_HOSTED = os.getenv("PYCHARM_HOSTED")
 
 
 def format_args(func):
@@ -17,21 +22,47 @@ def format_args(func):
 
     return log_method
 
+def log_in_out(func_or_nothing=None, watch=()):
+    """A decorator that logs the entry and exit of a function."""
 
-class Logger(Console):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # comma_sep_args = ", ".join(map(repr, args))
+            # comma_sep_kwargs = ", ".join(f"{k}={v!r}" for k, v in kwargs.items())
+            func_name = func.__name__
+            if args and hasattr(args[0], func_name):
+                self_arg, *rest = args
+                prefix = f"{self_arg!r}.{func_name}"
+                bound_func = func.__get__(self_arg, type(args[0]))
+                signature = inspect.signature(bound_func)
+                bound_args = signature.bind(*rest, **kwargs)
+            else:
+                prefix = func_name
+                signature = inspect.signature(func)
+                bound_args = signature.bind(*args, **kwargs)
+            pretty_signature = f'{prefix}{str(bound_args)[16:-1]}'
+            # self.debug(f"➡️️ [b white]Entered[/b white] {func_name}({comma_sep_args + (', ' if args and kwargs else '') + comma_sep_kwargs})")
+            log.debug(f"➡️️ [b white]Entered[/b white] {pretty_signature}")
+            ret = func(*args, **kwargs)
+            log.debug(f"⬅️️️ Exiting {prefix}(...) -> {ret!r}")
+            return ret
+
+        return wrapper
+
+    if func_or_nothing:
+        # We're called e.g as @log_in_out
+        return decorator(func_or_nothing)
+    # We're called e.g as @log_in_out()
+    return decorator
+
+
+class Console(RichConsole):
     _theme = {
-        "debug":   "dim",
-        "warn":    "yellow",
-        "warning": "yellow",
-        "error":   "red",
-        "fatal":   "bright_red",
-        "success": "green",
-        "prompt":  "b bright_cyan",
-        "title":   "b bright_white",
+        "debug": "dim", "warn": "yellow", "warning": "yellow", "error": "red", "fatal": "bright_red", "success": "green", "prompt": "b bright_cyan", "title": "b bright_white",
         }
 
     def __init__(self, **kwargs):
-        PYCHARM_HOSTED = os.getenv("PYCHARM_HOSTED")
         theme = kwargs.pop("theme", Theme({**self._theme, **{k.upper(): v for k, v in self._theme.items()}}), )
         super().__init__(  # force_terminal=True,
                 # log_time_format='[%d.%m.%Y][%T]',
@@ -46,41 +77,7 @@ class Logger(Console):
                 width=kwargs.pop("width", os.getenv('COLUMNS', 130)),
                 **kwargs, )
 
-    def log_in_out(self, func_or_nothing=None, watch=()):
-        """A decorator that logs the entry and exit of a function."""
-
-        def decorator(func):
-            @functools.wraps(func)
-            def wrapper(*args, **kwargs):
-                # comma_sep_args = ", ".join(map(repr, args))
-                # comma_sep_kwargs = ", ".join(f"{k}={v!r}" for k, v in kwargs.items())
-                func_name = func.__name__
-                if args and hasattr(args[0], func_name):
-                    self_arg, *rest = args
-                    prefix = f"{self_arg!r}.{func_name}"
-                    bound_func = func.__get__(self_arg, type(args[0]))
-                    signature = inspect.signature(bound_func)
-                    bound_args = signature.bind(*rest, **kwargs)
-                else:
-                    prefix = func_name
-                    signature = inspect.signature(func)
-                    bound_args = signature.bind(*args, **kwargs)
-                pretty_signature = f'{prefix}{str(bound_args)[16:-1]}'
-                # self.debug(f"➡️️ [b white]Entered[/b white] {func_name}({comma_sep_args + (', ' if args and kwargs else '') + comma_sep_kwargs})")
-                self.debug(f"➡️️ [b white]Entered[/b white] {pretty_signature}")
-                ret = func(*args, **kwargs)
-                self.debug(f"⬅️️️ Exiting {prefix}(...) -> {ret!r}")
-                return ret
-
-            return wrapper
-
-        if func_or_nothing:
-            # We're called e.g as @log_in_out
-            return decorator(func_or_nothing)
-        # We're called e.g as @log_in_out()
-        return decorator
-
-    if os.getenv("TERMWIKI_DEBUG", "true").lower() in ("1", "true"):
+    if DEBUG:
         @format_args
         def debug(self, *args, **kwargs):
             return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
@@ -88,7 +85,7 @@ class Logger(Console):
         def debug(self, *args, **kwargs):
             pass
 
-        print(" ! Logger.debug() disabled\n")
+        print(f" ! Console.debug() disabled\n")
 
     @format_args
     def info(self, *args, **kwargs):
@@ -119,4 +116,13 @@ class Logger(Console):
         return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 
 
-log = Logger()
+console = Console()
+logging.basicConfig(level=logging.DEBUG if DEBUG else logging.INFO,
+                    format='%(funcName)s(...) │ %(message)s',
+                    datefmt="[%T]",
+                    handlers=[RichHandler(console=console,
+                                          markup=True,
+                                          rich_tracebacks=True,
+                                          tracebacks_show_locals=True,
+                                          locals_max_string=console.width - 20, )])
+log = logging.getLogger("termwiki")

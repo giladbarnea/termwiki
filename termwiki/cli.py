@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import subprocess
 import sys
 from collections.abc import Sequence
@@ -7,9 +5,10 @@ from typing import Iterable
 
 import click
 from termwiki import page_tree
+from termwiki.page import Page, PageNotFound
 from termwiki.render import render_page
-from termwiki.log import log
-@log.log_in_out
+from termwiki.log import log, log_in_out
+@log_in_out
 def fuzzy_search(iterable: Iterable[str], search_term: str) -> str | None:
     # --exit-0 --select-1 --inline-info
     command = 'echo "' + '\n'.join(iterable) + (f'" | fzf --header-first --header="{search_term} not found; did you mean..." '
@@ -23,7 +22,7 @@ def fuzzy_search(iterable: Iterable[str], search_term: str) -> str | None:
     return output.decode('utf-8').strip()
 
 
-def get_page(page_path: Sequence[str]) -> bool:
+def get_page(page_path: Sequence[str]) -> tuple[list[str], Page]:
     # todo: on_not_found=fuzzy_search is problematic, because what if
     #  want page from another indentation?
     found_path, page = page_tree.deep_search(page_path,
@@ -31,13 +30,19 @@ def get_page(page_path: Sequence[str]) -> bool:
                                              recursive=True)
 
     if not page:
-        log.error(f'Page not found! {page_path=} | {found_path=}')
-        return False
+        error =f'Page not found! {page_path=} | {found_path=}'
+        raise PageNotFound(error)
 
+    return found_path, page
     rendered_text = render_page(page)
     print(rendered_text)
     return True
 
+def print_subpages(page):
+    list(page.traverse())
+    print(page.name())
+    [print(f' · {p}') for p in page.__pages__]
+    return True
 
 def show_help():
     log.error('Must specify a page path.\n')
@@ -46,11 +51,22 @@ def show_help():
 
 
 @click.command(no_args_is_help=True,
-               context_settings=dict(help_option_names=['-h', '--help']))
+               context_settings=dict(help_option_names=['-', '--help']))
 @click.argument('page_path', required=False, nargs=-1)
-def main(page_path: tuple[str]):
+@click.option('-l', '--list', 'list_subpages', is_flag=True, help='List subpages')
+def main(page_path: tuple[str], list_subpages: bool):
     if not page_path or not any(page_path):
         show_help()
-        sys.exit(1)
-    ok = get_page(page_path)
-    sys.exit(0 if ok else 1)
+        return sys.exit(1)
+    try:
+        found_path, page = get_page(page_path)
+    except Exception as e:
+        log.error(repr(e))
+        return sys.exit(1)
+
+    if list_subpages:
+        return print_subpages(page)
+
+    rendered_text = render_page(page)
+    print(rendered_text)
+    return sys.exit(0)
