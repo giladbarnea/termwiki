@@ -12,6 +12,7 @@ from pygments.lexers import (
     BashLexer,
     CssLexer,
     DockerLexer,
+    GroffLexer,
     IniLexer,
     JavascriptLexer,
     JsonLexer,
