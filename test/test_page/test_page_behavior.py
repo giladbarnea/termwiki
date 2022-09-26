@@ -9,6 +9,7 @@ read() merges sub-pages if no self-named sub-page was found,
 functions without return values,
 searching with suffix resolves when 2 same normalized names exist,
 """
+import pytest
 
 from termwiki.page import FunctionPage, DirectoryPage, VariablePage, PythonFilePage, MarkdownFilePage, MergedPage
 from termwiki.util import clean_str
@@ -80,6 +81,7 @@ class TestDirectory:
         assert isinstance(only_down_variable, VariablePage)
         assert only_down_variable.read() == 'only_down'
 
+    @pytest.mark.skip(reason="TODO")
     def test_searching_with_extension_returns_only_specific_page(self):
         readable_markdown_file = mock_page_tree.search('readable.md')
         assert isinstance(readable_markdown_file, MarkdownFilePage)
