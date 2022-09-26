@@ -11,60 +11,7 @@
 - [ ] `tw pecan --depth 2` to show only 2 levels of sub_pages
 - [ ] `tw python magic-` for collapsed from specific hierarchy
 
-## General Brain dump
-
-- [ ] (sub)pages can reference other (sub)pages (simple `import` maybe? or directive?)
-- [ ] "See also: blabla" is clickable (`Textual`)
-- [ ] in README.md: "optimized for zero mental overhead, specifically when getting to the info"
-
-## `Page`
-
-- Can this be ast parsed? when `tw ws`
-
-```python
-def ws():
-    # https://example.com
-```
-
-- [ ] **aliases** for everything, even sub_pages. like rst directives?
-
----
-
-## IndentationMarkdown
-
-- https://github.com/lark-parser/lark
-- https://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/
-- https://github.com/pyparsing/pyparsing (simple)
-- Markdown parsers:
-    - [commonmark](https://github.com/readthedocs/commonmark.py)
-    - [markdown-it](https://markdown-it-py.readthedocs.io/en/latest/using.html#the-parser)
-        - https://github.com/executablebooks/mdit-py-plugins/blob/master/mdit_py_plugins/colon_fence.py
-        - https://markdown-it-py.readthedocs.io/en/latest/using.html#the-parser
-
-### Figure out:
-
-- [ ] Heading like "cmdline options" should be searchable by `tw cmdline`
-
-### Parsing
-
-- [ ] Automatic h1-h6 headings based on indentation
-- [ ] headings are pages
-
-### Tokens
-
-- [ ] rich markup (e.g. `[i]...[/]`)
-
-### :import
-
-#### use cases:
-
-- %import python.datamodel with python/datamodel.py and datamodel() method in datamodel.py
-- %import python.datamodel.numeric with python/datamodel.py and numeric() method in datamodel.py
-- %import python.datamodel.mro with python/datamodel.py and datamodel() method has _MRO variable
-- %import python.datamodel with python/datamodel/{mro,descriptors}.py etc
-- %import python.datamodel.mro with python/datamodel/mro text file
-
-### Inline gifs / images
+## Inline gifs / images
 
 - gifs:
     - `gif-for-cli`
@@ -87,24 +34,31 @@ def ws():
 
 ---
 
+## General Brain dump
+
+- [ ] (sub)pages can reference other (sub)pages (simple `import` maybe? or directive?)
+- [ ] "See also: blabla" is clickable (`Textual`)
+- [ ] in README.md: "optimized for zero mental overhead, specifically when getting to the info"
+
+## `Page`
+
+- Can this be ast parsed? when `tw ws`
+
+```python
+def ws():
+    # https://example.com
+```
+
+- [ ] **aliases** for everything, even sub_pages. like rst directives?
+
+---
+
 # Similar projects
 
 - [ ] https://github.com/chubin/cheat.sh
 - [ ] geek-note
 - [ ] https://github.com/xolox/vim-notes
 
----
-
-# Bugs
-
-- [ ] `tw python slots` should work even though `slots` is a python.datamodel.special_method_names() variable
-- [ ] `tw sed` prints restructured_text and not `bash > sed`. Should give more weight to next-level page if exact match.
-- [ ] `AttributeError: 'VariablePage' object has no attribute '__pages__'` 
-  - [ ] `tw pydantic validators` (pydantic is a static function in `pages.py`, with one `validator` var, no return)
-- [ ] `AttributeError: 'FilePage' object has no attribute '__pages__'`
-  - [ ] `tw bash eof`
-- [ ] `tw pylint` there was no such page anywhere. it fuzzy searches all pages in pages.py, fails CalledProcessError with exit 1, then breaks on `get_local_variables()` because `joined_str` is a `Name(id='_COLLECTION_REF', ctx=Load())`. up the stack, we see we were called by `eval_node()` after `eval(unparsed_value, globals_)` raised a NameError. this is because `unparsed_value` is a str: `'_COLLECTION_REF'`. This is because: ![img.png](img.png)
-- [ ] `tw argparse` just doesn't find `python > argparse`
 ---
 
 # Done
