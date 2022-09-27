@@ -1,10 +1,10 @@
 [[package]]
 name = "appmap"
-version = "1.5.1"
+version = "1.6.0"
 description = "Create AppMap files by recording a Python application."
 category = "dev"
 optional = true
-python-versions = ">=3.6,<4.0"
+python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
 importlib-metadata = ">=0.8"
@@ -12,9 +12,6 @@ importlib-resources = ">=5.4.0,<6.0.0"
 inflection = ">=0.3.0"
 packaging = ">=21.3,<22.0"
 PyYAML = ">=5.3.0,<6.0.0"
-
-[package.extras]
-test = ["Django (>=3.1.6,<4.0.0)"]
 
 [[package]]
 name = "appnope"
@@ -65,7 +62,7 @@ name = "black"
 version = "22.8.0"
 description = "The uncompromising code formatter."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6.2"
 
 [package.dependencies]
@@ -135,11 +132,14 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "executing"
-version = "1.0.0"
+version = "1.1.0"
 description = "Get the currently executing AST node of a frame, and other information"
 category = "dev"
 optional = false
 python-versions = "*"
+
+[package.extras]
+tests = ["asttokens", "littleutils", "pytest", "rich"]
 
 [[package]]
 name = "fancycompleter"
@@ -303,7 +303,7 @@ name = "mypy-extensions"
 version = "0.4.3"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [[package]]
@@ -334,7 +334,7 @@ name = "pathspec"
 version = "0.10.1"
 description = "Utility library for gitignore style pattern matching of file paths."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.7"
 
 [[package]]
@@ -384,7 +384,7 @@ name = "platformdirs"
 version = "2.5.2"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.7"
 
 [package.extras]
@@ -554,7 +554,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "stack-data"
-version = "0.5.0"
+version = "0.5.1"
 description = "Extract data from python stack frames and tracebacks for informative displays"
 category = "dev"
 optional = false
@@ -578,7 +578,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "traitlets"
-version = "5.3.0"
+version = "5.4.0"
 description = ""
 category = "dev"
 optional = false
@@ -589,7 +589,7 @@ test = ["pre-commit", "pytest"]
 
 [[package]]
 name = "types-docutils"
-version = "0.19.0"
+version = "0.19.1"
 description = "Typing stubs for docutils"
 category = "main"
 optional = false
@@ -597,7 +597,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-Pygments"
-version = "2.13.0"
+version = "2.13.1"
 description = "Typing stubs for Pygments"
 category = "main"
 optional = false
@@ -646,12 +646,12 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "2c8ec706353cd1c298965b0458f10d02c5644557e1a266f1cfad82d4255c0970"
+content-hash = "f6dcfb9200c7253a840cbeffc5598de78f682be3f2f179d703df1ea892881be2"
 
 [metadata.files]
 appmap = [
-    {file = "appmap-1.5.1-py3-none-any.whl", hash = "sha256:ca68c85851e4756e15cc1cec2bf1851fbe590548de1ae42f7ad7505cee543b11"},
-    {file = "appmap-1.5.1.tar.gz", hash = "sha256:c594d82264fa8e0a1950ef02456640b18e31e8114df7726a6d89e51f1b53200f"},
+    {file = "appmap-1.6.0-py3-none-any.whl", hash = "sha256:5cb1957bad2748f5471ba8e9c7b72bdcc4d433230c1f4bb4527bdcafeb7043dd"},
+    {file = "appmap-1.6.0.tar.gz", hash = "sha256:e1fe506f222c85067a563f11133cd498c428a2d807120f0c750236aebd141d81"},
 ]
 appnope = [
     {file = "appnope-0.1.3-py2.py3-none-any.whl", hash = "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"},
@@ -763,8 +763,8 @@ decorator = [
     {file = "decorator-5.1.1.tar.gz", hash = "sha256:637996211036b6385ef91435e4fae22989472f9d571faba8927ba8253acbc330"},
 ]
 executing = [
-    {file = "executing-1.0.0-py2.py3-none-any.whl", hash = "sha256:550d581b497228b572235e633599133eeee67073c65914ca346100ad56775349"},
-    {file = "executing-1.0.0.tar.gz", hash = "sha256:98daefa9d1916a4f0d944880d5aeaf079e05585689bebd9ff9b32e31dd5e1017"},
+    {file = "executing-1.1.0-py2.py3-none-any.whl", hash = "sha256:4a6d96ba89eb3dcc11483471061b42b9006d8c9f81c584dd04246944cd022530"},
+    {file = "executing-1.1.0.tar.gz", hash = "sha256:2c2c07d1ec4b2d8f9676b25170f1d8445c0ee2eb78901afb075a4b8d83608c6a"},
 ]
 fancycompleter = []
 fuzzysearch = [
@@ -931,24 +931,24 @@ six = [
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
 stack-data = [
-    {file = "stack_data-0.5.0-py3-none-any.whl", hash = "sha256:66d2ebd3d7f29047612ead465b6cae5371006a71f45037c7e2507d01367bce3b"},
-    {file = "stack_data-0.5.0.tar.gz", hash = "sha256:715c8855fbf5c43587b141e46cc9d9339cc0d1f8d6e0f98ed0d01c6cb974e29f"},
+    {file = "stack_data-0.5.1-py3-none-any.whl", hash = "sha256:5120731a18ba4c82cefcf84a945f6f3e62319ef413bfc210e32aca3a69310ba2"},
+    {file = "stack_data-0.5.1.tar.gz", hash = "sha256:95eb784942e861a3d80efd549ff9af6cf847d88343a12eb681d7157cfcb6e32b"},
 ]
 tomli = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 traitlets = [
-    {file = "traitlets-5.3.0-py3-none-any.whl", hash = "sha256:65fa18961659635933100db8ca120ef6220555286949774b9cfc106f941d1c7a"},
-    {file = "traitlets-5.3.0.tar.gz", hash = "sha256:0bb9f1f9f017aa8ec187d8b1b2a7a6626a2a1d877116baba52a129bfa124f8e2"},
+    {file = "traitlets-5.4.0-py3-none-any.whl", hash = "sha256:93663cc8236093d48150e2af5e2ed30fc7904a11a6195e21bab0408af4e6d6c8"},
+    {file = "traitlets-5.4.0.tar.gz", hash = "sha256:3f2c4e435e271592fe4390f1746ea56836e3a080f84e7833f0f801d9613fec39"},
 ]
 types-docutils = [
-    {file = "types-docutils-0.19.0.tar.gz", hash = "sha256:94936b1961aacda61ec6bb0acf1169cd7830b5230b645855c1d4789baf19685e"},
-    {file = "types_docutils-0.19.0-py3-none-any.whl", hash = "sha256:198ed1c0ef6c1a79411da9e1745514eda433d37770e24f26b0e13a302904cc97"},
+    {file = "types-docutils-0.19.1.tar.gz", hash = "sha256:7df133b87105af410fc6a992030a70ee9f5a2c2636c5afe7e0de285eb9fdb015"},
+    {file = "types_docutils-0.19.1-py3-none-any.whl", hash = "sha256:6b110b17ba4bfbde765b69acca6a6da373094d99a5a3bce1d5a8c9d29b293d89"},
 ]
 types-Pygments = [
-    {file = "types-Pygments-2.13.0.tar.gz", hash = "sha256:00cc3e228ffdf6ffcf20af13190ef6e315f3585e5e8d27c12d1b56ff7ecde2f2"},
-    {file = "types_Pygments-2.13.0-py3-none-any.whl", hash = "sha256:3985a4105d9b768bee5f311d7682d60c59ddd9f04d0977695f430ab9b218706b"},
+    {file = "types-Pygments-2.13.1.tar.gz", hash = "sha256:6e231ec18f5d651f7863734bfdd8ca2f50dedd0c521422828a3f9638d6490092"},
+    {file = "types_Pygments-2.13.1-py3-none-any.whl", hash = "sha256:52f71bc31caa0d0578ce8bb7e7761d3b1f6797ece86e26c6bc49a1f15e1e485c"},
 ]
 types-setuptools = [
     {file = "types-setuptools-65.3.0.tar.gz", hash = "sha256:c26779cbba3947823c260354adaab4e91ca8c18888aa2b740f503844b88f1813"},
