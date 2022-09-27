@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from termwiki.consts import WHITESPACE_RE
 from termwiki.util import decolor
 

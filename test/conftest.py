@@ -1,4 +1,3 @@
-from __future__ import annotations
 import os
 import sys
 from collections.abc import Mapping
@@ -31,7 +30,7 @@ if homedir not in sys.path:
 #             item.add_marker(skip_slow)
 
 
-def pytest_report_teststatus(report: CollectReport | TestReport, config: Config) -> tuple[str, str, Union[str, Mapping[str, bool]]]:
+def pytest_report_teststatus(report: CollectReport | TestReport, config: Config) -> tuple[str, str, str | Mapping[str, bool]]:
     if report.when == 'call':
         if report.failed:
             return report.outcome, 'x', ''
@@ -43,16 +42,16 @@ def pytest_report_teststatus(report: CollectReport | TestReport, config: Config)
     # if report.skipped:
     #     return report.outcome, '🟡', 'Skipped'
 
-# def pytest_runtest_logreport(report: TestReport) -> None:
-#     if report.failed and hasattr(report.longrepr, 'getrepr'):
-#         report.longreprtext = report.longrepr.getrepr(truncate_locals=False)
+    # def pytest_runtest_logreport(report: TestReport) -> None:
+    #     if report.failed and hasattr(report.longrepr, 'getrepr'):
+    #         report.longreprtext = report.longrepr.getrepr(truncate_locals=False)
 
 
-# def pytest_assertrepr_compare(config: Config, op: str, left, right) -> Optional[list[str]]:
-#     return None
+    # def pytest_assertrepr_compare(config: Config, op: str, left, right) -> Optional[list[str]]:
+    #     return None
 
 
- def pytest_exception_interact(node, call, report) -> None:
+def pytest_exception_interact(node, call, report) -> None:
     import importlib
     import os
 
@@ -62,21 +61,18 @@ def pytest_report_teststatus(report: CollectReport | TestReport, config: Config)
 
     PYCHARM_HOSTED = os.environ.get("PYCHARM_HOSTED")
     width = max(int(os.getenv("COLUMNS", 130)), 130) if PYCHARM_HOSTED else None
-    traceback = Traceback.from_exception(
-        call.excinfo.type,
-        call.excinfo.value,
-        call.excinfo.tb,
-        width=width,
-        show_locals=True,
-        suppress=(_pytest, importlib, pluggy),
-    )
+    traceback = Traceback.from_exception(call.excinfo.type,
+                                         call.excinfo.value,
+                                         call.excinfo.tb,
+                                         width=width,
+                                         show_locals=True,
+                                         suppress=(_pytest, importlib, pluggy), )
     height = max(int(os.getenv("LINES", 100)), 100) if PYCHARM_HOSTED else None
 
     from rich.console import Console
 
     console = Console(width=width, height=height)
     console.print(traceback)
-
 
 # def pytest_enter_pdb(config: Config, pdb: pdb.Pdb) -> None:
 #     print(f'\n{pdb = !r}, {type(pdb) = !r}')

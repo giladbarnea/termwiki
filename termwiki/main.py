@@ -1,6 +1,4 @@
 #!/usr/bin/env python3.8
-from __future__ import annotations
-
 import inspect
 import itertools as it
 import logging
