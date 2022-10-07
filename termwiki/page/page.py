@@ -80,7 +80,7 @@ class cached_property(Generic[T]):
 
 class Page:
     # def __init__(self):
-    #     # self.__pages__ = {}
+    #     # self.pages = {}
     #     # self.__traverse_exhaused__ = False
     #     self.__aliases__ = {}
 
@@ -100,7 +100,7 @@ class Page:
 
 class Traversable(Page):
     def __init__(self):
-        self.__pages__ = {}
+        self.pages = {}
         """Cache of visited (traversed) pages. Populated and used by 'traverse' method."""
         self.__traverse_exhaused__ = False
 
@@ -110,7 +110,7 @@ class Traversable(Page):
     #         return
     #     traverse = CachingGenerator(cls.traverse)
     #     traverse.set_cacher(lambda self, page: self._cache_page(page))
-    #     traverse.set_cache_getter(lambda self: self.__pages__.items())
+    #     traverse.set_cache_getter(lambda self: self.pages.items())
     #     cls.traverse = traverse
 
     @abstractmethod
@@ -119,15 +119,15 @@ class Traversable(Page):
 
     # def _cache_page(self, page_tuple: tuple[str, Page]) -> Page:
     #     normalized_page_name, page = page_tuple
-    #     if normalized_page_name in self.__pages__:
-    #         cached_page = self.__pages__[normalized_page_name]
+    #     if normalized_page_name in self.pages:
+    #         cached_page = self.pages[normalized_page_name]
     #         if isinstance(cached_page, MergedPage):
     #             cached_page.extend(page)
     #         else:
-    #             self.__pages__[normalized_page_name] = MergedPage(cached_page, page)
+    #             self.pages[normalized_page_name] = MergedPage(cached_page, page)
     #     else:
-    #         self.__pages__[normalized_page_name] = page
-    #     return self.__pages__[normalized_page_name]
+    #         self.pages[normalized_page_name] = page
+    #     return self.pages[normalized_page_name]
 
     # @CachingGenerator
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
@@ -147,14 +147,14 @@ class Traversable(Page):
         if not self.__traverse_exhaused__:
             list(self.traverse())
         normalized_page_name = ast_utils.normalize_page_name(name)
-        if normalized_page_name in self.__pages__:
-            return self.__pages__[normalized_page_name]
+        if normalized_page_name in self.pages:
+            return self.pages[normalized_page_name]
         if on_not_found is None:
             return None
-        page_name = on_not_found(self.__pages__.keys(), normalized_page_name)
+        page_name = on_not_found(self.pages.keys(), normalized_page_name)
         if page_name is None:
             return None
-        return self.__pages__[page_name]
+        return self.pages[page_name]
 
     __getitem__ = search
 
@@ -209,7 +209,7 @@ class Traversable(Page):
         # return [first_page_path] + found_paths, found_page
 
     def merge_sub_pages(self) -> "MergedPage":
-        merged_sub_pages = MergedPage(*self.__pages__.values())
+        merged_sub_pages = MergedPage(*self.pages.values())
         return merged_sub_pages
 
     def read(self, *args, **kwargs) -> str:

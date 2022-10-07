@@ -41,7 +41,7 @@ def get_page(page_path: Sequence[str]) -> tuple[list[str], Page]:
 def print_subpages(page):
     list(page.traverse())
     print(page.name())
-    [print(f' · {p}') for p in page.__pages__]
+    [print(f' · {p}') for p in page.pages]
     return True
 
 def show_help():
