@@ -65,7 +65,14 @@ def log_in_out(func_or_nothing=None, watch=()):
 
 class Console(RichConsole):
     _theme = {
-        "debug": "dim", "warn": "yellow", "warning": "yellow", "error": "red", "fatal": "bright_red", "success": "green", "prompt": "b bright_cyan", "title": "b bright_white",
+        "debug":   "dim",
+        "warn":    "yellow",
+        "warning": "yellow",
+        "error":   "red",
+        "fatal":   "bright_red",
+        "success": "green",
+        "prompt":  "b bright_cyan",
+        "title":   "b bright_white",
         }
 
     def __init__(self, **kwargs):
