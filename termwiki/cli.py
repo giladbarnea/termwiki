@@ -61,7 +61,7 @@ def main(page_path: tuple[str], list_subpages: bool):
     try:
         found_path, page = get_page(page_path)
     except Exception as e:
-        log.error(repr(e))
+        log.error(repr(e),exc_info=True)
         return sys.exit(1)
 
     if list_subpages:

@@ -1,16 +1,14 @@
-import os
-import sys
 from collections.abc import Mapping
-from typing import Union
 
-import pytest
 from _pytest.config import Config
-from _pytest.config.argparsing import Parser
 from _pytest.reports import TestReport, CollectReport
 
-homedir = os.path.expanduser('~')
-if homedir not in sys.path:
-    sys.path.append(homedir)
+from termwiki.log import DEFAULT_WIDTH
+
+
+# homedir = os.path.expanduser('~')
+# if homedir not in sys.path:
+#     sys.path.append(homedir)
 
 
 # def pytest_addoption(parser: Parser):
@@ -53,25 +51,21 @@ def pytest_report_teststatus(report: CollectReport | TestReport, config: Config)
 
 def pytest_exception_interact(node, call, report) -> None:
     import importlib
-    import os
 
     import _pytest
     import pluggy
     from rich.traceback import Traceback
+    from termwiki.log import console
 
-    PYCHARM_HOSTED = os.environ.get("PYCHARM_HOSTED")
-    width = max(int(os.getenv("COLUMNS", 130)), 130) if PYCHARM_HOSTED else None
     traceback = Traceback.from_exception(call.excinfo.type,
                                          call.excinfo.value,
                                          call.excinfo.tb,
-                                         width=width,
+                                         width=console.width,
                                          show_locals=True,
+                                         locals_max_string=max(console.width, DEFAULT_WIDTH) - 20,
                                          suppress=(_pytest, importlib, pluggy), )
-    height = max(int(os.getenv("LINES", 100)), 100) if PYCHARM_HOSTED else None
 
-    from rich.console import Console
 
-    console = Console(width=width, height=height)
     console.print(traceback)
 
 # def pytest_enter_pdb(config: Config, pdb: pdb.Pdb) -> None:

@@ -25,6 +25,7 @@ Title
 // link.com
   blabla
 """
+from __future__ import annotations
 from collections import deque
 from termwiki.render.util import get_indent_level
 from termwiki.util import short_repr

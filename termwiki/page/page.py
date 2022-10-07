@@ -3,253 +3,72 @@ import inspect
 import os
 from abc import abstractmethod
 from collections.abc import Generator, Sequence, Iterable, Iterator
-from importlib import import_module
 from pathlib import Path
 from types import ModuleType
-from typing import Generic, TypeVar, Type, Callable
+from typing import Generic, TypeVar, Type, Callable, ParamSpec
 
-import termwiki
-from termwiki.consts import NON_LETTER_RE
 from termwiki.log import log
 from termwiki.util import short_repr, clean_str
-
-PROJECT_ROOT = Path(termwiki.__path__[0]).parent
-
-
-def normalize_page_name(page_name: str) -> str:
-    return NON_LETTER_RE.sub('', page_name).lower()
-
-
-def import_module_by_path(path: Path) -> ModuleType:
-    if path.is_relative_to(PROJECT_ROOT):
-        python_module_relative_path = path.relative_to(PROJECT_ROOT)
-    else:
-        python_module_relative_path = path
-    python_module_name = '.'.join(python_module_relative_path.with_suffix('').parts)
-    imported_module = import_module(python_module_name)
-    return imported_module
-
-
-def pformat_node(node: ast.AST, annotate_fields=True, include_attributes=False, indent=4):
-    return ast.dump(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent).replace(r'\n', '\n... ')
-
-
-def pprint_node(node: ast.AST, annotate_fields=True, include_attributes=False, indent=4):
-    print(pformat_node(node, annotate_fields=annotate_fields, include_attributes=include_attributes, indent=indent))
-
-
-def get_local_var_names_inside_joined_str(joined_str: ast.JoinedStr) -> list[str]:
-    var_names = []
-    for formatted_value in joined_str.values:
-        if isinstance(formatted_value, ast.FormattedValue) \
-                and isinstance(formatted_value.value, ast.Name):
-            # We care only about {local_var} fstrings, aka formatted_value.value: ast.Name
-            # because anything else (ast.Call etc) is found in globals_
-            # todo: this is not true if joined_str is module-level variable!
-            var_names.append(formatted_value.value.id)
-    return var_names
-
-
-def get_local_variables(joined_str: ast.JoinedStr,
-                        parent: Callable[..., str],
-                        globals_: dict,
-                        ) -> dict:
-    isinstance(joined_str, ast.JoinedStr) or breakpoint()
-    local_var_names_in_fstring = get_local_var_names_inside_joined_str(joined_str)
-    local_var_names_in_fstring or breakpoint()
-    local_variables = dict.fromkeys(local_var_names_in_fstring)
-    # In terms of reuse, FunctionPage.python_module_ast() also does this
-    # traverse_assign_node(source_node, parent)
-    source_parent_node: ast.Module = ast.parse(inspect.getsource(parent))
-    source_node = source_parent_node.body[0]
-    if isinstance(source_node, ast.FunctionDef):
-        for assign in source_node.body:
-            if not isinstance(assign, ast.Assign):
-                continue
-            for target in assign.targets:
-                if target.id in local_var_names_in_fstring:
-                    var_value = eval_node(assign.value, parent, globals_)
-                    local_variables[target.id] = var_value
-    elif isinstance(source_node, ast.Assign):
-        # breakpoint()
-        for var_name, var_value in traverse_assign_node(source_node, parent):
-            local_variables[var_name] = var_value
-    elif isinstance(source_node, ast.ImportFrom):
-        # untested! wrote quickly
-        for alias in source_node.names:
-            if alias.asname:
-                var_name = alias.asname
-            else:
-                var_name = alias.name
-            var_value = getattr(parent, var_name)
-            local_variables[var_name] = var_value
-    else:
-        breakpoint()
-        raise NotImplementedError(f'get_local_variables(...)\n\t{source_node=}'
-                                  f'\n\tnot FunctionDef, not Assign nor ImportFrom\n\t{source_parent_node=}'
-                                  f'\n\t{parent=}')
-    return local_variables
-
-
-def eval_node(node, parent, globals_):
-    try:
-        unparsed_value = ast.unparse(node)
-        try:
-            evaled: str = eval(unparsed_value, globals_)
-        except NameError as e:
-            # This happens when the value is composed of other local variables
-            #  within the same function. E.g the value is "f'{x}'", and x is a local variable.
-            #  'x' isn't in the globals, so it's a NameError.
-            #  We're resolving the values of the composing local variables.
-
-            locals_ = get_local_variables(node, parent, globals_)
-            evaled = eval(unparsed_value, globals_, locals_)
-        return evaled
-    except Exception as e:
-        print(e)
-        breakpoint()
-
-
-def traverse_immutable_when_unparsed(node, parent, target_id):
-    """JoinedStr, Constant, Name, FormattedValue, or sometimes even a simple Expr,
-    when ast.unparse(node) returns a string that can be evaluated and used as-is."""
-    if hasattr(parent, '__globals__'):
-        assert callable(parent) and not isinstance(parent, ModuleType), f'{parent} is not a function'
-        globals_ = parent.__globals__
-    elif isinstance(parent, ModuleType):
-        globals_ = {var:val for var,val in vars(parent).items() if not var.startswith('__')} # todo: more specific, also think about module-level alias etc
-    elif hasattr(parent, '__builtins__'):
-        assert not callable(parent), f'{parent} is a callable'
-        globals_ = parent.__builtins__
-    else:
-        raise AttributeError(f'traverse_immutable_when_unparsed(\n\t{node=},\n\t{parent=},\n\t{target_id=}): '
-                             f'parent has neither __globals__ nor is it a ModuleType, not does it have __builtins__.\n\t{type(parent) = }')
-    rendered = eval_node(node.value, parent, globals_)
-    yield target_id, VariablePage(rendered, target_id)
-
-
-def traverse_assign_node(node: ast.Assign, parent: Callable[..., str] | ModuleType) -> Generator[tuple[str, VariablePage]]:
-    parent = inspect.unwrap(parent)  # parent isn't necessarily a function, but that's ok
-    target: ast.Name
-    for target in node.targets:
-        target_id = normalize_page_name(target.id)
-        if isinstance(node.value, ast.Constant):
-            yield target_id, VariablePage(node.value.value, target_id)
-        else:
-            yield from traverse_immutable_when_unparsed(node, parent, target_id)
-
-
-def traverse_function(function: Callable[..., str], python_module_ast: ast.Module) -> Generator[tuple[str, VariablePage]]:
-    # noinspection PyTypeChecker
-    function_def_ast: ast.FunctionDef = python_module_ast.body[0]
-    for node in function_def_ast.body:
-        if isinstance(node, ast.Assign):
-            yield from traverse_assign_node(node, function)
-        else:
-            assert hasattr(node, 'value'), f'{node} has no value attribute' or breakpoint()
-            yield from traverse_immutable_when_unparsed(node, function, function_def_ast.name)  # note: when node is ast.Return, function_def_ast.name is the function name
-
-
-def traverse_module(module: ModuleType, python_module_ast: ast.Module):
-    exclude_names = getattr(module, '__exclude__', {})
-    for node in python_module_ast.body:
-        if hasattr(node, 'name'):
-            node_name = normalize_page_name(node.name)
-            if node.name in exclude_names or node_name in exclude_names:
-                continue
-            if isinstance(node, ast.FunctionDef):
-                function = getattr(module, node.name)
-                yield node_name, FunctionPage(function)
-
-                # this will be replaced with import hook
-                if hasattr(function, 'aliases'):
-                    for alias in function.aliases:
-                        yield normalize_page_name(alias), FunctionPage(function)
-            else:
-                log.warning(f'traverse_module({module}): {node} has "name" but is not a FunctionDef')
-                breakpoint()
-            continue
-        if hasattr(node, 'names'):
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                continue
-            log.warning(f'traverse_module({module}): {node} has "names" but is not an Import or ImportFrom')
-            breakpoint()
-            for alias in node.names:
-                if alias.name not in exclude_names:
-                    yield alias.name, getattr(module, alias.name)
-            continue
-        if isinstance(node, ast.Assign):
-            yield from traverse_assign_node(node, module)
-            continue
-        if isinstance(node, ast.Expr):
-            if isinstance(node.value, ast.Constant):
-                node_value = node.value.value
-                if module.__doc__ == node_value:
-                    # yield '__doc__', VariablePage(node_value, '__doc__')
-                    continue
-
-        log.warning(f"traverse_module({module}): {node} doesn't have 'name' nor 'names', and is not an Assign nor an Expr for module.__doc__")
-        breakpoint()
-
+from . import ast_utils
 
 T = TypeVar('T')
 I = TypeVar('I')
 R = TypeVar('R')
+P = ParamSpec('P')
 
-
-class CachingGenerator(Generic[T]):
-    # todo: i'm considering caching much simpler, like cached_property
-    instance: T
-    generator: Callable[[T, ...], Iterable[I]]
-    _cacher: Callable[[T, I], ...]
-    _cache_getter: Callable[[T], Iterator[I]]
-
-    def __init__(self, generator: Callable[[T, ...], Iterable[I]]):
-        self.generator = generator
-        self.instance: T = None
-        self._cacher = None
-        self._cache_getter = None
-
-    def __repr__(self):
-        repred = f'{self.__class__.__name__}({self.generator})'
-        if self.instance:
-            repred += f' (instance={repr(self.instance)[:40]}...)'
-        return repred
-
-    def __get__(self, instance: T, owner: Type[T]):
-        if instance is not None:
-            # if self.instance:
-            #     assert self.instance is instance, f'{self} is not bound to {instance}'
-            self.instance = instance
-        return self
-
-    def __call__(self, *args, **kwargs):
-        if self.instance is None:
-            raise AttributeError(f'{self.__class__.__name__} is not bound to an instance')
-
-        if getattr(self.instance, f'__traverse_exhausted__', False):
-            # log.warning(f'{self.instance.__class__.__qualname__}.{self.generator.__name__} is exhausted')
-            yield from self._cache_getter(self.instance)
-            return
-
-        for page in self.generator(self.instance, *args, **kwargs):
-            self._cacher(self.instance, page)
-            yield page
-
-        setattr(self.instance, f'__traverse_exhausted__', True)
-
-    def set_cacher(self, cacher: Callable[[T, I], ...]):
-        self._cacher = cacher
-
-    def set_cache_getter(self, cache_getter: Callable[[T], Iterator[I]]):
-        self._cache_getter = cache_getter
+# class CachingGenerator(Generic[T]):
+#     # todo: i'm considering caching much simpler, like cached_property
+#     instance: T
+#     generator: Callable[[T, ...], Iterable[I]]
+#     _cacher: Callable[[T, I], ...]
+#     _cache_getter: Callable[[T], Iterator[I]]
+#
+#     def __init__(self, generator: Callable[[T, ...], Iterable[I]]):
+#         self.generator = generator
+#         self.instance: T = None
+#         self._cacher = None
+#         self._cache_getter = None
+#
+#     def __repr__(self):
+#         repred = f'{self.__class__.__name__}({self.generator})'
+#         if self.instance:
+#             repred += f' (instance={repr(self.instance)[:40]}...)'
+#         return repred
+#
+#     def __get__(self, instance: T, owner: Type[T]):
+#         if instance is not None:
+#             # if self.instance:
+#             #     assert self.instance is instance, f'{self} is not bound to {instance}'
+#             self.instance = instance
+#         return self
+#
+#     def __call__(self, *args, **kwargs):
+#         if self.instance is None:
+#             raise AttributeError(f'{self.__class__.__name__} is not bound to an instance')
+#
+#         if getattr(self.instance, f'__traverse_exhausted__', False):
+#             # log.warning(f'{self.instance.__class__.__qualname__}.{self.generator.__name__} is exhausted')
+#             yield from self._cache_getter(self.instance)
+#             return
+#
+#         for page in self.generator(self.instance, *args, **kwargs):
+#             self._cacher(self.instance, page)
+#             yield page
+#
+#         setattr(self.instance, f'__traverse_exhausted__', True)
+#
+#     def set_cacher(self, cacher: Callable[[T, I], ...]):
+#         self._cacher = cacher
+#
+#     def set_cache_getter(self, cache_getter: Callable[[T], Iterator[I]]):
+#         self._cache_getter = cache_getter
 
 
 class cached_property(Generic[T]):
     instance: T
-    method: Callable[[T, ...], R]
+    # method: Callable[[T, P], R]
 
-    def __init__(self, method: Callable[[T, ...], R]):
+    def __init__(self, method: Callable[P, R]):
         self.method = method
 
     def __get__(self, instance: T, cls: Type[T]) -> R:
@@ -285,36 +104,36 @@ class Traversable(Page):
         """Cache of visited (traversed) pages. Populated and used by 'traverse' method."""
         self.__traverse_exhaused__ = False
 
-    def __init_subclass__(cls, **kwargs):
-        if isinstance(cls.traverse, CachingGenerator):
-            log.warning(f'{cls}.traverse is already a CachingGenerator')
-            return
-        traverse = CachingGenerator(cls.traverse)
-        traverse.set_cacher(lambda self, page: self._cache_page(page))
-        traverse.set_cache_getter(lambda self: self.__pages__.items())
-        cls.traverse = traverse
+    # def __init_subclass__(cls, **kwargs):
+    #     if isinstance(cls.traverse, CachingGenerator):
+    #         log.warning(f'{cls}.traverse is already a CachingGenerator')
+    #         return
+    #     traverse = CachingGenerator(cls.traverse)
+    #     traverse.set_cacher(lambda self, page: self._cache_page(page))
+    #     traverse.set_cache_getter(lambda self: self.__pages__.items())
+    #     cls.traverse = traverse
 
     @abstractmethod
     def name(self) -> str:
         ...
 
-    def _cache_page(self, page_tuple: tuple[str, Page]) -> Page:
-        normalized_page_name, page = page_tuple
-        if normalized_page_name in self.__pages__:
-            cached_page = self.__pages__[normalized_page_name]
-            if isinstance(cached_page, MergedPage):
-                cached_page.extend(page)
-            else:
-                self.__pages__[normalized_page_name] = MergedPage(cached_page, page)
-        else:
-            self.__pages__[normalized_page_name] = page
-        return self.__pages__[normalized_page_name]
+    # def _cache_page(self, page_tuple: tuple[str, Page]) -> Page:
+    #     normalized_page_name, page = page_tuple
+    #     if normalized_page_name in self.__pages__:
+    #         cached_page = self.__pages__[normalized_page_name]
+    #         if isinstance(cached_page, MergedPage):
+    #             cached_page.extend(page)
+    #         else:
+    #             self.__pages__[normalized_page_name] = MergedPage(cached_page, page)
+    #     else:
+    #         self.__pages__[normalized_page_name] = page
+    #     return self.__pages__[normalized_page_name]
 
-    @CachingGenerator
+    # @CachingGenerator
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
         raise NotImplementedError(f'{self.__class__.__qualname__}.traverse()')
 
-    traverse.set_cacher(lambda self, page: self._cache_page(page))
+    # traverse.set_cacher(lambda self, page: self._cache_page(page))
 
     # traverse._cacher = lambda self, page: self._cache_page(page)
 
@@ -327,7 +146,7 @@ class Traversable(Page):
         the names of the immediate children. Otherwise None is returned."""
         if not self.__traverse_exhaused__:
             list(self.traverse())
-        normalized_page_name = normalize_page_name(name)
+        normalized_page_name = ast_utils.normalize_page_name(name)
         if normalized_page_name in self.__pages__:
             return self.__pages__[normalized_page_name]
         if on_not_found is None:
@@ -389,7 +208,7 @@ class Traversable(Page):
         #                                         recursive=True)
         # return [first_page_path] + found_paths, found_page
 
-    def merge_sub_pages(self) -> MergedPage:
+    def merge_sub_pages(self) -> "MergedPage":
         merged_sub_pages = MergedPage(*self.__pages__.values())
         return merged_sub_pages
 
@@ -430,7 +249,7 @@ class VariablePage(Page):
 
 
 class FunctionPage(Traversable):
-    def __init__(self, function: Callable[..., str | None]) -> None:
+    def __init__(self, function: Callable[P, str | None]) -> None:
         super().__init__()
         self.function = function
         self._python_module_ast = None
@@ -471,7 +290,7 @@ class FunctionPage(Traversable):
     def traverse(self, *args, **kwargs) -> Generator[tuple[str, VariablePage]]:
         self.__traverse_exhaused__ and breakpoint()
         python_module_ast = self.python_module_ast()
-        yield from traverse_function(self.function, python_module_ast)
+        yield from ast_utils.traverse_function(self.function, python_module_ast)
 
 
 class FilePage(Page):
@@ -516,7 +335,7 @@ class PythonFilePage(Traversable):
         if hasattr(self.parent, self._python_module.stem):
             self._python_module = getattr(self.parent, self._python_module.stem)
             return self._python_module
-        self._python_module = import_module_by_path(self._python_module)
+        self._python_module = ast_utils.import_module_by_path(self._python_module)
         return self._python_module
 
     def name(self):
@@ -528,7 +347,7 @@ class PythonFilePage(Traversable):
         self.__traverse_exhaused__ and breakpoint()
         python_module: ModuleType = self.python_module()
         python_module_ast: ast.Module = self.python_module_ast()
-        yield from traverse_module(python_module, python_module_ast)
+        yield from ast_utils.traverse_module(python_module, python_module_ast)
 
 
 class DirectoryPage(Traversable):
@@ -545,7 +364,7 @@ class DirectoryPage(Traversable):
     def package(self) -> ModuleType:
         if isinstance(self._package, ModuleType):
             return self._package
-        self._package = import_module_by_path(self._package)
+        self._package = ast_utils.import_module_by_path(self._package)
         return self._package
 
     def path(self) -> Path:
@@ -577,8 +396,8 @@ class DirectoryPage(Traversable):
         for path in sorted(self_directory_path.iterdir()):  # given e.g name/ and name.md, name/ comes first
             if path.name.startswith('.') or path.name.startswith('_'):
                 continue
-            path_stem = normalize_page_name(path.stem)
-            path_name = normalize_page_name(path.name)
+            path_stem = ast_utils.normalize_page_name(path.stem)
+            path_name = ast_utils.normalize_page_name(path.name)
             if path.is_dir():
                 directory_page = DirectoryPage(path)
                 # self._cache_page(path_name, directory_page)
@@ -655,7 +474,7 @@ class MergedPage(Traversable):
             pages_repr = pages_repr.replace('\n\t\t', "", 1).replace('\n\t\t', ", ")  # remove first \n\t\t
         return f'{self.__class__.__name__}(pages={pages_repr})'
 
-    def merge_sub_pages(self) -> MergedPage:
+    def merge_sub_pages(self) -> "MergedPage":
         sub_pages = []
         for page in self.pages:
             if isinstance(page, MergedPage):
