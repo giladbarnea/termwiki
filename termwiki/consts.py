@@ -1,6 +1,10 @@
 import re
+from pathlib import Path
 
+import termwiki
 from termwiki.common.types import Language, Style
+
+PROJECT_ROOT_PATH = Path(termwiki.__path__[0]).parent
 
 literal_linebreak = r'\n'
 linebreak = '\n'
@@ -10,7 +14,6 @@ tab = '\t'
 LANGS = Language.__args__
 pipe_sep_langs = "|".join(LANGS)
 pipe_sep_styles = "|".join(Style.__args__)
-
 
 SYNTAX_HIGHLIGHT_START_RE = re.compile( # works for 1-5
         f'%(?P<lang>{pipe_sep_langs}) ?'

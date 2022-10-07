@@ -3,16 +3,19 @@ import inspect
 import logging
 import os
 import sys
-from pathlib import Path
 
 from rich.console import Console as RichConsole
 from rich.logging import RichHandler
 from rich.theme import Theme
 
+from termwiki.consts import PROJECT_ROOT_PATH
+
 DEBUG = os.getenv("TERMWIKI_DEBUG", "true").lower() in ("1", "true")
 PYCHARM_HOSTED = os.getenv("PYCHARM_HOSTED")
 DEFAULT_WIDTH = 160
-PROJECT_ROOT_PATH = str(Path(__file__).parent) + '/'
+
+
+# PROJECT_ROOT_PATH = str(Path(__file__).parent) + '/'
 
 
 def format_args(func):

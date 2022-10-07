@@ -1,16 +1,14 @@
 import ast
 import inspect
+from collections.abc import Generator
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType
 from typing import Callable, ParamSpec
-from collections.abc import Generator
 
-import termwiki
-from termwiki.consts import NON_LETTER_RE
+from termwiki.consts import NON_LETTER_RE, PROJECT_ROOT_PATH
 from termwiki.log import log
 
-PROJECT_ROOT = Path(termwiki.__path__[0]).parent
 P = ParamSpec('P')
 
 
@@ -19,8 +17,8 @@ def normalize_page_name(page_name: str) -> str:
 
 
 def import_module_by_path(path: Path) -> ModuleType:
-    if path.is_relative_to(PROJECT_ROOT):
-        python_module_relative_path = path.relative_to(PROJECT_ROOT)
+    if path.is_relative_to(PROJECT_ROOT_PATH):
+        python_module_relative_path = path.relative_to(PROJECT_ROOT_PATH)
     else:
         python_module_relative_path = path
     python_module_name = '.'.join(python_module_relative_path.with_suffix('').parts)
