@@ -8,7 +8,7 @@ from . import ast_utils
 DecoratedCallable = TypeVar("DecoratedCallable", bound=Callable[[Self, ...], Any])
 T = TypeVar('T')
 I = TypeVar('I')
-R = TypeVar('R')
+ReturnType = TypeVar('ReturnType')
 ParamSpec = ParamSpec('ParamSpec')
 
 
@@ -63,12 +63,12 @@ ParamSpec = ParamSpec('ParamSpec')
 class cached_property(Generic[T]):
     instance: T
 
-    # method: Callable[[T, ParamSpec], R]
+    # method: Callable[[T, ParamSpec], ReturnType]
 
-    def __init__(self, method: Callable[ParamSpec, R]):
+    def __init__(self, method: Callable[..., ReturnType]):
         self.method = method
 
-    def __get__(self, instance: T, cls: Type[T]) -> R:
+    def __get__(self, instance: T, cls: Type[T]) -> ReturnType:
         if instance is None:
             return self
         value = instance.__dict__[self.method.__name__] = self.method(instance)

@@ -9,7 +9,7 @@ from typing import Callable, ParamSpec
 from termwiki.consts import NON_LETTER_RE, PROJECT_ROOT_PATH
 from termwiki.log import log
 
-P = ParamSpec('ParamSpec')
+ParamSpec = ParamSpec('ParamSpec')
 
 
 def normalize_page_name(page_name: str) -> str:
@@ -47,7 +47,7 @@ def get_local_var_names_inside_joined_str(joined_str: ast.JoinedStr) -> list[str
 
 
 def get_local_variables(joined_str: ast.JoinedStr,
-                        parent: Callable[P, str],
+                        parent: Callable[ParamSpec, str],
                         globals_: dict,
                         ) -> dict:
     isinstance(joined_str, ast.JoinedStr) or breakpoint()
@@ -125,7 +125,7 @@ def traverse_immutable_when_unparsed(node, parent, target_id):
     yield target_id, VariablePage(rendered, target_id)
 
 
-def traverse_assign_node(node: ast.Assign, parent: Callable[P, str] | ModuleType) -> Generator[tuple[str, "VariablePage"]]:
+def traverse_assign_node(node: ast.Assign, parent: Callable[ParamSpec, str] | ModuleType) -> Generator[tuple[str, "VariablePage"]]:
     from . import VariablePage
     parent = inspect.unwrap(parent)  # parent isn't necessarily a function, but that's ok
     target: ast.Name
@@ -137,7 +137,7 @@ def traverse_assign_node(node: ast.Assign, parent: Callable[P, str] | ModuleType
             yield from traverse_immutable_when_unparsed(node, parent, target_id)
 
 
-def traverse_function(function: Callable[P, str], python_module_ast: ast.Module) -> Generator[tuple[str, "VariablePage"]]:
+def traverse_function(function: Callable[ParamSpec, str], python_module_ast: ast.Module) -> Generator[tuple[str, "VariablePage"]]:
     # noinspection PyTypeChecker
     function_def_ast: ast.FunctionDef = python_module_ast.body[0]
     for node in function_def_ast.body:
