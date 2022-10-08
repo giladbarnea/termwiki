@@ -1,20 +1,16 @@
-import ast
-import inspect
 from abc import abstractmethod
 from collections.abc import Generator, Sequence, Iterable
-from pathlib import Path
-from types import ModuleType
 from typing import Generic, Type, ParamSpec, NoReturn, Any, Callable, TypeVar, Self, ForwardRef
 
 from termwiki.log import log
-from termwiki.util import short_repr, clean_str
 from . import ast_utils
 
 DecoratedCallable = TypeVar("DecoratedCallable", bound=Callable[[Self, ...], Any])
 T = TypeVar('T')
 I = TypeVar('I')
 R = TypeVar('R')
-P = ParamSpec('P')
+ParamSpec = ParamSpec('ParamSpec')
+
 
 # class CachingGenerator(Generic[T]):
 #     # todo: i'm considering caching much simpler, like cached_property
@@ -66,9 +62,10 @@ P = ParamSpec('P')
 
 class cached_property(Generic[T]):
     instance: T
-    # method: Callable[[T, P], R]
 
-    def __init__(self, method: Callable[P, R]):
+    # method: Callable[[T, ParamSpec], R]
+
+    def __init__(self, method: Callable[ParamSpec, R]):
         self.method = method
 
     def __get__(self, instance: T, cls: Type[T]) -> R:
@@ -92,6 +89,7 @@ def create_caching_traverse(traverse_fn: DecoratedCallable) -> DecoratedCallable
         self.__traverse_exhaused__ = True
 
     return caching_traverse
+
 
 class Page:
     # def __init__(self):
@@ -263,208 +261,3 @@ class Traversable(Page):
         merged_sub_pages = self.merge_sub_pages()
         merged_sub_pages_text = merged_sub_pages.read()
         return merged_sub_pages_text
-
-
-class VariablePage(Page):
-    """Variables within functions, or variables at module level"""
-
-    def __init__(self, value: str, name: str = None) -> None:
-        super().__init__()
-        self.value = value
-        self.name = name
-
-    def __repr__(self) -> str:
-        # todo: when it's IndentationMarkdown, decoloring value should be less hacky
-        return f'{self.__class__.__name__}(name={self.name!r}, value={short_repr(clean_str(self.value))})'
-
-    def read(self, *args, **kwargs) -> str:
-        return str(self.value)
-
-
-class FunctionPage(Traversable):
-    def __init__(self, function: Callable[P, str | None]) -> None:
-        super().__init__()
-        self.function = function
-        self._python_module_ast = None
-
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(function={self.function.__qualname__})'
-
-    def python_module_ast(self) -> ast.Module:
-        if self._python_module_ast:
-            return self._python_module_ast
-        self._python_module_ast: ast.Module = ast.parse(inspect.getsource(self.function))
-        return self._python_module_ast
-
-    def name(self):
-        return self.function.__name__
-
-    def read(self, *args, **kwargs) -> str:
-        text = self.function(*args, **kwargs)
-        if text is not None:
-            return text
-        # If a function doesn't return:
-        #  search for self-named variable
-        #  if not found, return its joined variables values
-        # todo: super doesn't skip variables pointing to the same object
-        return super().read(*args, **kwargs)
-        # noinspection PyUnreachableCode
-        variable_texts = []
-        seen_variable_pages = set()
-        for var_name, var_page in self.traverse():
-            if var_page.value in seen_variable_pages:
-                continue
-            seen_variable_pages.add(var_page.value)
-            variable_text = var_page.read()
-            variable_texts.append(variable_text)
-        return '\n'.join(variable_texts)
-
-    __call__ = read
-
-    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, VariablePage]]:
-        self.__traverse_exhaused__ and breakpoint()
-        python_module_ast = self.python_module_ast()
-        yield from ast_utils.traverse_function(self.function, python_module_ast)
-
-
-class FilePage(Page):
-    def __init__(self, filename: str | Path) -> None:
-        super().__init__()
-        self.filename = filename
-
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(filename={self.filename!r})'
-
-    def read(self, *args, **kwargs) -> str:
-        with open(self.filename) as f:
-            file_content = f.read()
-        return file_content
-
-
-class MarkdownFilePage(FilePage):  # maybe subclassing Page is better
-    """Traverses headings"""
-
-
-class PythonFilePage(Traversable):
-    """A Python module representing a file (not a package)"""
-
-    def __init__(self, python_module: ModuleType | Path, parent: ModuleType = None) -> None:
-        super().__init__()
-        self._python_module = python_module
-        self._python_module_ast = None
-        self.parent = parent
-
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(python_module={self._python_module!r})'
-
-    def python_module_ast(self) -> ast.Module:
-        if self._python_module_ast:
-            return self._python_module_ast
-        self._python_module_ast: ast.Module = ast.parse(inspect.getsource(self.python_module()))
-        return self._python_module_ast
-
-    def python_module(self) -> ModuleType:
-        if isinstance(self._python_module, ModuleType):
-            return self._python_module
-        if hasattr(self.parent, self._python_module.stem):
-            self._python_module = getattr(self.parent, self._python_module.stem)
-            return self._python_module
-        self._python_module = ast_utils.import_module_by_path(self._python_module)
-        return self._python_module
-
-    def name(self):
-        python_module = self.python_module()
-        module_name = Path(python_module.__file__).stem
-        return module_name
-
-    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
-        self.__traverse_exhaused__ and breakpoint()
-        python_module: ModuleType = self.python_module()
-        python_module_ast: ast.Module = self.python_module_ast()
-        yield from ast_utils.traverse_module(python_module, python_module_ast)
-
-
-class DirectoryPage(Traversable):
-    """A directory / package / namespace."""
-
-    def __init__(self, package: ModuleType | Path) -> None:
-        super().__init__()
-        self._package = package
-        self._path = None
-
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(package={self._package!r})'
-
-    def package(self) -> ModuleType:
-        if isinstance(self._package, ModuleType):
-            return self._package
-        self._package = ast_utils.import_module_by_path(self._package)
-        return self._package
-
-    def path(self) -> Path:
-        if self._path is not None:
-            return self._path
-        package = self.package()
-        # Namespaces __file__ attribute is None
-        if package.__file__:
-            self._path = Path(package.__file__).parent
-        else:
-            # Also works: self.package.__spec__.submodule_search_locations[0]
-            # self._path = Path(package.__package__.replace('.', '/'))
-            self._path = Path(package.__path__[0])
-        return self._path
-
-    def stem(self) -> str:
-        return self.path().stem
-
-    name = stem
-
-    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
-        """Traverse the directory and yield (name, page) pairs.
-        Pages with the same name are both yielded (e.g. a sub-directory
-        and a file with the same name)."""
-        self.__traverse_exhaused__ and breakpoint()
-        self_directory_path = self.path()
-        pages_with_same_name_as_us = []
-        # sorted(bla.iterdir()), sorted(bla.glob('*')) and glob.glob(bla) are all about 20 µs
-        for path in sorted(self_directory_path.iterdir()):  # given e.g name/ and name.md, name/ comes first
-            if path.name.startswith('.') or path.name.startswith('_'):
-                continue
-            path_stem = ast_utils.normalize_page_name(path.stem)
-            path_name = ast_utils.normalize_page_name(path.name)
-            if path.is_dir():
-                directory_page = DirectoryPage(path)
-                # self._cache_page(path_name, directory_page)
-                yield path_name, directory_page
-            else:
-                if path.suffix == '.py':
-                    package = self.package()
-                    python_file_page = PythonFilePage(path, package)
-                    # self._cache_page(path_stem, python_file_page)
-                    yield path_stem, python_file_page
-                elif path.suffix == '.md':
-                    markdown_file_page = MarkdownFilePage(path)
-                    # self._cache_page(path_stem, markdown_file_page)
-                    yield path_stem, markdown_file_page
-                else:
-                    file_page = FilePage(path)
-                    # self._cache_page(path_stem, file_page)
-                    yield path_stem, file_page
-
-        # todo: not sure this belongs here. read() also does something similar (inherently lazier)
-        pages_python_file = self_directory_path / 'pages.py'
-        if pages_python_file.exists():
-            package = self.package()
-            python_file_page = PythonFilePage(pages_python_file, package)
-            for name, page in python_file_page.traverse():
-                # self._cache_page(name, page)
-                yield name, page
-
-        # self_directory_name = self_directory_path.stem
-        # if self_directory_name == 'pages':
-        #     return  # Already traversed
-
-        # for subpath_with_same_name in self_directory_path.glob(f'{self_directory_name}*'):
-        #     yield from self.search(subpath_with_same_name.name).traverse()
-
-

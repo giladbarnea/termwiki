@@ -9,7 +9,7 @@ from typing import Callable, ParamSpec
 from termwiki.consts import NON_LETTER_RE, PROJECT_ROOT_PATH
 from termwiki.log import log
 
-P = ParamSpec('P')
+P = ParamSpec('ParamSpec')
 
 
 def normalize_page_name(page_name: str) -> str:
