@@ -1,30 +1,15 @@
 from abc import abstractmethod
 from collections.abc import Generator, Sequence, Iterable
-from typing import Generic, Type, ParamSpec, NoReturn, Any, Callable, TypeVar, Self, ForwardRef
+from typing import ParamSpec, NoReturn, Any, Callable, TypeVar, Self, ForwardRef
 
 from termwiki.log import log
+from termwiki.util import cached_property
 from . import ast_utils
 
 DecoratedCallable = TypeVar("DecoratedCallable", bound=Callable[[Self, ...], Any])
-T = TypeVar('T')
 I = TypeVar('I')
-ReturnType = TypeVar('ReturnType')
+
 ParamSpec = ParamSpec('ParamSpec')
-
-
-class cached_property(Generic[T]):
-    instance: T
-
-    # method: Callable[[T, ParamSpec], ReturnType]
-
-    def __init__(self, method: Callable[..., ReturnType]):
-        self.method = method
-
-    def __get__(self, instance: T, cls: Type[T]) -> ReturnType:
-        if instance is None:
-            return self
-        value = instance.__dict__[self.method.__name__] = self.method(instance)
-        return value
 
 
 def create_caching_traverse(traverse_fn: DecoratedCallable) -> DecoratedCallable:

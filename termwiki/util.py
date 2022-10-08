@@ -1,9 +1,11 @@
 import importlib
 import re
-import types
-from typing import Sized
+from typing import Sized, Generic, Callable, Type, TypeVar
 
 from termwiki.consts import COLOR_RE
+
+ReturnType = TypeVar('ReturnType')
+T = TypeVar('T')
 
 
 def short_repr(obj: Sized) -> str:
@@ -53,6 +55,7 @@ def clean_str(s: str) -> str:
     # return cleansed
     return ''.join(cleaned)
 
+
 def lazy_import(importer_name: str, to_import):
     """Return the importing module and a callable for lazy importing.
 
@@ -88,3 +91,18 @@ def lazy_import(importer_name: str, to_import):
         return imported
 
     return module, __getattr__
+
+
+class cached_property(Generic[T]):
+    instance: T
+
+    # method: Callable[[T, ParamSpec], ReturnType]
+
+    def __init__(self, method: Callable[..., ReturnType]):
+        self.method = method
+
+    def __get__(self, instance: T, cls: Type[T]) -> ReturnType:
+        if instance is None:
+            return self
+        value = instance.__dict__[self.method.__name__] = self.method(instance)
+        return value
