@@ -2,15 +2,16 @@ import ast
 import inspect
 import os
 from abc import abstractmethod
-from collections.abc import Generator, Sequence, Iterable, Iterator
+from collections.abc import Generator, Sequence, Iterable
 from pathlib import Path
 from types import ModuleType
-from typing import Generic, TypeVar, Type, Callable, ParamSpec
+from typing import Generic, Type, ParamSpec, NoReturn, Any, Callable, TypeVar, Self
 
 from termwiki.log import log
 from termwiki.util import short_repr, clean_str
 from . import ast_utils
 
+DecoratedCallable = TypeVar("DecoratedCallable", bound=Callable[[Self, ...], Any])
 T = TypeVar('T')
 I = TypeVar('I')
 R = TypeVar('R')
@@ -78,6 +79,21 @@ class cached_property(Generic[T]):
         return value
 
 
+def create_caching_traverse(traverse_fn: DecoratedCallable) -> DecoratedCallable:
+    def caching_traverse(self: Self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
+        if self.__traverse_exhaused__ and cache_ok:
+            pages_iterable = self._pages.items()
+        else:
+            pages_iterable = traverse_fn(self, *args, **kwargs)
+
+        for name, page in pages_iterable:
+            self._pages[name] = page
+            yield name, page
+
+        self.__traverse_exhaused__ = True
+
+    return caching_traverse
+
 class Page:
     # def __init__(self):
     #     # self.pages = {}
@@ -94,24 +110,27 @@ class Page:
             self.read()
             return True
         except Exception as e:
-            log.warning(f'{self!r}.readable {type(e).__qualname__}: {e}')
+            log.warning(f'{self!r}.readable | {e!r}')
             return False
 
 
 class Traversable(Page):
+    pages: dict[str, Page]
+
     def __init__(self):
-        self.pages = {}
+        self._pages = {}
         """Cache of visited (traversed) pages. Populated and used by 'traverse' method."""
         self.__traverse_exhaused__ = False
 
-    # def __init_subclass__(cls, **kwargs):
-    #     if isinstance(cls.traverse, CachingGenerator):
-    #         log.warning(f'{cls}.traverse is already a CachingGenerator')
-    #         return
-    #     traverse = CachingGenerator(cls.traverse)
-    #     traverse.set_cacher(lambda self, page: self._cache_page(page))
-    #     traverse.set_cache_getter(lambda self: self.pages.items())
-    #     cls.traverse = traverse
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__()
+        # if isinstance(cls.traverse, CachingGenerator):
+        #     log.warning(f'{cls}.traverse is already a CachingGenerator')
+        #     return
+        # traverse = CachingGenerator(cls.traverse)
+        # traverse.set_cacher(lambda self, page: self._cache_page(page))
+        # traverse.set_cache_getter(lambda self: self.pages.items())
+        cls.traverse = create_caching_traverse(cls.traverse)
 
     @abstractmethod
     def name(self) -> str:
@@ -130,8 +149,23 @@ class Traversable(Page):
     #     return self.pages[normalized_page_name]
 
     # @CachingGenerator
-    def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
+    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
         raise NotImplementedError(f'{self.__class__.__qualname__}.traverse()')
+
+    def ensure_pages_are_populated(self) -> NoReturn:
+        if self.__traverse_exhaused__:
+            return
+        list(self.traverse())
+
+    @property
+    def pages(self) -> dict[str, Page]:
+        self.ensure_pages_are_populated()
+        return self._pages
+
+    @pages.setter
+    def pages(self, pages: dict[str, Page]):
+        self._pages = pages
+        self.__traverse_exhaused__ = True
 
     # traverse.set_cacher(lambda self, page: self._cache_page(page))
 
@@ -144,8 +178,6 @@ class Traversable(Page):
         """Search a Page among immediate children of this Traversable.
         If not found, and 'on_not_found' is given, it will be called with
         the names of the immediate children. Otherwise None is returned."""
-        if not self.__traverse_exhaused__:
-            list(self.traverse())
         normalized_page_name = ast_utils.normalize_page_name(name)
         if normalized_page_name in self.pages:
             return self.pages[normalized_page_name]
@@ -209,7 +241,7 @@ class Traversable(Page):
         # return [first_page_path] + found_paths, found_page
 
     def merge_sub_pages(self) -> "MergedPage":
-        merged_sub_pages = MergedPage(*self.pages.values())
+        merged_sub_pages = MergedPage(self.pages)
         return merged_sub_pages
 
     def read(self, *args, **kwargs) -> str:
@@ -287,7 +319,7 @@ class FunctionPage(Traversable):
 
     __call__ = read
 
-    def traverse(self, *args, **kwargs) -> Generator[tuple[str, VariablePage]]:
+    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, VariablePage]]:
         self.__traverse_exhaused__ and breakpoint()
         python_module_ast = self.python_module_ast()
         yield from ast_utils.traverse_function(self.function, python_module_ast)
@@ -343,7 +375,7 @@ class PythonFilePage(Traversable):
         module_name = Path(python_module.__file__).stem
         return module_name
 
-    def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
+    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
         self.__traverse_exhaused__ and breakpoint()
         python_module: ModuleType = self.python_module()
         python_module_ast: ast.Module = self.python_module_ast()
@@ -385,7 +417,7 @@ class DirectoryPage(Traversable):
 
     name = stem
 
-    def traverse(self) -> Generator[tuple[str, Page]]:
+    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
         """Traverse the directory and yield (name, page) pairs.
         Pages with the same name are both yielded (e.g. a sub-directory
         and a file with the same name)."""
@@ -437,9 +469,9 @@ class DirectoryPage(Traversable):
 class MergedPage(Traversable):
     """A page that is the merge of several pages"""
 
-    def __init__(self, *pages: Page) -> None:
+    def __init__(self, pages: dict[str, Page]) -> None:
         super().__init__()
-        self.pages = list(pages)
+        self.pages = pages
 
     def __repr__(self) -> str:
         if self.pages:
@@ -475,28 +507,31 @@ class MergedPage(Traversable):
         return f'{self.__class__.__name__}(pages={pages_repr})'
 
     def merge_sub_pages(self) -> "MergedPage":
-        sub_pages = []
-        for page in self.pages:
+        sub_pages: dict[str, Page] = {}
+        for name, page in self.pages.items():
             if isinstance(page, MergedPage):
                 print('self:\n', self)
                 print('page:\n', page)
-                raise RuntimeError(f'MergedPage.merge_sub_pages, one of the sub-pages is a MergedPage! this should not happen (I think). printed self and page above')
-            sub_pages.extend(list(page.__pages__.values()))
-        merged_sub_pages = MergedPage(*sub_pages)
+                raise RuntimeError(f'MergedPage.merge_sub_pages, '
+                                   f'one of the sub-pages is a MergedPage! '
+                                   f'this should not happen (I think). '
+                                   f'printed self and page above')
+            sub_pages.update(page.pages)
+        merged_sub_pages = MergedPage(sub_pages)
         return merged_sub_pages
 
-    def traverse(self, *args, **kwargs) -> Generator[tuple[str, Page]]:
-        for page in self.pages:
+    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
+        for name, page in self.pages.items():
             if hasattr(page, 'traverse'):
                 yield from page.traverse()
 
     def read(self, *args, **kwargs) -> str:
         page_texts = []
-        for page in self.pages:
+        for name, page in self.pages.items():
             if page.readable:
                 page_text = page.read()
                 page_texts.append(page_text)
         return '\n\n'.join(page_texts)
 
-    def extend(self, *pages: Page) -> None:
-        self.pages.extend(pages)
+    def extend(self, pages: dict[str, Page]) -> None:
+        self.pages.update(pages)
