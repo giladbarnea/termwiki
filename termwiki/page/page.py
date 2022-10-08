@@ -7,8 +7,6 @@ from termwiki.util import cached_property
 from . import ast_utils
 
 DecoratedCallable = TypeVar("DecoratedCallable", bound=Callable[[Self, ...], Any])
-I = TypeVar('I')
-
 ParamSpec = ParamSpec('ParamSpec')
 
 
