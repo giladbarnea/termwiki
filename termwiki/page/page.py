@@ -1,11 +1,10 @@
 import ast
 import inspect
-import os
 from abc import abstractmethod
 from collections.abc import Generator, Sequence, Iterable
 from pathlib import Path
 from types import ModuleType
-from typing import Generic, Type, ParamSpec, NoReturn, Any, Callable, TypeVar, Self
+from typing import Generic, Type, ParamSpec, NoReturn, Any, Callable, TypeVar, Self, ForwardRef
 
 from termwiki.log import log
 from termwiki.util import short_repr, clean_str
@@ -148,18 +147,19 @@ class Traversable(Page):
     #         self.pages[normalized_page_name] = page
     #     return self.pages[normalized_page_name]
 
+    @abstractmethod
     # @CachingGenerator
     def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
-        raise NotImplementedError(f'{self.__class__.__qualname__}.traverse()')
+        ...
 
-    def ensure_pages_are_populated(self) -> NoReturn:
+    def _ensure_pages_are_populated(self) -> NoReturn:
         if self.__traverse_exhaused__:
             return
         list(self.traverse())
 
     @property
     def pages(self) -> dict[str, Page]:
-        self.ensure_pages_are_populated()
+        self._ensure_pages_are_populated()
         return self._pages
 
     @pages.setter
@@ -240,7 +240,8 @@ class Traversable(Page):
         #                                         recursive=True)
         # return [first_page_path] + found_paths, found_page
 
-    def merge_sub_pages(self) -> "MergedPage":
+    def merge_sub_pages(self) -> ForwardRef("MergedPage"):
+        from .merged_page import MergedPage
         merged_sub_pages = MergedPage(self.pages)
         return merged_sub_pages
 
@@ -259,7 +260,7 @@ class Traversable(Page):
         if page:
             return page.read()
         # log.warning(f'No self-page found in {self} for {name!r}')
-        merged_sub_pages: MergedPage = self.merge_sub_pages()
+        merged_sub_pages = self.merge_sub_pages()
         merged_sub_pages_text = merged_sub_pages.read()
         return merged_sub_pages_text
 
@@ -307,6 +308,7 @@ class FunctionPage(Traversable):
         #  if not found, return its joined variables values
         # todo: super doesn't skip variables pointing to the same object
         return super().read(*args, **kwargs)
+        # noinspection PyUnreachableCode
         variable_texts = []
         seen_variable_pages = set()
         for var_name, var_page in self.traverse():
@@ -466,72 +468,3 @@ class DirectoryPage(Traversable):
         #     yield from self.search(subpath_with_same_name.name).traverse()
 
 
-class MergedPage(Traversable):
-    """A page that is the merge of several pages"""
-
-    def __init__(self, pages: dict[str, Page]) -> None:
-        super().__init__()
-        self.pages = pages
-
-    def __repr__(self) -> str:
-        if self.pages:
-            shorten_line = lambda line: line[:30] + ' ... ' + line[-30:] if len(line) > 65 else line
-            first_page_repr = repr(self.pages[0])
-            first_page_short_repr = shorten_line(first_page_repr)
-            if len(self.pages) == 1:
-                pages_repr = f'[{first_page_short_repr}]'
-            else:
-                second_page_repr = repr(self.pages[1])
-                second_page_short_repr = shorten_line(second_page_repr)
-                if len(self.pages) == 2:
-                    pages_repr = f'[\n\t\t{first_page_short_repr},\n\t\t{second_page_short_repr}]'
-                else:
-                    last_page_repr = repr(self.pages[-1])
-                    last_page_short_repr = shorten_line(last_page_repr)
-                    if len(self.pages) == 3:
-                        pages_repr = f'[\n\t\t{first_page_short_repr},' \
-                                     f'\n\t\t{second_page_short_repr},' \
-                                     f'\n\t\t{last_page_short_repr}]'
-                    else:
-                        pages_repr = f'[\n\t\t{first_page_short_repr},' \
-                                     f'\n\t\t{second_page_short_repr},' \
-                                     f'\n\t\t... ({len(self.pages) - 3} more),' \
-                                     f'\n\t\t{last_page_short_repr}]'
-
-
-        else:
-            pages_repr = '[]'
-
-        if os.environ.get('PYCHARM_HOSTED'):
-            pages_repr = pages_repr.replace('\n\t\t', "", 1).replace('\n\t\t', ", ")  # remove first \n\t\t
-        return f'{self.__class__.__name__}(pages={pages_repr})'
-
-    def merge_sub_pages(self) -> "MergedPage":
-        sub_pages: dict[str, Page] = {}
-        for name, page in self.pages.items():
-            if isinstance(page, MergedPage):
-                print('self:\n', self)
-                print('page:\n', page)
-                raise RuntimeError(f'MergedPage.merge_sub_pages, '
-                                   f'one of the sub-pages is a MergedPage! '
-                                   f'this should not happen (I think). '
-                                   f'printed self and page above')
-            sub_pages.update(page.pages)
-        merged_sub_pages = MergedPage(sub_pages)
-        return merged_sub_pages
-
-    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
-        for name, page in self.pages.items():
-            if hasattr(page, 'traverse'):
-                yield from page.traverse()
-
-    def read(self, *args, **kwargs) -> str:
-        page_texts = []
-        for name, page in self.pages.items():
-            if page.readable:
-                page_text = page.read()
-                page_texts.append(page_text)
-        return '\n\n'.join(page_texts)
-
-    def extend(self, pages: dict[str, Page]) -> None:
-        self.pages.update(pages)
