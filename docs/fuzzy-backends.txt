@@ -1,0 +1,17 @@
+fuzzyui
+	uses fuzzywuzzy
+	interactive
+	no options (like select first match)
+fuzzywuzzy (thefuzz) is levenstein distance
+rapidfuzz
+	also levenstein
+	c++
+	string metrics
+fuzzyfinder
+	not interactive
+	regex (not levenstein)
+pyfzf
+	uses fzf bin (bad)
+	writes to tmp 
+fzf.py
+	uses fzf bin (bad)
