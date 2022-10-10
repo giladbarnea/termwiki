@@ -49,9 +49,9 @@ def log_in_out(func_or_nothing=None, watch=()):
                 bound_args = signature.bind(*args, **kwargs)
             pretty_signature = f'{prefix}{str(bound_args)[16:-1]}'
             # self.debug(f"➡️️ [b white]Entered[/b white] {func_name}({comma_sep_args + (', ' if args and kwargs else '') + comma_sep_kwargs})")
-            log.debug(f"➡️️ [b white]Entered[/b white] {pretty_signature}")
+            log.debug(f"➡️️ [b white]Entered[/b white] {pretty_signature}", stacklevel=2)
             ret = func(*args, **kwargs)
-            log.debug(f"⬅️️️ Exiting {prefix}(...) -> {ret!r}")
+            log.debug(f"⬅️️️ Exiting {prefix}(...) -> {ret!r}", stacklevel=2)
             return ret
 
         return wrapper
@@ -138,7 +138,7 @@ class MyRichHandler(RichHandler):
             record_pathname = record_pathname.removeprefix(PROJECT_ROOT_PATH)
             if 'site-packages/' in record_pathname:
                 *venv_path, record_pathname = record_pathname.partition('site-packages/')
-            record.pathname = f'[dim]{record_pathname}[/dim]'
+            record.pathname = record_pathname
         super().emit(record)
 
 
@@ -155,7 +155,7 @@ rich_handler = MyRichHandler(console=console,
                              )
 
 logging.basicConfig(level=logging.DEBUG if DEBUG else logging.INFO,
-                    format='%(pathname)s %(funcName)s()\n%(message)s',
+                    format='\[%(pathname)s %(funcName)s(...)] %(message)s',
                     datefmt="[%T]",
                     force=True,
                     handlers=[rich_handler])

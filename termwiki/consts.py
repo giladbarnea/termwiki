@@ -4,7 +4,7 @@ from pathlib import Path
 import termwiki
 from termwiki.common.types import Language, Style
 
-PROJECT_ROOT_PATH = Path(termwiki.__path__[0]).parent
+PROJECT_ROOT_PATH = str(Path(termwiki.__path__[0]).parent) + '/'
 
 literal_linebreak = r'\n'
 linebreak = '\n'
