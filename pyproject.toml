@@ -30,6 +30,13 @@ generate-setup-file = true
 pytest = "^7.1.2"
 ipython = "^8.4.0"
 ipython-autoimport = "^0.4"
+jupyterlab = "^3.0.0"
+pdbpp = { path = "../pdbpp/", develop = true }
+pytest-cov = "^3.0.0"
+black = "^22.8.0"
+# appmap = "^1.5.1"
+
+
 #astload = "^0" # tree from ast.dump. what about ast.unparse?
 
 #asteria = "^0" # 'parentize' for .left .parent .child etc
@@ -49,10 +56,7 @@ ipython-autoimport = "^0.4"
 # - round-trip ast <-> code
 # - more readable dump
 # - modify nodes
-pdbpp = { path = "../pdbpp/", develop = true }
-pytest-cov = "^3.0.0"
-appmap = "^1.5.1"
-black = "^22.8.0"
+
 
 [tool.black]
 line-length = 90
