@@ -11,14 +11,15 @@ from termwiki.log import log, log_in_out
 @log_in_out
 def fuzzy_search(iterable: Iterable[str], search_term: str) -> str | None:
     # --exit-0 --select-1 --inline-info
-    command = 'echo "' + '\n'.join(iterable) + (f'" | fzf --header-first --header="{search_term} not found; did you mean..." '
-                                               # f'--no-select-1 --no-exit-0 '
-                                               f'--cycle --reverse -q {search_term}')
+    # --no-select-1 --no-exit-0
+    fzf_args = '--cycle --reverse --header-first --header="{search_term} not found; did you mean..."'
+    command = 'echo "' + '\n'.join(iterable) + f'" | fzf {fzf_args} -q {search_term}'
     try:
         output = subprocess.check_output(command, shell=True)
     except subprocess.CalledProcessError as e:
-        log.error(f'Fuzzy search failed with {type(e).__qualname__}: {e}')
+        log.error(f'Fuzzy search failed with {e!r}')
         return None
+        # output = subprocess.check_output(command + ' --disabled', shell=True)
     return output.decode('utf-8').strip()
 
 
