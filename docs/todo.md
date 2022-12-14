@@ -42,7 +42,7 @@
 
 ## `Page`
 
-- Can this be ast parsed? when `tw ws`
+- Can the following be ast parsed? when `tw ws`
 
 ```python
 def ws():
@@ -50,6 +50,8 @@ def ws():
 ```
 
 - [ ] **aliases** for everything, even sub_pages. like rst directives?
+- [ ] `related` directive and @related decorator ("see also")
+- [ ] `subpage("aws")` directive
 
 ---
 
