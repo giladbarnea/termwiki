@@ -1,13 +1,18 @@
 """
-tokens:
-text // comment
-text // comment `with code`
+Tokens or Directives:
+
+text  // comment
+text  // comment `with code`
 :table ... /:table
 :image ./pic.png
 :image ./pic.png 50x60
+:see also: other_topic
 :import
+or actually [[name]] instead of :import?
+
 >>>
 ❯ or $
+
 ```lang ... ```
 :python ... /:python
 ![](...)

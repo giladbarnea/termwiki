@@ -42,6 +42,7 @@
 
 ## `Page`
 
+- `ClassPage`! duh. **important**. Can be reused by other pages e.g variables around it
 - Can the following be ast parsed? when `tw ws`
 
 ```python

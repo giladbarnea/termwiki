@@ -148,7 +148,7 @@ def traverse_function(function: Callable[ParamSpec, str], python_module_ast: ast
             yield from traverse_immutable_when_unparsed(node, function, function_def_ast.name)  # note: when node is ast.Return, function_def_ast.name is the function name
 
 
-def traverse_module(module: ModuleType, python_module_ast: ast.Module):
+def traverse_module(module: ModuleType, python_module_ast: ast.Module) -> Generator[tuple[str, "VariablePage"]]:
     from . import FunctionPage
     exclude_names = getattr(module, '__exclude__', {})
     for node in python_module_ast.body:
