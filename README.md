@@ -70,6 +70,7 @@ Take this example:
 ├── 📂 bash/
 │   ├── <b>array.md</b>       <span style="color: grey"># numbers=(1 2 3)</span>
 │   ├── <b>variable.md</b>    <span style="color: grey"># hello="world"</span>
+
 </pre>
 
 - `tw bash` prints the contents of both `array.md` and `variable.md`, one after the other.
@@ -163,7 +164,7 @@ Sorted by importance:
 - Embedding links
 - Proper syntax highlighting for <code>```lang</code> blocks
 - Markdown `# Headlines` are pages
-- Comments that are <span style="color: grey"># grey</span>
+- Comments that are <i style="color: grey"># grey</i>
 - `rich` formatting, or ascii color codes, are rendered even inside markdown. So this would actually `[bright_blue]work[/]`. 
 
 ## Roadmap
@@ -178,3 +179,5 @@ Notion is the fanciest out there, and it's really good for heavy-duty, "this is 
 Dendron is local-first and lets you edit the files with your favorite editor, but it isn't a terminal tool (a VSCodium window), and doesn't support dynamic code execution; only static markdown files.
 
 Dnote has a CLI, but doesn't support page nesting nor markdown, and has a paid Pro plan.
+
+https://notesnook.com/

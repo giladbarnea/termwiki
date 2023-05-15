@@ -1,35 +1,3 @@
-"""
-Tokens or Directives:
-
-text  // comment
-text  // comment `with code`
-:table ... /:table
-:image ./pic.png
-:image ./pic.png 50x60
-:see also: other_topic
-:import
-or actually [[name]] instead of :import?
-
->>>
-❯ or $
-
-```lang ... ```
-:python ... /:python
-![](...)
-rich tags: [b] ... [/b]
-
-multiline `...
-blabla`
-
-This is obvious:
-Title
-  blabla
-
-But this is tricky (should understand that Title is the header, and blabla is the body):
-Title
-// link.com
-  blabla
-"""
 from __future__ import annotations
 from collections import deque
 from termwiki.render.util import get_indent_level

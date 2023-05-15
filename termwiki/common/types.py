@@ -1,7 +1,7 @@
 from typing import Protocol, Literal
 
 Style = Literal['algol_nu', 'default', 'dracula', 'friendly', 'fruity', 'inkpot', 'monokai', 'native', 'solarized-dark']
-Language = Literal['ahk', 'bash', 'css', 'docker', 'ini', 'ipython', 'js', 'json', 'md', 'mysql', 'python', 'rst', 'sass', 'toml', 'ts']
+Language = Literal['ahk', 'bash', 'css', 'docker', 'html', 'ini', 'ipython', 'js', 'json', 'md', 'mysql', 'python', 'rst', 'sass', 'toml', 'ts']
 
 class PageFunction(Protocol):
     # sub_pages: set[str]
