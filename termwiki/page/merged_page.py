@@ -45,6 +45,13 @@ class MergedPage(Traversable):
             pages_repr = pages_repr.replace('\n\t\t', "", 1).replace('\n\t\t', ", ")  # remove first \n\t\t
         return f'{self.__class__.__name__}(pages={pages_repr})'
 
+    def name(self) -> str:
+        safe_page_name = lambda page: page.name() if hasattr(page, 'name') else page.__class__.__name__
+        prefix = self.__class__.__name__ + '('
+        joiner_str = '\n\t\t' if os.environ.get('PYCHARM_HOSTED') else ', '
+        sub_pages_names = joiner_str.join(safe_page_name(page) for page in self.pages.values())
+        return prefix + sub_pages_names + ')'
+
     def merge_sub_pages(self) -> "MergedPage":
         sub_pages: dict[str, Page] = {}
         for name, page in self.pages.items():
@@ -55,7 +62,13 @@ class MergedPage(Traversable):
                                    f'one of the sub-pages is a MergedPage! '
                                    f'this should not happen (I think). '
                                    f'printed self and page above')
-            sub_pages.update(page.pages)
+            if hasattr(page, 'pages'):
+                sub_pages.update(page.pages)
+            else:
+                sub_pages[name] = page
+
+        if sub_pages == self.pages:
+            return self
         merged_sub_pages = MergedPage(sub_pages)
         return merged_sub_pages
 

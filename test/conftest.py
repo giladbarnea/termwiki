@@ -3,7 +3,7 @@ from collections.abc import Mapping
 from _pytest.config import Config
 from _pytest.reports import TestReport, CollectReport
 
-from termwiki.log import DEFAULT_WIDTH
+from termwiki.log import NON_INTERACTIVE_WIDTH
 
 
 # homedir = os.path.expanduser('~')
@@ -62,7 +62,7 @@ def pytest_exception_interact(node, call, report) -> None:
                                          call.excinfo.tb,
                                          width=console.width,
                                          show_locals=True,
-                                         locals_max_string=max(console.width, DEFAULT_WIDTH) - 20,
+                                         locals_max_string=max(console.width, NON_INTERACTIVE_WIDTH) - 20,
                                          suppress=(_pytest, importlib, pluggy), )
 
 

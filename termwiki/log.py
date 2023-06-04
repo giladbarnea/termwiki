@@ -12,7 +12,7 @@ from termwiki.consts import PROJECT_ROOT_PATH
 
 DEBUG = os.getenv("TERMWIKI_DEBUG", "true").lower() in ("1", "true")
 PYCHARM_HOSTED = os.getenv("PYCHARM_HOSTED")
-DEFAULT_WIDTH = 160
+NON_INTERACTIVE_WIDTH = 160
 
 
 # PROJECT_ROOT_PATH = str(Path(__file__).parent) + '/'
@@ -49,9 +49,9 @@ def log_in_out(func_or_nothing=None, watch=()):
                 bound_args = signature.bind(*args, **kwargs)
             pretty_signature = f'{prefix}{str(bound_args)[16:-1]}'
             # self.debug(f"➡️️ [b white]Entered[/b white] {func_name}({comma_sep_args + (', ' if args and kwargs else '') + comma_sep_kwargs})")
-            log.debug(f"➡️️ [b white]Entered[/b white] {pretty_signature}", stacklevel=2)
+            log.debug(f"➡️️ [i]Entered[/i] {pretty_signature}", stacklevel=2)
             ret = func(*args, **kwargs)
-            log.debug(f"⬅️️️ Exiting {prefix}(...) -> {ret!r}", stacklevel=2)
+            log.debug(f"⬅️️️ Exiting {prefix}() -> {ret!r}", stacklevel=2)
             return ret
 
         return wrapper
@@ -80,7 +80,7 @@ class Console(RichConsole):
         super().__init__(
                 color_system="truecolor",
                 # force_terminal=True,
-                width=kwargs.pop("width", None if sys.stdin.isatty() else DEFAULT_WIDTH),
+                width=kwargs.pop("width", None if sys.stdin.isatty() else NON_INTERACTIVE_WIDTH),
                 file=kwargs.pop("file", sys.stdout if PYCHARM_HOSTED else sys.stderr),
                 tab_size=kwargs.pop("tab_size", 2),
                 log_time=kwargs.pop("log_time", False),
@@ -91,6 +91,7 @@ class Console(RichConsole):
                 # safe_box=False,
                 # soft_wrap=True,
                 )
+        self.width -= 2
 
     if DEBUG:
         @format_args
@@ -151,11 +152,11 @@ rich_handler = MyRichHandler(console=console,
                              enable_link_path=False,
                              rich_tracebacks=True,
                              tracebacks_show_locals=True,
-                             locals_max_string=max(console.width, DEFAULT_WIDTH) - 20,
+                             locals_max_string=max(console.width, NON_INTERACTIVE_WIDTH) - 20,
                              )
 
 logging.basicConfig(level=logging.DEBUG if DEBUG else logging.INFO,
-                    format='\[%(pathname)s %(funcName)s(...)] %(message)s',
+                    format='%(pathname)s %(funcName)s() %(message)s',
                     datefmt="[%T]",
                     force=True,
                     handlers=[rich_handler])

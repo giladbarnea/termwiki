@@ -151,6 +151,8 @@ class Traversable(Page):
             if not recursive:
                 return [], self
             merged_sub_pages = self.merge_sub_pages()
+            if merged_sub_pages.pages == self.pages:
+                return [], self
             found_paths, found_page = merged_sub_pages.deep_search(page_path,
                                                                    on_not_found=on_not_found,
                                                                    recursive=True)

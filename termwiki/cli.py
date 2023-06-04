@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import subprocess
 import sys
 from collections.abc import Sequence
@@ -8,19 +10,33 @@ from termwiki import page_tree
 from termwiki.page import Page, PageNotFound
 from termwiki.render import render_page
 from termwiki.log import log, log_in_out
+from collections import OrderedDict
+fuzzy_search_cache = OrderedDict()
+
+def check_output(*args, **kwargs) -> tuple[True, str] | tuple[False, subprocess.CalledProcessError]:
+    try:
+        output = subprocess.check_output(*args, **kwargs).decode('utf-8').strip()
+        return True, output
+    except subprocess.CalledProcessError as e:
+        return False, e
+
+
+
 @log_in_out
 def fuzzy_search(iterable: Iterable[str], search_term: str) -> str | None:
     # --exit-0 --select-1 --inline-info
     # --no-select-1 --no-exit-0
-    fzf_args = '--cycle --reverse --header-first --header="{search_term} not found; did you mean..."'
-    command = 'echo "' + '\n'.join(iterable) + f'" | fzf {fzf_args} -q {search_term}'
-    try:
-        output = subprocess.check_output(command, shell=True)
-    except subprocess.CalledProcessError as e:
-        log.error(f'Fuzzy search failed with {e!r}')
+    fzf_args = f'--cycle --reverse --header-first --header="{search_term} not found; did you mean..."'
+    line_separated_items = '\n'.join(iterable)
+    command = f'echo "{line_separated_items}" | fzf {fzf_args} -q {search_term}'
+    succeeded, output = check_output(command, shell=True)
+    if succeeded:
+        return output
+    succeeded, interactive_output = check_output(command.partition(' -q')[0], shell=True)
+    if not succeeded:
+        log.error(f'Fuzzy search failed with {output!r}')
         return None
-        # output = subprocess.check_output(command + ' --disabled', shell=True)
-    return output.decode('utf-8').strip()
+    return interactive_output
 
 
 def get_page(page_path: Sequence[str]) -> tuple[list[str], Page]:
