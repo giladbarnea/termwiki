@@ -22,34 +22,45 @@ This includes:
         to Pygments.
 
 """
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # https://pygments.org/docs/lexerdevelopment/
 # Standard library
 import re
 
 # Third party
 from pygments.lexers import (
-    BashLexer, HtmlLexer, JavascriptLexer, RubyLexer, PerlLexer, PythonLexer,
-    Python3Lexer, TexLexer)
+    BashLexer,
+    HtmlLexer,
+    JavascriptLexer,
+    RubyLexer,
+    PerlLexer,
+    PythonLexer,
+    Python3Lexer,
+    TexLexer,
+)
 from pygments.lexer import (
-    bygroups, using, #Lexer, DelegatingLexer, RegexLexer, do_insertions
+    bygroups,
+    using,  # Lexer, DelegatingLexer, RegexLexer, do_insertions
 )
 from pygments.token import (
-    Keyword, Operator, Text, #Generic, Literal, Name, Other, Error,
+    Keyword,
+    Operator,
+    Text,  # Generic, Literal, Name, Other, Error,
 )
-#from pygments.util import get_bool_opt
+
+# from pygments.util import get_bool_opt
 
 # Local
 
-line_re = re.compile('.*?\n')
+line_re = re.compile(".*?\n")
 
-__all__ = ['build_ipy_lexer', 'IPython3Lexer']
+__all__ = ["build_ipy_lexer", "IPython3Lexer"]
 
 
 def build_ipy_lexer(python3):
@@ -66,52 +77,52 @@ def build_ipy_lexer(python3):
 
     """
     PyLexer = Python3Lexer
-    name = 'IPython3'
-    aliases = ['ipython3']
+    name = "IPython3"
+    aliases = ["ipython3"]
     doc = """IPython3 Lexer"""
 
     ipython_tokens = [
-       (r'(?s)(\s*)(%%capture)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%debug)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?is)(\s*)(%%html)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(HtmlLexer))),
-        (r'(?s)(\s*)(%%javascript)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(JavascriptLexer))),
-        (r'(?s)(\s*)(%%js)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(JavascriptLexer))),
-        (r'(?s)(\s*)(%%latex)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(TexLexer))),
-        (r'(?s)(\s*)(%%perl)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PerlLexer))),
-        (r'(?s)(\s*)(%%prun)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%pypy)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%python)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%python2)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PythonLexer))),
-        (r'(?s)(\s*)(%%python3)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(Python3Lexer))),
-        (r'(?s)(\s*)(%%ruby)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(RubyLexer))),
-        (r'(?s)(\s*)(%%time)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%timeit)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%writefile)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
-        (r'(?s)(\s*)(%%file)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(PyLexer))),
+        (r"(?s)(\s*)(%%capture)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PyLexer))),
+        (r"(?s)(\s*)(%%debug)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PyLexer))),
+        (r"(?is)(\s*)(%%html)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(HtmlLexer))),
+        (
+            r"(?s)(\s*)(%%javascript)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(JavascriptLexer)),
+        ),
+        (r"(?s)(\s*)(%%js)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(JavascriptLexer))),
+        (r"(?s)(\s*)(%%latex)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(TexLexer))),
+        (r"(?s)(\s*)(%%perl)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PerlLexer))),
+        (r"(?s)(\s*)(%%prun)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PyLexer))),
+        (r"(?s)(\s*)(%%pypy)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PyLexer))),
+        (r"(?s)(\s*)(%%python)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PyLexer))),
+        (r"(?s)(\s*)(%%python2)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PythonLexer))),
+        (
+            r"(?s)(\s*)(%%python3)([^\n]*\n)(.*)",
+            bygroups(Text, Operator, Text, using(Python3Lexer)),
+        ),
+        (r"(?s)(\s*)(%%ruby)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(RubyLexer))),
+        (r"(?s)(\s*)(%%time)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PyLexer))),
+        (r"(?s)(\s*)(%%timeit)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PyLexer))),
+        (r"(?s)(\s*)(%%writefile)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PyLexer))),
+        (r"(?s)(\s*)(%%file)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(PyLexer))),
         (r"(?s)(\s*)(%%)(\w+)(.*)", bygroups(Text, Operator, Keyword, Text)),
-        (r'(?s)(^\s*)(%%!)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(BashLexer))),
-        (r"(%%?)(\w+)(\?\??)$",  bygroups(Operator, Keyword, Operator)),
-        (r"\b(\?\??)(\s*)$",  bygroups(Operator, Text)),
-        (r'(%)(sx|sc|system)(.*)(\n)', bygroups(Operator, Keyword,
-                                                using(BashLexer), Text)),
-        (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)),
-        (r'^(!!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
-        (r'(!)(?!=)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
-        (r'^(\s*)(\?\??)(\s*%{0,2}[\w\.\*]*)', bygroups(Text, Operator, Text)),
-        (r'(\s*%{0,2}[\w\.\*]*)(\?\??)(\s*)$', bygroups(Text, Operator, Text)),
+        (r"(?s)(^\s*)(%%!)([^\n]*\n)(.*)", bygroups(Text, Operator, Text, using(BashLexer))),
+        (r"(%%?)(\w+)(\?\??)$", bygroups(Operator, Keyword, Operator)),
+        (r"\b(\?\??)(\s*)$", bygroups(Operator, Text)),
+        (r"(%)(sx|sc|system)(.*)(\n)", bygroups(Operator, Keyword, using(BashLexer), Text)),
+        (r"(%)(\w+)(.*\n)", bygroups(Operator, Keyword, Text)),
+        (r"^(!!)(.+)(\n)", bygroups(Operator, using(BashLexer), Text)),
+        (r"(!)(?!=)(.+)(\n)", bygroups(Operator, using(BashLexer), Text)),
+        (r"^(\s*)(\?\??)(\s*%{0,2}[\w\.\*]*)", bygroups(Text, Operator, Text)),
+        (r"(\s*%{0,2}[\w\.\*]*)(\?\??)(\s*)$", bygroups(Text, Operator, Text)),
     ]
 
     tokens = PyLexer.tokens.copy()
-    tokens['root'] = ipython_tokens + tokens['root']
+    tokens["root"] = ipython_tokens + tokens["root"]
 
-    attrs = {'name': name,
-             'aliases': aliases,
-             'filenames': [],
-             '__doc__': doc,
-             'tokens': tokens}
+    attrs = {"name": name, "aliases": aliases, "filenames": [], "__doc__": doc, "tokens": tokens}
 
     return type(name, (PyLexer,), attrs)
 
 
 IPython3Lexer = build_ipy_lexer(python3=True)
-

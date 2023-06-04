@@ -13,7 +13,9 @@ from termwiki.common.click_extension import unrequired_opt
 from termwiki.common.types import PageFunction
 from termwiki.consts import SUB_PAGE_RE
 from termwiki.page import FilePage, DirectoryPage
+
 # import termwiki.page_tree
+
 
 def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
     """python -m termwiki --doctor calls this"""
@@ -21,14 +23,25 @@ def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
     # TODO (bug): If _MANAGE = _MANAGEPY = f"""... and _MANAGEPY in last block, says _MANAGE is unused
     lines = inspect.getsource(undecorated_page_fn).splitlines()
     try:
-        last_block_linenum = -next(i for i, line in enumerate(reversed(lines)) if line.strip() == 'else:') - 1
+        last_block_linenum = (
+            -next(i for i, line in enumerate(reversed(lines)) if line.strip() == "else:") - 1
+        )
     except StopIteration:
         # no else: clause, just `return """...`
-        last_block_linenum = -next(i for i, line in enumerate(reversed(lines)) if line.strip().startswith('return')) - 1
-    lines_before_last_block = {line.strip().partition('=')[0].strip() for line in lines[:last_block_linenum] if
-                               line and SUB_PAGE_RE.search(line) and '__' not in line}
-    line_inside_last_block = {line.strip()[1:-1] for line in lines[last_block_linenum:] if
-                              (stripped := line.strip()).startswith('{_') and stripped.endswith('}')}
+        last_block_linenum = (
+            -next(i for i, line in enumerate(reversed(lines)) if line.strip().startswith("return"))
+            - 1
+        )
+    lines_before_last_block = {
+        line.strip().partition("=")[0].strip()
+        for line in lines[:last_block_linenum]
+        if line and SUB_PAGE_RE.search(line) and "__" not in line
+    }
+    line_inside_last_block = {
+        line.strip()[1:-1]
+        for line in lines[last_block_linenum:]
+        if (stripped := line.strip()).startswith("{_") and stripped.endswith("}")
+    }
     if lines_missing_inside_last_block := lines_before_last_block - line_inside_last_block:
         return sorted(list(lines_missing_inside_last_block))
 
@@ -46,13 +59,16 @@ def populate_pages() -> dict[str, PageFunction]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
     main_pages = dict()
     from termwiki import pages as pages_package
+
     pages_package = DirectoryPage(pages_package)
     for name, page in pages_package.traverse():
         main_pages[name] = page
 
     from termwiki.pages import pages
+
     try:
         from termwiki import private_pages as private_pages_package
+
         private_pages_package = DirectoryPage(private_pages_package)
         for name, page in private_pages_package.traverse():
             main_pages[name] = page
@@ -65,23 +81,21 @@ def populate_pages() -> dict[str, PageFunction]:
         if not module:
             return
         for _page_name in dir(module):
-            if _page_name in getattr(module, '__exclude__', {}):
+            if _page_name in getattr(module, "__exclude__", {}):
                 continue
             _page: PageFunction = getattr(module, _page_name)
             if not inspect.isfunction(_page):
                 continue
-            if _page_name.endswith('_'):  # inspect_()
+            if _page_name.endswith("_"):  # inspect_()
                 _name = _page_name[:-1]
             else:
                 _name = _page_name
             yield _name, _page
 
-
-    for name, page in it.chain(iter_module_pages(pages),
-                               iter_module_pages(private_pages)):
+    for name, page in it.chain(iter_module_pages(pages), iter_module_pages(private_pages)):
         ## dont draw_out_wrapped_fn because then syntax() isn't called
         main_pages[name] = page
-        if alias := getattr(page, 'alias', None):
+        if alias := getattr(page, "alias", None):
             main_pages[alias] = page
 
     return main_pages
@@ -91,7 +105,7 @@ PAGES: dict[str, PageFunction] = populate_pages()
 
 
 def get_sub_page_var_names(page: PageFunction) -> list[str]:
-    if not hasattr(page, '__code__'):
+    if not hasattr(page, "__code__"):
         # Not every `page` is a function
         return []
     return [n for n in page.__code__.co_varnames if n.isupper()]
@@ -106,8 +120,8 @@ def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageFun
 
         # sub_page_var_names = [n for n in draw_out_decorated_fn(main_page_fn).__code__.co_varnames if n.isupper()]
         # draw_out_decorated_fn is necessary because PAGES has to store the fns in the wrapped form (to call them later)
-        setattr(page, 'sub_pages', set())
-#         # unwrapped_page_fn = draw_out_decorated_fn(page)
+        setattr(page, "sub_pages", set())
+        #         # unwrapped_page_fn = draw_out_decorated_fn(page)
         unwrapped_page_fn = inspect.unwrap(page)
         sub_page_var_names = get_sub_page_var_names(unwrapped_page_fn)
         if not sub_page_var_names:
@@ -116,7 +130,7 @@ def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageFun
         if print_unused_sub_pages:
             unused_sub_pages = get_unused_sub_pages(unwrapped_page_fn)
             if unused_sub_pages:
-                spaces = ' ' * (max(map(len, PAGES.keys())) - len(name))
+                spaces = " " * (max(map(len, PAGES.keys())) - len(name))
                 print(f"{name!r} doesn't print:{spaces}{', '.join(unused_sub_pages)}")
 
         for sub_page_var_name in sub_page_var_names:
@@ -134,42 +148,42 @@ def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageFun
 SUB_PAGES: dict[str, set[PageFunction]] = populate_sub_pages()
 
 
-def fuzzy_find_page(page: str,
-                    collection: Collection,
-                    *extra_opts,
-                    raise_if_exhausted=False,
-                    **extra_kw_opts) -> tuple:
+def fuzzy_find_page(
+    page: str, collection: Collection, *extra_opts, raise_if_exhausted=False, **extra_kw_opts
+) -> tuple:
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
     # not even a sub_page, could be gibberish
     # try assuming it's a substring
     from termwiki import search, prompt
-    for maybes, is_last in search.iter_maybes(page, collection, criterion='substring'):
+
+    for maybes, is_last in search.iter_maybes(page, collection, criterion="substring"):
         if not maybes:
             continue
 
-        kwargs = dict(Ep='Edit pages.py with pycharm',
-                      Ec='Edit pages.py with vscode',
-                      Em='Edit pages.py with micro')
+        kwargs = dict(
+            Ep="Edit pages.py with pycharm",
+            Ec="Edit pages.py with vscode",
+            Em="Edit pages.py with micro",
+        )
 
         if is_last and raise_if_exhausted:
-            kwargs.update(flowopts='quit')
+            kwargs.update(flowopts="quit")
         else:
-            kwargs.update(flowopts='quit', no='continue')
+            kwargs.update(flowopts="quit", no="continue")
         # TODO: if a match is a sub_page, present main_page.sub_page in choose
-        key, choice = prompt.choose(f"Did you mean any of these?",
-                                    *extra_opts,
-                                    *maybes,
-                                    **kwargs,
-                                    **extra_kw_opts)
+        key, choice = prompt.choose(
+            f"Did you mean any of these?", *extra_opts, *maybes, **kwargs, **extra_kw_opts
+        )
         if choice == prompt.Flow.CONTINUE:
             continue
-        if isinstance(key, str) and key.startswith('E'):
+        if isinstance(key, str) and key.startswith("E"):
             import os
-            if key == 'Ep':
+
+            if key == "Ep":
                 status = os.system(f'pycharm "{__file__}"')
-            elif key == 'Ec':
+            elif key == "Ec":
                 status = os.system(f'code "{__file__}"')
-            elif key == 'Em':
+            elif key == "Em":
                 status = os.system(f'micro "{__file__}"')
             sys.exit(status)
         return key, choice.value
@@ -215,7 +229,7 @@ def get_sub_page_content(main_page: str, sub_page: str) -> str:
         main_page = fuzzy_find_page(main_page, PAGES, raise_if_exhausted=True)
 
     page: PageFunction = PAGES[main_page]
-    if hasattr(page, 'traverse'):
+    if hasattr(page, "traverse"):
         # print(f'{page.path = }')
         # print(f'{page.package = }')
         # print('page.traverse(): ', list(page.traverse()))
@@ -224,47 +238,49 @@ def get_sub_page_content(main_page: str, sub_page: str) -> str:
             return actual_sub_page.read()
         else:
             raise KeyError(f"{sub_page = !r} isn't in {page.path = }")
-    for sub_page_variation in (sub_page,
-                               f'{sub_page}s',
-                               f'_{sub_page}',
-                               f'_{sub_page}s'):
+    for sub_page_variation in (sub_page, f"{sub_page}s", f"_{sub_page}", f"_{sub_page}s"):
         ## This accounts for 2 cases:
         # 1. 'tw python descriptor', but correct is 'descriptors', so add 's'
         # 2. 'tw bash while' -> page.sub_pages has '_while' -> pass '__WHILE'
         if sub_page_variation in page.sub_pages:
-            return page(f'_{sub_page_variation.upper()}')
+            return page(f"_{sub_page_variation.upper()}")
 
     try:
         # sometimes functions have alias logic under 'if subject:' clause, for example bash
         # has 'subject.startswith('<')'. so maybe sub_page works
         return page(sub_page)
     except KeyError:
-        print(f"[info] sub page {sub_page!r} isn't a sub page of {main_page!r}. "
-              f"Searching among {main_page!r}'s sub pages...")
-        key, chosen_sub_page = fuzzy_find_page(sub_page,
-                                               page.sub_pages,
-                                               raise_if_exhausted=False,
-                                               # keep uppercase P so doesn't collide with pages
-                                               P=f"print {main_page!r} w/o sub_page")
-        if key == 'P':
+        print(
+            f"[info] sub page {sub_page!r} isn't a sub page of {main_page!r}. "
+            f"Searching among {main_page!r}'s sub pages..."
+        )
+        key, chosen_sub_page = fuzzy_find_page(
+            sub_page,
+            page.sub_pages,
+            raise_if_exhausted=False,
+            # keep uppercase P so doesn't collide with pages
+            P=f"print {main_page!r} w/o sub_page",
+        )
+        if key == "P":
             return page()
 
         if chosen_sub_page is not None:
-            return page(f'_{chosen_sub_page.upper()}')
+            return page(f"_{chosen_sub_page.upper()}")
 
         if sub_page in SUB_PAGES:
-            print(f"[info] {sub_page!r} isn't a sub page of {main_page!r}, but it belongs to these pages:")
+            print(
+                f"[info] {sub_page!r} isn't a sub page of {main_page!r}, but it belongs to these pages:"
+            )
             return print_page(sub_page)
 
         print(f"[info] {sub_page!r} doesn't belong to any page. Searching among all SUB_PAGES...")
-        key, sub_page = fuzzy_find_page(sub_page,
-                                        SUB_PAGES,
-                                        raise_if_exhausted=True,
-                                        P=f"print {main_page!r} without sub_page")
-        if key == 'P':
+        key, sub_page = fuzzy_find_page(
+            sub_page, SUB_PAGES, raise_if_exhausted=True, P=f"print {main_page!r} without sub_page"
+        )
+        if key == "P":
             return page()
 
-        return page(f'_{sub_page.upper()}')
+        return page(f"_{sub_page.upper()}")
 
 
 def print_page(main_page: str, sub_page=None):
@@ -294,7 +310,7 @@ def print_page(main_page: str, sub_page=None):
         sub_page_name = main_page
     else:
         for sub_page in SUB_PAGES:
-            sub_page_no_leading_underscore = sub_page.removeprefix('_')
+            sub_page_no_leading_underscore = sub_page.removeprefix("_")
             if main_page == sub_page_no_leading_underscore:
                 sub_page_name = sub_page
                 break
@@ -303,6 +319,7 @@ def print_page(main_page: str, sub_page=None):
         ## Maybe multiple pages have it
         if len(SUB_PAGES[sub_page_name]) > 1:
             from termwiki import prompt
+
             pages: list[PageFunction] = list(SUB_PAGES[sub_page_name])  # for index
 
             # TODO (bugs):
@@ -311,54 +328,70 @@ def print_page(main_page: str, sub_page=None):
             #  (2) main pages with both @alias and @syntax decors, that have the issue above ("(1)"), raise
             #    a ValueError in igit prompt, because the same main main_page function is passed here for each sub_page and sub_page alias.
             #  ValueError: ('NumOptions | __init__(opts) duplicate opts: ', ('<function asyncio at 0x7f5dab684ca0>', '<function asyncio at 0x7f5dab684ca0>', '<function python at 0x7f5dab669a60>'))
-            idx, choice = prompt.choose(f"{sub_page_name!r} exists in several pages, which one did you mean?",
-                                        *[page.__qualname__ for page in pages],
-                                        flowopts='quit'
-                                        )
-            return print(pages[idx](f'_{sub_page_name.upper()}'))
+            idx, choice = prompt.choose(
+                f"{sub_page_name!r} exists in several pages, which one did you mean?",
+                *[page.__qualname__ for page in pages],
+                flowopts="quit",
+            )
+            return print(pages[idx](f"_{sub_page_name.upper()}"))
 
         ## Unique sub_page
         page, *_ = SUB_PAGES[sub_page_name]
-        return print(page(f'_{sub_page_name.upper()}'))
+        return print(page(f"_{sub_page_name.upper()}"))
 
     # ** Not a precise sub_page. find something precise, either a main or sub main_page
-    key, main_page = fuzzy_find_page(main_page,
-                                     set(PAGES.keys()) | set(SUB_PAGES.keys()),
-                                     raise_if_exhausted=True)
+    key, main_page = fuzzy_find_page(
+        main_page, set(PAGES.keys()) | set(SUB_PAGES.keys()), raise_if_exhausted=True
+    )
     return print_page(main_page)
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.argument('main_page', required=False)
-@click.argument('sub_page', required=False)
-@unrequired_opt('-l', '--list', 'list_pages_or_sub_pages', is_flag=True, help="List main page's sub pages if MAIN_PAGE is provided, else list all main pages")
-@unrequired_opt('--doctor', 'print_unused_sub_pages', is_flag=True, help="Print any sub_pages that are skipped erroneously in a main page's else clause")
-def get_page(main_page: str | None,
-             sub_page: str | None,
-             list_pages_or_sub_pages: bool = False,
-             print_unused_sub_pages: bool = False):
-    logging.debug(f'termwiki.get_page({main_page = !r}, {sub_page = !r}, {list_pages_or_sub_pages = }, {print_unused_sub_pages = })')
+@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
+@click.argument("main_page", required=False)
+@click.argument("sub_page", required=False)
+@unrequired_opt(
+    "-l",
+    "--list",
+    "list_pages_or_sub_pages",
+    is_flag=True,
+    help="List main page's sub pages if MAIN_PAGE is provided, else list all main pages",
+)
+@unrequired_opt(
+    "--doctor",
+    "print_unused_sub_pages",
+    is_flag=True,
+    help="Print any sub_pages that are skipped erroneously in a main page's else clause",
+)
+def get_page(
+    main_page: str | None,
+    sub_page: str | None,
+    list_pages_or_sub_pages: bool = False,
+    print_unused_sub_pages: bool = False,
+):
+    logging.debug(
+        f"termwiki.get_page({main_page = !r}, {sub_page = !r}, {list_pages_or_sub_pages = }, {print_unused_sub_pages = })"
+    )
     if print_unused_sub_pages:  # tw --doctor
         populate_sub_pages(print_unused_sub_pages=True)
         return
     if list_pages_or_sub_pages:  # tw [MAIN_PAGE] -l, --list
         if main_page:
             print(f"{h2(main_page)}")
-            [print(f' · {sub}') for sub in sorted(PAGES[main_page].sub_pages)]
+            [print(f" · {sub}") for sub in sorted(PAGES[main_page].sub_pages)]
         else:
             page: PageFunction
             for page_name, page in sorted(PAGES.items()):
-                alias = getattr(page, 'alias', None)
+                alias = getattr(page, "alias", None)
                 if alias and alias == page_name:
                     continue
                 title = f"\n{h2(page_name)}"
                 if alias:
                     title += f" ({page.alias})"
                 print(title)
-                [print(f' · {sub}') for sub in sorted(PAGES[page_name].sub_pages)]
+                [print(f" · {sub}") for sub in sorted(PAGES[page_name].sub_pages)]
         return
     if not main_page:
-        print('Error: Must specify a page.\n')
+        print("Error: Must specify a page.\n")
         ctx = get_page.context_class(get_page)
         print(get_page.get_help(ctx))
         return

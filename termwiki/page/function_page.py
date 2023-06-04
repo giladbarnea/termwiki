@@ -7,7 +7,7 @@ from . import ast_utils
 from .page import Traversable
 from .variable_page import VariablePage
 
-ParamSpec = ParamSpec('ParamSpec')
+ParamSpec = ParamSpec("ParamSpec")
 
 
 class FunctionPage(Traversable):
@@ -17,7 +17,7 @@ class FunctionPage(Traversable):
         self._python_module_ast = None
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(function={self.function.__qualname__})'
+        return f"{self.__class__.__name__}(function={self.function.__qualname__})"
 
     def python_module_ast(self) -> ast.Module:
         if self._python_module_ast:
@@ -46,7 +46,7 @@ class FunctionPage(Traversable):
             seen_variable_pages.add(var_page.value)
             variable_text = var_page.read()
             variable_texts.append(variable_text)
-        return '\n'.join(variable_texts)
+        return "\n".join(variable_texts)
 
     __call__ = read
 

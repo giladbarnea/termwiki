@@ -4,28 +4,30 @@ from re import Pattern
 
 from more_termcolor import colors
 
-BACKSLASH: str = '\\'
-FILE_CHAR: str = r'[\w\d-]'
-PATH_WILDCARD: str = fr'[\.\*\\]'
-NOT_PATH_WILDCARD: str = r'[^\.\*\\]'
-FILE_SUFFIX: Pattern = re.compile(r'\.+[\w\d]{1,5}')
+BACKSLASH: str = "\\"
+FILE_CHAR: str = r"[\w\d-]"
+PATH_WILDCARD: str = rf"[\.\*\\]"
+NOT_PATH_WILDCARD: str = r"[^\.\*\\]"
+FILE_SUFFIX: Pattern = re.compile(r"\.+[\w\d]{1,5}")
 # TRAILING_RE: Pattern = re.compile(fr"({PATH_WILDCARD}*{FILE_CHAR}*)({PATH_WILDCARD}*)")
 # LEADING_RE: Pattern = re.compile(fr'({PATH_WILDCARD}*)(.*$)')
-YES_OR_NO: Pattern = re.compile(r'(yes|no|y|n)(\s.*)?', re.IGNORECASE)
+YES_OR_NO: Pattern = re.compile(r"(yes|no|y|n)(\s.*)?", re.IGNORECASE)
 
-ONLY_REGEX: Pattern = re.compile(r'[\^.\\+?*()|\[\]{}<>$]+')  # TODO: why escape closing curly bracket?
+ONLY_REGEX: Pattern = re.compile(
+    r"[\^.\\+?*()|\[\]{}<>$]+"
+)  # TODO: why escape closing curly bracket?
 
 # e.g [a-z0-9]
-SQUARE_BRACKETS_REGEX = re.compile(r'\[([a-z](-[a-z])?|[0-9](-[0-9])?)+\]', re.IGNORECASE)
-ADV_REGEX_CHAR = BACKSLASH + '+()|{}$^<>'
-ADV_REGEX_2CHAR = ['.*', '.+', '.?', '(?']  # TODO: "*.*" is simple glob but 'has adv regex'
+SQUARE_BRACKETS_REGEX = re.compile(r"\[([a-z](-[a-z])?|[0-9](-[0-9])?)+\]", re.IGNORECASE)
+ADV_REGEX_CHAR = BACKSLASH + "+()|{}$^<>"
+ADV_REGEX_2CHAR = [".*", ".+", ".?", "(?"]  # TODO: "*.*" is simple glob but 'has adv regex'
 
-GLOB_CHAR = '?*![]'  # TODO: detect "[a-z]" but dont false positive on mere "-"
+GLOB_CHAR = "?*![]"  # TODO: detect "[a-z]" but dont false positive on mere "-"
 
 REGEX_CHAR = GLOB_CHAR + ADV_REGEX_CHAR
 
 # fullmatch('f5905f1') or fullmatch('f5905f1e4ab6bd82fb6644ca4cc2799a59ee725d')
-SHA_RE = re.compile(r'([a-f\d]{7}|[a-f\d]{40})')
+SHA_RE = re.compile(r"([a-f\d]{7}|[a-f\d]{40})")
 
 
 def is_only_regex(val: str):
@@ -40,10 +42,10 @@ def is_only_regex(val: str):
         return True
     return False
     # TODO: this is not really tested, for ex. it fails detecting [abc]. also, account for lookbehinds etc
-    without_sqr_brackets = SQUARE_BRACKETS_REGEX.sub('', val)
+    without_sqr_brackets = SQUARE_BRACKETS_REGEX.sub("", val)
     if without_sqr_brackets == val:
         return False
-    if without_sqr_brackets == '' or is_only_regex(without_sqr_brackets):
+    if without_sqr_brackets == "" or is_only_regex(without_sqr_brackets):
         # '^[a-z]*$' -> '^*$' -> True
         return True
     return False
@@ -168,18 +170,22 @@ def has_adv_regex(val: str):
 
 
 def make_word_separators_optional(val):
-    return re.sub('[-_. ]', '[-_. ]', val)
+    return re.sub("[-_. ]", "[-_. ]", val)
 
 
 def strip_trailing_path_wildcards(val):
     """Strips any [/.*\\] from the end. Doesn't strip from the beginning.
     Use with dirs.
     Doesn't handle file extensions well (i.e. 'py_venv.xml' loses suffix)"""
-    
+
     match = re.match(rf"([*.\\/]*[^*.\\]*)([*.\\/]*)", val)
     groups = match.groups()
-    if ''.join(groups) != val:
-        print(colors.yellow(f"strip_trailing_path_wildcards({repr(val)}): regex stripped away too much, returning as-is. groups: {', '.join(map(repr, groups))}"))
+    if "".join(groups) != val:
+        print(
+            colors.yellow(
+                f"strip_trailing_path_wildcards({repr(val)}): regex stripped away too much, returning as-is. groups: {', '.join(map(repr, groups))}"
+            )
+        )
         return val
     return groups[0]
 
@@ -188,9 +194,9 @@ def strip_leading_path_wildcards(val):
     """Strips any [/.*\\] from the beginning. Doesn't strip from the end.
     Use with dirs or files.
     Handles file extensions well (i.e. 'py_venv.xml' keeps suffix)"""
-    match = re.match(fr'({PATH_WILDCARD}*)(.*$)', val)
+    match = re.match(rf"({PATH_WILDCARD}*)(.*$)", val)
     path_wildcard, rest = match.groups()
-    if path_wildcard == '.':
+    if path_wildcard == ".":
         # not regex if dot isn't accompanied by other chars; '.git' has no regex
         return val
     return rest

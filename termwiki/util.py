@@ -4,8 +4,8 @@ from typing import Sized, Generic, Callable, Type, TypeVar
 
 from termwiki.consts import COLOR_RE
 
-ReturnType = TypeVar('ReturnType')
-T = TypeVar('T')
+ReturnType = TypeVar("ReturnType")
+T = TypeVar("T")
 
 
 def short_repr(obj: Sized) -> str:
@@ -13,47 +13,47 @@ def short_repr(obj: Sized) -> str:
         obj: str
         lines = obj.splitlines()
         if len(lines) > 2:
-            return repr('\n'.join([lines[0], '…', lines[-1]]))
+            return repr("\n".join([lines[0], "…", lines[-1]]))
         if len(obj) > 75:
-            return obj[:40] + '…' + obj[-40:]
+            return obj[:40] + "…" + obj[-40:]
         return obj
 
-    if hasattr(obj, 'short_repr'):
+    if hasattr(obj, "short_repr"):
         return obj.short_repr()
 
     if len(obj) > 2:
         empty_sequence_repr = repr(type(obj)())
-        match = re.match(r'\w+', empty_sequence_repr)
+        match = re.match(r"\w+", empty_sequence_repr)
         if match:
             type_name = match.group()
-            parens = empty_sequence_repr[match.end():]
-            left_parens, right_parens = parens[:len(parens)], parens[len(parens):]
+            parens = empty_sequence_repr[match.end() :]
+            left_parens, right_parens = parens[: len(parens)], parens[len(parens) :]
         else:
-            type_name = ''
+            type_name = ""
             left_parens, right_parens = empty_sequence_repr
-        return f'{type_name}{left_parens}{obj[0]!r}, ..., {obj[-1]!r}{right_parens}'
+        return f"{type_name}{left_parens}{obj[0]!r}, ..., {obj[-1]!r}{right_parens}"
     return repr(obj)
 
 
 def decolor(text):
-    return COLOR_RE.sub('', text)
+    return COLOR_RE.sub("", text)
 
 
 def clean_str(s: str) -> str:
     """Removes colors and all non-alphanumeric characters from a string,
-     except leading and trailing underscores.
-     Strips and returns."""
+    except leading and trailing underscores.
+    Strips and returns."""
     decolored = decolor(s).strip()
     cleaned = []
     for i, char in enumerate(decolored):
         if char.isalnum():
             cleaned.append(char)
-        elif i > 0 and cleaned and char == '_':
+        elif i > 0 and cleaned and char == "_":
             cleaned.append(char)
 
     # cleansed = ''.join(filter(str.isalpha, decolored)).strip()
     # return cleansed
-    return ''.join(cleaned)
+    return "".join(cleaned)
 
 
 def lazy_import(importer_name: str, to_import):
@@ -73,20 +73,19 @@ def lazy_import(importer_name: str, to_import):
     module = importlib.import_module(importer_name)
     import_mapping = {}
     for name in to_import:
-        importing, _, binding = name.partition(' as ')
+        importing, _, binding = name.partition(" as ")
         if not binding:
-            _, _, binding = importing.rpartition('.')
+            _, _, binding = importing.rpartition(".")
         import_mapping[binding] = importing
 
     def __getattr__(name):
         if name not in import_mapping:
-            message = f'module {importer_name!r} has no attribute {name!r}'
+            message = f"module {importer_name!r} has no attribute {name!r}"
             raise AttributeError(message)
         importing = import_mapping[name]
         # imortlib.import_module() implicitly sets submodules on this module as
         # appropriate for direct imports.
-        imported = importlib.import_module(importing,
-                                           module.__spec__.parent)
+        imported = importlib.import_module(importing, module.__spec__.parent)
         setattr(module, name, imported)
         return imported
 

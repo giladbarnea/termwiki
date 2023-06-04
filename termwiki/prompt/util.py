@@ -4,6 +4,7 @@ import re
 import functools
 import inspect
 
+
 def return_none_if_errors(*exc):
     """If no `exc` specified, returns None on any exception.
     >>> @return_none_if_errors(ValueError)
@@ -21,18 +22,18 @@ def return_none_if_errors(*exc):
     >>> raises(OverflowError) is None
     True
     """
-    
+
     def wrap(fn):
         @functools.wraps(fn)
         def decorator(*fnargs, **fnkwargs):
-            
+
             try:
                 return fn(*fnargs, **fnkwargs)
             except exc:
                 return None
-        
+
         return decorator
-    
+
     if not exc:
         # @return_none_if_errors()    (parens but no args)
         exc = Exception
@@ -41,9 +42,11 @@ def return_none_if_errors(*exc):
         _fn = exc[0]
         exc = Exception
         return wrap(_fn)
-    
+
     # @return_none_if_errors(ValueError)
     return wrap
+
+
 @return_none_if_errors(ValueError, TypeError)
 def safeslice(val: Union[str, int, slice]) -> slice:
     """Safe constructor for slice. Handles "2", "0:2", and ":2".
@@ -62,18 +65,18 @@ def safeslice(val: Union[str, int, slice]) -> slice:
     >>> safeslice("foo") is None
     True
     """
-    
+
     def _to_slice(_val) -> slice:
         if isinstance(_val, slice):
             return _val
         # _stop = int(_val) + 1
         return slice(int(_val))  # may raise TypeError -> None
-    
+
     if isinstance(val, str):
         val = val.strip()
-        if ':' in val:
-            start, _, stop = val.partition(':')
-            if start == '':  # ":2"
+        if ":" in val:
+            start, _, stop = val.partition(":")
+            if start == "":  # ":2"
                 start = 0
             return slice(int(start), int(stop))
     return _to_slice(val)
@@ -91,10 +94,12 @@ def safeint(val: Union[str, int]) -> int:
     >>> all(bad is None for bad in (safeint("0:2"), safeint(slice(0, 2)), safeint("foo")))
     True
     """
-    
+
     if isinstance(val, str):
         val = val.strip()
     return int(val)  # may raise TypeError -> None
+
+
 def to_int_or_slice(val):
     """Tries converting to int, then to slice if fails.
     Finally returns None if converting to slice fails as well"""
@@ -105,6 +110,8 @@ def to_int_or_slice(val):
     if _slice is not None:
         return _slice
     return None
+
+
 def unquote(string) -> str:
     # TODO: "gallery is MOBILE only if <= $BP3" -> "gallery is MOBILE only if <=" (maybe bcz bash?)
     string = str(string)
@@ -116,8 +123,11 @@ def unquote(string) -> str:
     if match:  # "'hello'"
         string = match.groups()[1]
     return string.strip()
+
+
 def clean(string: str) -> str:
     return unquote(string.strip())
+
 
 def has_duplicates(collection) -> bool:
     return len(set(collection)) < len(collection)

@@ -5,6 +5,7 @@ import typing
 # import functools as ft
 _missing = object()
 
+
 def option(*param_decls, **attrs):
     """`show_default = True`.
 
@@ -21,38 +22,37 @@ def option(*param_decls, **attrs):
      - `typing.Literal['foo']`
      - `click.typing.<Foo>` (which includes click.Choice(...))
     """
-    attrs['show_default'] = True
-    default = attrs.get('default', _missing)
+    attrs["show_default"] = True
+    default = attrs.get("default", _missing)
     default_is_missing = default is _missing
-    typeattr = attrs.get('type', _missing)
+    typeattr = attrs.get("type", _missing)
     type_is_missing = typeattr is _missing
     if not type_is_missing:
         if typing.get_origin(typeattr) is typing.Literal:
             # type=typing.Literal['foo']. build a click.Choice from it
-            attrs['type'] = click.Choice(typeattr.__args__)
+            attrs["type"] = click.Choice(typeattr.__args__)
             if default_is_missing:
                 # take first Literal arg
-                attrs['default'] = typeattr.__args__[0]
-        
+                attrs["default"] = typeattr.__args__[0]
+
         else:
             # not a typing.Literal (e.g. `type=str`)
-            attrs['type'] = typeattr
+            attrs["type"] = typeattr
             if default_is_missing:
-                attrs['default'] = typeattr()
-    
+                attrs["default"] = typeattr()
+
     else:
         # type is missing.
         # if default=None, it's probably just a placeholder and
         # doesn't tell us above the 'real' type
         if not default_is_missing and default is not None:
-            attrs['type'] = type(default)
+            attrs["type"] = type(default)
         # otherwise, type and default both missing. not sure if this works
-    
-    if attrs.get('metavar', _missing) is _missing \
-            and attrs.get('type', _missing) is not _missing:
+
+    if attrs.get("metavar", _missing) is _missing and attrs.get("type", _missing) is not _missing:
         try:
             # changes click's default "BOOLEAN" to "BOOL", "INTEGER" -> "INT"
-            attrs['metavar'] = attrs['type'].__name__.upper()
+            attrs["metavar"] = attrs["type"].__name__.upper()
         except AttributeError:
             # has no attribute __name__
             pass
@@ -74,8 +74,8 @@ def unrequired_opt(*param_decls, **attrs):
      - `typing.Literal['foo']`
      - `click.typing.<Foo>` (which includes click.Choice(...))
     """
-    
-    attrs['required'] = False
+
+    attrs["required"] = False
     return option(*param_decls, **attrs)
 
 
@@ -94,6 +94,6 @@ def required_opt(*param_decls, **attrs):
      - `typing.Literal['foo']`
      - `click.typing.<Foo>` (which includes click.Choice(...))
     """
-    
-    attrs['required'] = True
+
+    attrs["required"] = True
     return option(*param_decls, **attrs)

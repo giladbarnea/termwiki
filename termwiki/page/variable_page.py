@@ -12,7 +12,7 @@ class VariablePage(Page):
 
     def __repr__(self) -> str:
         # todo: when it's IndentationMarkdown, decoloring value should be less hacky
-        return f'{self.__class__.__name__}(name={self.name!r}, value={short_repr(clean_str(self.value))})'
+        return f"{self.__class__.__name__}(name={self.name!r}, value={short_repr(clean_str(self.value))})"
 
     def read(self, *args, **kwargs) -> str:
         return str(self.value)

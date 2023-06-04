@@ -59,7 +59,7 @@ black = "^23.0.0"
 
 
 [tool.black]
-line-length = 90
+line-length = 100
 include = '\.pyi?$'
 extend-exclude = '''
 (

@@ -22,7 +22,7 @@ def style(default_style: str = None, **language_styles):
     # should unwrap first?
     def decorator(page_function):
         page_function.default_style = default_style
-        if not hasattr(page_function, 'styles'):
+        if not hasattr(page_function, "styles"):
             page_function.styles = {}
         page_function.styles.update(language_styles)
         return page_function
@@ -32,7 +32,7 @@ def style(default_style: str = None, **language_styles):
 
 def alias(*aliases) -> Callable[[PageFunction], PageFunction]:
     def decorator(page_function: PageFunction) -> PageFunction:
-        if not hasattr(page_function, 'aliases'):
+        if not hasattr(page_function, "aliases"):
             page_function.aliases = []
         page_function.aliases.extend(aliases)
         # should unwrap first?
@@ -46,7 +46,7 @@ def alias(*aliases) -> Callable[[PageFunction], PageFunction]:
 
 def title(_title) -> Callable[[PageFunction], PageFunction]:
     def decorator(page_function: PageFunction) -> PageFunction:
-        if not hasattr(page_function, 'title'):
+        if not hasattr(page_function, "title"):
             page_function.title = _title
         return page_function
 

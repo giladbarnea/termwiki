@@ -7,7 +7,7 @@ from termwiki.util import cached_property
 from . import ast_utils
 
 DecoratedCallable = TypeVar("DecoratedCallable", bound=Callable[[Self, ...], Any])
-ParamSpec = ParamSpec('ParamSpec')
+ParamSpec = ParamSpec("ParamSpec")
 
 
 def create_caching_traverse(traverse_fn: DecoratedCallable) -> DecoratedCallable:
@@ -42,7 +42,7 @@ class Page:
             self.read()
             return True
         except Exception as e:
-            log.warning(f'{self!r}.readable | {e!r}')
+            log.warning(f"{self!r}.readable | {e!r}")
             return False
 
 
@@ -104,10 +104,9 @@ class Traversable(Page):
 
     # traverse._cacher = lambda self, page: self._cache_page(page)
 
-    def search(self,
-               name: str,
-               *,
-               on_not_found: Callable[[Iterable[str], str], str | None] = None) -> Page | None:
+    def search(
+        self, name: str, *, on_not_found: Callable[[Iterable[str], str], str | None] = None
+    ) -> Page | None:
         """Search a Page among immediate children of this Traversable.
         If not found, and 'on_not_found' is given, it will be called with
         the names of the immediate children. Otherwise None is returned."""
@@ -124,12 +123,13 @@ class Traversable(Page):
     __getitem__ = search
 
     # @log.log_in_out
-    def deep_search(self,
-                    page_path: Sequence[str] | str,
-                    *,
-                    on_not_found: Callable[[Iterable[str], str], str | None] = None,
-                    recursive: bool = False,
-                    ) -> tuple[list[str], Page]:
+    def deep_search(
+        self,
+        page_path: Sequence[str] | str,
+        *,
+        on_not_found: Callable[[Iterable[str], str], str | None] = None,
+        recursive: bool = False,
+    ) -> tuple[list[str], Page]:
         """Searches a possibly nested page by it's full path.
         The main justifications for this method over 'search' are:
         - its return tuple, with the first item being the path taken from here to the page (including up to the page),
@@ -144,7 +144,7 @@ class Traversable(Page):
         # if isinstance(self, MergedPage) and not self.pages:
         #     breakpoint()
         if isinstance(page_path, str):
-            page_path = page_path.split(' ')
+            page_path = page_path.split(" ")
         first_page_path, *second_and_on_page_paths = page_path
         first_page: Page | Traversable = self.search(first_page_path, on_not_found=on_not_found)
         if not first_page:
@@ -153,20 +153,19 @@ class Traversable(Page):
             merged_sub_pages = self.merge_sub_pages()
             if merged_sub_pages.pages == self.pages:
                 return [], self
-            found_paths, found_page = merged_sub_pages.deep_search(page_path,
-                                                                   on_not_found=on_not_found,
-                                                                   recursive=True)
+            found_paths, found_page = merged_sub_pages.deep_search(
+                page_path, on_not_found=on_not_found, recursive=True
+            )
             return found_paths, found_page
 
-        if not second_and_on_page_paths \
-                or not hasattr(first_page, 'deep_search'):
+        if not second_and_on_page_paths or not hasattr(first_page, "deep_search"):
             return [first_page_path], first_page
 
         first_page: Traversable
 
-        found_paths, found_page = first_page.deep_search(second_and_on_page_paths,
-                                                         on_not_found=on_not_found,
-                                                         recursive=recursive)
+        found_paths, found_page = first_page.deep_search(
+            second_and_on_page_paths, on_not_found=on_not_found, recursive=recursive
+        )
         return [first_page_path] + found_paths, found_page
         # if not found_paths and recursive:
         #     merged_sub_pages = found_page.merge_pages()
@@ -177,6 +176,7 @@ class Traversable(Page):
 
     def merge_sub_pages(self) -> ForwardRef("MergedPage"):
         from .merged_page import MergedPage
+
         merged_sub_pages = MergedPage(self.pages)
         return merged_sub_pages
 

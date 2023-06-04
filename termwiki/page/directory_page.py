@@ -18,7 +18,7 @@ class DirectoryPage(Traversable):
         self._path = None
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(package={self._package!r})'
+        return f"{self.__class__.__name__}(package={self._package!r})"
 
     def package(self) -> ModuleType:
         if isinstance(self._package, ModuleType):
@@ -52,8 +52,10 @@ class DirectoryPage(Traversable):
         self_directory_path = self.path()
         pages_with_same_name_as_us = []
         # sorted(bla.iterdir()), sorted(bla.glob('*')) and glob.glob(bla) are all about 20 µs
-        for path in sorted(self_directory_path.iterdir()):  # given e.g name/ and name.md, name/ comes first
-            if path.name.startswith('.') or path.name.startswith('_'):
+        for path in sorted(
+            self_directory_path.iterdir()
+        ):  # given e.g name/ and name.md, name/ comes first
+            if path.name.startswith(".") or path.name.startswith("_"):
                 continue
             path_stem = ast_utils.normalize_page_name(path.stem)
             path_name = ast_utils.normalize_page_name(path.name)
@@ -62,12 +64,12 @@ class DirectoryPage(Traversable):
                 # self._cache_page(path_name, directory_page)
                 yield path_name, directory_page
             else:
-                if path.suffix == '.py':
+                if path.suffix == ".py":
                     package = self.package()
                     python_file_page = PythonFilePage(path, package)
                     # self._cache_page(path_stem, python_file_page)
                     yield path_stem, python_file_page
-                elif path.suffix == '.md':
+                elif path.suffix == ".md":
                     markdown_file_page = MarkdownFilePage(path)
                     # self._cache_page(path_stem, markdown_file_page)
                     yield path_stem, markdown_file_page
@@ -77,7 +79,7 @@ class DirectoryPage(Traversable):
                     yield path_stem, file_page
 
         # todo: not sure this belongs here. read() also does something similar (inherently lazier)
-        pages_python_file = self_directory_path / 'pages.py'
+        pages_python_file = self_directory_path / "pages.py"
         if pages_python_file.exists():
             package = self.package()
             python_file_page = PythonFilePage(pages_python_file, package)

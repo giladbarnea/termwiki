@@ -9,7 +9,7 @@ class FilePage(Page):
         self.filename = filename
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(filename={self.filename!r})'
+        return f"{self.__class__.__name__}(filename={self.filename!r})"
 
     def read(self, *args, **kwargs) -> str:
         with open(self.filename) as f:

@@ -6,6 +6,7 @@ from more_termcolor import colors
 from .item import MutableItem, Items, Flow
 from .item import NumItems, LexicItems, KeywordItems
 from .util import has_duplicates
+
 # from .util.misc import darkprint
 from .item import FlowItem
 from termwiki.exceptions import DevError
@@ -15,9 +16,9 @@ from termwiki.exceptions import DevError
 class Options(ABC):
     items: Items
     _itemscls = None
-    
+
     # flowopts: Tuple['FlowItem', ...]
-    
+
     def __init__(self, *opts: str):
         if has_duplicates(opts):
             raise ValueError(f"{repr(self)} | __init__(opts) duplicate opts: ", opts)
@@ -27,14 +28,14 @@ class Options(ABC):
         # self._items = None
         # self._indexeditems = None
         # self._all_yes_or_no = None  # calculated only when None (not True or False)
-    
+
     def __bool__(self):
         # return bool(self.items) or bool(self.flowopts)
         return bool(self.items)
-    
+
     # def __repr__(self): # uncomment if has prepr() fn (originally from @prettyrepr)
     #     return f'{self.prepr()}(items = {repr(self.items)})'
-    
+
     def set_flow_opts(self, flowopts: Union[str, Iterable, bool]) -> NoReturn:
         """Sets `self.flowopts` with FlowItem objects.
         Handles passing different types of flowopts (single string, tuple of strings, or boolean), and returns a FlowItem tuple."""
@@ -48,15 +49,17 @@ class Options(ABC):
             # flowopts = tuple(map(FlowItem.from_full_name, flowopts))
             flowitems = tuple(map(FlowItem, flowopts))
             if has_duplicates(flowitems):
-                raise ValueError(f"{repr(self)}\nset_flow_opts(flowopts) | duplicate flowitems: {repr(flowitems)}")
-        
+                raise ValueError(
+                    f"{repr(self)}\nset_flow_opts(flowopts) | duplicate flowitems: {repr(flowitems)}"
+                )
+
         for flowitem in flowitems:
             self.items.store(flowitem)
             # if flowopt.value in self.items:
             #     raise ValueError(f'{repr(self)}\nset_special_options() | flowopt.value ({repr(flowopt.value)}) already exists in self.\nflowopt: {repr(flowopt)}.\nflowopts: {repr(flowopts)}')
             # self.items[flowopt.value] = flowopt.name
         return None
-    
+
     def set_kw_options(self, **kw_opts: Union[str, tuple, bool]) -> None:
         """foo='bar', baz='continue'"""
         # darkprint(f'{self.__class__.__qualname__}.set_kw_options(kw_opts={repr(kw_opts)})')
@@ -64,14 +67,18 @@ class Options(ABC):
             return
         if has_duplicates(kw_opts.values()):
             raise ValueError(f"{repr(self)}\nset_kw_options() duplicate kw_opts: {repr(kw_opts)}")
-        if 'free_input' in kw_opts:
-            raise RuntimeError(f"{repr(self)}\nset_kw_options() | 'free_input' found in kw_opts, should have popped it out earlier.\nkw_opts: {repr(kw_opts)}")
+        if "free_input" in kw_opts:
+            raise RuntimeError(
+                f"{repr(self)}\nset_kw_options() | 'free_input' found in kw_opts, should have popped it out earlier.\nkw_opts: {repr(kw_opts)}"
+            )
         non_flow_kw_opts = dict()
         for kw in kw_opts:
             opt = kw_opts[kw]
             if kw in self.items:
-                raise ValueError(f"{repr(self)}\nset_kw_options() | '{kw}' in kw_opts but was already in self.items.\nkw_opts: {repr(kw_opts)}")
-            
+                raise ValueError(
+                    f"{repr(self)}\nset_kw_options() | '{kw}' in kw_opts but was already in self.items.\nkw_opts: {repr(kw_opts)}"
+                )
+
             try:
                 # flowitem = FlowItem.from_full_name(opt)
                 flowitem = FlowItem(opt)
@@ -80,31 +87,35 @@ class Options(ABC):
             else:
                 # not using self.items.store(flowitem) because kw isn't flowitem.identifier
                 self.items[kw] = flowitem
-        
+
         if not non_flow_kw_opts:
             return
-        
+
         kw_items = KeywordItems(non_flow_kw_opts)
-        
+
         self.items.update(**kw_items)
         # self.kw_opts = kw_opts
-    
+
     def any_item(self, predicate: Callable[[MutableItem], Any]) -> bool:
         for item in self.items.values():
             if predicate(item):
                 return True
         return False
-    
+
     def all_yes_or_no(self) -> bool:
-        
+
         for item in self.items.values():
             try:
                 if not item.is_yes_or_no:
                     return False
             except AttributeError:
-                print(colors.brightblack(f'{self.__class__.__qualname__}.all_yes_or_no() AttributeError with item.is_yes_or_no: {item} {type(item)}. Ignoring.'))
+                print(
+                    colors.brightblack(
+                        f"{self.__class__.__qualname__}.all_yes_or_no() AttributeError with item.is_yes_or_no: {item} {type(item)}. Ignoring."
+                    )
+                )
         return True
-        
+
         # nonspecials = set(self.opts)
         # nonspecials.update(set(self.kw_opts.values()))
         # if not nonspecials:
@@ -115,7 +126,7 @@ class Options(ABC):
         #         all_yes_or_no = False
         #         break
         # return all_yes_or_no
-    
+
     # @cachedprop
     # def indexeditems(self) -> dict:
     #     # TODO: create an Items class (maybe also an MutableItem class?)
@@ -130,7 +141,7 @@ class Options(ABC):
     #     self._update_special_opts_into_items(indexeditems)
     #
     #     return indexeditems
-    
+
     # @cachedprop
     # def items(self) -> dict:
     #     # assumes duplicates between opts, special and kw were checked already
@@ -187,7 +198,7 @@ class Options(ABC):
     #     self._update_special_opts_into_items(items)
     #
     #     return items
-    
+
     # def _update_kw_opts_into_items(self, items: dict):
     #     for k, opt in self.kw_opts.items():
     #         if k in items:
@@ -206,7 +217,7 @@ class Options(ABC):
 class NumOptions(Options):
     _itemscls = NumItems
     items: NumItems
-    
+
     # def __init__(self, *opts: str):
     #     self.items = NumItems(opts)
     #     super().__init__(*opts)
@@ -215,7 +226,7 @@ class NumOptions(Options):
 class LexicOptions(Options):
     _itemscls = LexicItems
     items: LexicItems
-    
+
     # def __init__(self, *opts: str):
     #     self.items = LexicItems(opts)
     #     super().__init__(*opts)

@@ -18,7 +18,7 @@ class PythonFilePage(Traversable):
         self.parent = parent
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(python_module={self._python_module!r})'
+        return f"{self.__class__.__name__}(python_module={self._python_module!r})"
 
     def python_module_ast(self) -> ast.Module:
         if self._python_module_ast:

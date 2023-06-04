@@ -28,6 +28,7 @@ def format_args(func):
 
     return log_method
 
+
 def log_in_out(func_or_nothing=None, watch=()):
     """A decorator that logs the entry and exit of a function."""
 
@@ -47,7 +48,7 @@ def log_in_out(func_or_nothing=None, watch=()):
                 prefix = func_name
                 signature = inspect.signature(func)
                 bound_args = signature.bind(*args, **kwargs)
-            pretty_signature = f'{prefix}{str(bound_args)[16:-1]}'
+            pretty_signature = f"{prefix}{str(bound_args)[16:-1]}"
             # self.debug(f"➡️️ [b white]Entered[/b white] {func_name}({comma_sep_args + (', ' if args and kwargs else '') + comma_sep_kwargs})")
             log.debug(f"➡️️ [i]Entered[/i] {pretty_signature}", stacklevel=2)
             ret = func(*args, **kwargs)
@@ -65,39 +66,45 @@ def log_in_out(func_or_nothing=None, watch=()):
 
 class Console(RichConsole):
     _theme = {
-        "debug":   "dim",
-        "warn":    "yellow",
+        "debug": "dim",
+        "warn": "yellow",
         "warning": "yellow",
-        "error":   "red",
-        "fatal":   "bright_red",
+        "error": "red",
+        "fatal": "bright_red",
         "success": "green",
-        "prompt":  "b bright_cyan",
-        "title":   "b bright_white",
-        }
+        "prompt": "b bright_cyan",
+        "title": "b bright_white",
+    }
 
     def __init__(self, **kwargs):
-        theme = kwargs.pop("theme", Theme({**self._theme, **{k.upper(): v for k, v in self._theme.items()}}), )
+        theme = kwargs.pop(
+            "theme",
+            Theme({**self._theme, **{k.upper(): v for k, v in self._theme.items()}}),
+        )
         super().__init__(
-                color_system="truecolor",
-                # force_terminal=True,
-                width=kwargs.pop("width", None if sys.stdin.isatty() else NON_INTERACTIVE_WIDTH),
-                file=kwargs.pop("file", sys.stdout if PYCHARM_HOSTED else sys.stderr),
-                tab_size=kwargs.pop("tab_size", 2),
-                log_time=kwargs.pop("log_time", False),
-                # log_time_format='[%d.%m.%Y][%T]',
-                log_path=kwargs.pop("log_path", True),
-                theme=theme,
-                **kwargs,
-                # safe_box=False,
-                # soft_wrap=True,
-                )
+            color_system="truecolor",
+            # force_terminal=True,
+            width=kwargs.pop("width", None if sys.stdin.isatty() else NON_INTERACTIVE_WIDTH),
+            file=kwargs.pop("file", sys.stdout if PYCHARM_HOSTED else sys.stderr),
+            tab_size=kwargs.pop("tab_size", 2),
+            log_time=kwargs.pop("log_time", False),
+            # log_time_format='[%d.%m.%Y][%T]',
+            log_path=kwargs.pop("log_path", True),
+            theme=theme,
+            **kwargs,
+            # safe_box=False,
+            # soft_wrap=True,
+        )
         self.width -= 2
 
     if DEBUG:
+
         @format_args
         def debug(self, *args, **kwargs):
             return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
+
     else:
+
         def debug(self, *args, **kwargs):
             pass
 
@@ -137,28 +144,31 @@ class MyRichHandler(RichHandler):
         record_pathname = getattr(record, "pathname", None)
         if record_pathname:
             record_pathname = record_pathname.removeprefix(PROJECT_ROOT_PATH)
-            if 'site-packages/' in record_pathname:
-                *venv_path, record_pathname = record_pathname.partition('site-packages/')
+            if "site-packages/" in record_pathname:
+                *venv_path, record_pathname = record_pathname.partition("site-packages/")
             record.pathname = record_pathname
         super().emit(record)
 
 
 console = Console()
 
-rich_handler = MyRichHandler(console=console,
-                             level=logging.DEBUG if DEBUG else logging.INFO,
-                             markup=True,
-                             omit_repeated_times=False,
-                             enable_link_path=False,
-                             rich_tracebacks=True,
-                             tracebacks_show_locals=True,
-                             locals_max_string=max(console.width, NON_INTERACTIVE_WIDTH) - 20,
-                             )
+rich_handler = MyRichHandler(
+    console=console,
+    level=logging.DEBUG if DEBUG else logging.INFO,
+    markup=True,
+    omit_repeated_times=False,
+    enable_link_path=False,
+    rich_tracebacks=True,
+    tracebacks_show_locals=True,
+    locals_max_string=max(console.width, NON_INTERACTIVE_WIDTH) - 20,
+)
 
-logging.basicConfig(level=logging.DEBUG if DEBUG else logging.INFO,
-                    format='%(pathname)s %(funcName)s() %(message)s',
-                    datefmt="[%T]",
-                    force=True,
-                    handlers=[rich_handler])
+logging.basicConfig(
+    level=logging.DEBUG if DEBUG else logging.INFO,
+    format="%(pathname)s %(funcName)s() %(message)s",
+    datefmt="[%T]",
+    force=True,
+    handlers=[rich_handler],
+)
 
 log = logging.getLogger("root")

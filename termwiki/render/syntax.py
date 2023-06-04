@@ -21,7 +21,7 @@ from pygments.lexers import (
     SassLexer,
     TOMLLexer,
     TypeScriptLexer,
-    )
+)
 
 from termwiki.common.types import PageFunction, Style, Language
 from termwiki.consts import LANGS
@@ -31,24 +31,24 @@ from termwiki.ipython_lexer import IPython3Lexer
 
 formatters: dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__)
 lexer_classes: dict[Language, Type[Lexer]] = {
-    'ahk':      AutohotkeyLexer,
-    'bash':     BashLexer,
-    'css':      CssLexer,
-    'docker':   DockerLexer,
-    'html':     HtmlLexer,
-    'ini':      IniLexer,
-    'ipython':  IPython3Lexer,
-    'js':       JavascriptLexer,
-    'json':     JsonLexer,
-    'md':       MarkdownLexer,
-    'markdown': MarkdownLexer,
-    'mysql':    MySqlLexer,
-    'python':   PythonLexer,
-    'rst':      RstLexer,
-    'sass':     SassLexer,
-    'toml':     TOMLLexer,
-    'ts':       TypeScriptLexer,
-    }
+    "ahk": AutohotkeyLexer,
+    "bash": BashLexer,
+    "css": CssLexer,
+    "docker": DockerLexer,
+    "html": HtmlLexer,
+    "ini": IniLexer,
+    "ipython": IPython3Lexer,
+    "js": JavascriptLexer,
+    "json": JsonLexer,
+    "md": MarkdownLexer,
+    "markdown": MarkdownLexer,
+    "mysql": MySqlLexer,
+    "python": PythonLexer,
+    "rst": RstLexer,
+    "sass": SassLexer,
+    "toml": TOMLLexer,
+    "ts": TypeScriptLexer,
+}
 lexers: dict[Language, Lexer] = dict.fromkeys(LANGS)
 console = None
 
@@ -82,20 +82,22 @@ def _get_color_formatter(style: Style) -> TerminalTrueColorFormatter:
 
 def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     global console
-    if lang in ('md', 'markdown'):
+    if lang in ("md", "markdown"):
         from rich.markdown import Markdown
+
         if console is None:
             from rich.console import Console
-            console = Console(width=int(os.getenv('COLUNMS', 160)) // 2)
+
+            console = Console(width=int(os.getenv("COLUNMS", 160)) // 2)
         with console.capture() as capture:
             console.print(Markdown(text, justify="left"))
         return capture.get()
     lexer = _get_lexer(lang)
     if not style:
-        if lang == 'js':
-            style = 'default'
+        if lang == "js":
+            style = "default"
         else:
-            style = 'monokai'
+            style = "monokai"
     color_formatter = _get_color_formatter(style)
     highlighted = pygments_highlight(text, lexer, color_formatter)
     return highlighted
@@ -137,6 +139,7 @@ def syntax(_page_or_style: PageFunction | Style = None, **default_styles):
 
     def decorator(page: PageFunction):
         from termwiki.render import render_page
+
         page.__handled_directives__ = True
 
         return wraps(page)(partial(render_page, page, default_styles))
