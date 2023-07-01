@@ -8,16 +8,9 @@ from termwiki.render import syntax, syntax_highlight
 from termwiki.render.util import get_indent_level, enumerate_lines
 
 
-def render_page(page: Page, default_styles: dict = None, default_style: Style = None, *args) -> str:
-    # try:
-    #     page_content = page(subject)
-    # except TypeError as te:
-    #     if te.args and re.search(r'takes \d+ positional arguments but \d+ was given', te.args[0]):
-    #         page_content = page()
-    #         # import logging
-    #         # logging.warning('syntax() | ignored TypeError not enough pos arguments given')
-    #     else:
-    #         raise
+def render_page(
+    page: Page, default_styles: dict[Style, Language] = None, default_style: Style = None, *args
+) -> str:
     default_styles = default_styles or {}
     text = page.read()
     text or breakpoint()
@@ -136,6 +129,16 @@ def render_page(page: Page, default_styles: dict = None, default_style: Style = 
                 *prompt_symbol, line = line.partition("❯")
                 highlighted = syntax_highlight(
                     line, "bash", style=default_styles.get("bash", default_style)
+                )
+                highlighted_strs.append("".join(prompt_symbol) + highlighted)
+        elif line_stripped.startswith(">>>") or line_stripped.startswith("..."):
+            if "\x1b[" in line:  # hack to detect if line is already highlighted
+                highlighted_strs.append(line)
+            else:
+                prompt = ">>>" if line_stripped.startswith(">>>") else "..."
+                *prompt_symbol, line = line.partition(prompt)
+                highlighted = syntax_highlight(
+                    line, "python", style=default_styles.get("python", default_style)
                 )
                 highlighted_strs.append("".join(prompt_symbol) + highlighted)
         else:  # regular line, no directives (SYNTAX_HIGHLIGHT_START_RE or IMPORT_RE)

@@ -60,6 +60,8 @@ black = "^23.0.0"
 
 [tool.black]
 line-length = 100
+skip-magic-trailing-comma = true
+preview = true
 include = '\.pyi?$'
 extend-exclude = '''
 (
