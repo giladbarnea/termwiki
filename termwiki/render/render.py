@@ -30,13 +30,13 @@ def render_page(
             groupdict = import_match.groupdict()
             import_path = groupdict["import_path"]
             import_path, _, imported_page_name = import_path.rpartition(".")
-            full_import_path = "termwiki.pages." + import_path.removeprefix("termwiki.pages.")
+            full_import_path = "termwiki.private_pages." + import_path.removeprefix("termwiki.private_pages.")
             possible_import_paths = (
-                (full_import_path, None),  # absolute: import termwiki.pages.python.datamodel
+                (full_import_path, None),  # absolute: import termwiki.private_pages.python.datamodel
                 (
                     f".{imported_page_name}",
                     full_import_path,
-                ),  # relative: from termwiki.pages.python import datamodel
+                ),  # relative: from termwiki.private_pages.python import datamodel
             )
             for import_name, import_package in possible_import_paths:
                 imported = import_module(import_name, import_package)
@@ -47,11 +47,13 @@ def render_page(
                 print(f"[WARNING] {groupdict['import_path']} not found")
                 continue
 
-            if hasattr(imported_page, "__handled_directives__"):
-                imported_text = imported_page()
+            should_do_properly = False
+            if should_do_properly:
+                renderable_page = syntax()(imported_page)
+                breakpoint() # This is not working! Not gonna wrap here with DirectoryPage like in main.
+                imported_text = renderable_page()
             else:
-                directives_handling_imported_page = syntax(imported_page)
-                imported_text = directives_handling_imported_page()
+                imported_text = imported_page
             indent_level = get_indent_level(line)
             indented_imported_text = indent(imported_text + "\n", " " * indent_level)
             highlighted_strs.append(indented_imported_text)

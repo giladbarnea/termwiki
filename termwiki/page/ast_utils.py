@@ -115,7 +115,7 @@ def eval_node(node, parent, globals_):
             evaled = eval(unparsed_value, globals_, locals_)
         return evaled
     except Exception as e:
-        print(e)
+        print(repr(e))
         breakpoint()
 
 

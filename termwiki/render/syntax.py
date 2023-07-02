@@ -103,7 +103,7 @@ def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     return highlighted
 
 
-def syntax(_page_or_style: PageFunction | Style = None, **default_styles):
+def syntax(_page_or_style: PageFunction | Style = None, /, **default_styles):
     """Possible forms:
     ::
         @syntax
@@ -140,15 +140,13 @@ def syntax(_page_or_style: PageFunction | Style = None, **default_styles):
     def decorator(page: PageFunction):
         from termwiki.render import render_page
 
-        page.__handled_directives__ = True
-
         return wraps(page)(partial(render_page, page, default_styles))
 
     if _page_or_style is not None:
         if callable(_page_or_style):
             # e.g. naked `@syntax`
             return decorator(_page_or_style)
-        # e.g. `@syntax(python='friendly')`
+        # e.g. `@syntax('friendly')`
         default_style = _page_or_style
         return decorator
 
