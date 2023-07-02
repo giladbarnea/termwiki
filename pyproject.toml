@@ -67,6 +67,8 @@ extend-exclude = '''
 (
   /test/data/
   | /private_pages/
+  | /fuzzyui/
+  | /rapidfuzz/
 )
 '''
 

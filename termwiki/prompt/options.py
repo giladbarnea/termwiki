@@ -38,7 +38,8 @@ class Options(ABC):
 
     def set_flow_opts(self, flowopts: Union[str, Iterable, bool]) -> NoReturn:
         """Sets `self.flowopts` with FlowItem objects.
-        Handles passing different types of flowopts (single string, tuple of strings, or boolean), and returns a FlowItem tuple."""
+        Handles passing different types of flowopts (single string, tuple of strings, or boolean), and returns a FlowItem tuple.
+        """
         # darkprint(f'{self.__class__.__qualname__}.set_flow_opts(flowopts={repr(flowopts)})')
         if flowopts is True:
             flowitems = tuple(map(FlowItem, Flow.__members__.values()))
@@ -50,7 +51,8 @@ class Options(ABC):
             flowitems = tuple(map(FlowItem, flowopts))
             if has_duplicates(flowitems):
                 raise ValueError(
-                    f"{repr(self)}\nset_flow_opts(flowopts) | duplicate flowitems: {repr(flowitems)}"
+                    f"{repr(self)}\nset_flow_opts(flowopts) | duplicate flowitems:"
+                    f" {repr(flowitems)}"
                 )
 
         for flowitem in flowitems:
@@ -69,14 +71,16 @@ class Options(ABC):
             raise ValueError(f"{repr(self)}\nset_kw_options() duplicate kw_opts: {repr(kw_opts)}")
         if "free_input" in kw_opts:
             raise RuntimeError(
-                f"{repr(self)}\nset_kw_options() | 'free_input' found in kw_opts, should have popped it out earlier.\nkw_opts: {repr(kw_opts)}"
+                f"{repr(self)}\nset_kw_options() | 'free_input' found in kw_opts, should have"
+                f" popped it out earlier.\nkw_opts: {repr(kw_opts)}"
             )
         non_flow_kw_opts = dict()
         for kw in kw_opts:
             opt = kw_opts[kw]
             if kw in self.items:
                 raise ValueError(
-                    f"{repr(self)}\nset_kw_options() | '{kw}' in kw_opts but was already in self.items.\nkw_opts: {repr(kw_opts)}"
+                    f"{repr(self)}\nset_kw_options() | '{kw}' in kw_opts but was already in"
+                    f" self.items.\nkw_opts: {repr(kw_opts)}"
                 )
 
             try:
@@ -103,7 +107,6 @@ class Options(ABC):
         return False
 
     def all_yes_or_no(self) -> bool:
-
         for item in self.items.values():
             try:
                 if not item.is_yes_or_no:
@@ -111,7 +114,8 @@ class Options(ABC):
             except AttributeError:
                 print(
                     colors.brightblack(
-                        f"{self.__class__.__qualname__}.all_yes_or_no() AttributeError with item.is_yes_or_no: {item} {type(item)}. Ignoring."
+                        f"{self.__class__.__qualname__}.all_yes_or_no() AttributeError with"
+                        f" item.is_yes_or_no: {item} {type(item)}. Ignoring."
                     )
                 )
         return True

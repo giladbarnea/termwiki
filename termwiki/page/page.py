@@ -85,6 +85,8 @@ class Traversable(Page):
     def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
         ...
 
+    __iter__ = traverse
+
     def _ensure_pages_are_populated(self) -> NoReturn:
         if self.__traverse_exhaused__:
             return
@@ -143,6 +145,8 @@ class Traversable(Page):
             return [], self
         # if isinstance(self, MergedPage) and not self.pages:
         #     breakpoint()
+        from termwiki.page import MergedPage
+
         if isinstance(page_path, str):
             page_path = page_path.split(" ")
         first_page_path, *second_and_on_page_paths = page_path
@@ -150,9 +154,12 @@ class Traversable(Page):
         if not first_page:
             if not recursive:
                 return [], self
-            merged_sub_pages = self.merge_sub_pages()
+            merged_sub_pages: MergedPage = self.merge_sub_pages()
             if merged_sub_pages.pages == self.pages:
                 return [], self
+                # if not recursive:
+                #     return [], self
+                # for sub_page in merged_sub_pages.traverse():
             found_paths, found_page = merged_sub_pages.deep_search(
                 page_path, on_not_found=on_not_found, recursive=True
             )

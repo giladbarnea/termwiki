@@ -57,9 +57,7 @@ def get_local_var_names_inside_joined_str(joined_str: ast.JoinedStr) -> list[str
 
 
 def get_local_variables(
-    joined_str: ast.JoinedStr,
-    parent: Callable[ParamSpec, str],
-    globals_: dict,
+    joined_str: ast.JoinedStr, parent: Callable[ParamSpec, str], globals_: dict
 ) -> dict:
     isinstance(joined_str, ast.JoinedStr) or breakpoint()
     local_var_names_in_fstring = get_local_var_names_inside_joined_str(joined_str)
@@ -138,8 +136,9 @@ def traverse_immutable_when_unparsed(node, parent, target_id):
         globals_ = parent.__builtins__
     else:
         raise AttributeError(
-            f"traverse_immutable_when_unparsed(\n\t{node=},\n\t{parent=},\n\t{target_id=}): "
-            f"parent has neither __globals__ nor is it a ModuleType, not does it have __builtins__.\n\t{type(parent) = }"
+            f"traverse_immutable_when_unparsed(\n\t{node=},\n\t{parent=},\n\t{target_id=}): parent"
+            " has neither __globals__ nor is it a ModuleType, not does it have"
+            f" __builtins__.\n\t{type(parent) = }"
         )
     rendered = eval_node(node.value, parent, globals_)
     yield target_id, VariablePage(rendered, target_id)
@@ -222,6 +221,7 @@ def traverse_module(
                     continue
 
         log.warning(
-            f"traverse_module({module}): {node} doesn't have 'name' nor 'names', and is not an Assign nor an Expr for module.__doc__"
+            f"traverse_module({module}): {node} doesn't have 'name' nor 'names', and is not an"
+            " Assign nor an Expr for module.__doc__"
         )
         breakpoint()

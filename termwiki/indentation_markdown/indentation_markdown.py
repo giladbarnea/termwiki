@@ -34,7 +34,10 @@ class Header(Line):
         return self
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({short_repr(str(self))}, level={self.level}, block={short_repr(self.block)})"
+        return (
+            f"{self.__class__.__name__}({short_repr(str(self))}, level={self.level},"
+            f" block={short_repr(self.block)})"
+        )
 
 
 class Block:
@@ -122,7 +125,7 @@ class IndentationMarkdown:
                 global_indent_size = indent_level
             elif indent_level % global_indent_size != 0:
                 raise SyntaxError(
-                    f"Inconsistent indentation: "
+                    "Inconsistent indentation: "
                     f"global indent size is {global_indent_size}, "
                     f"but line (#{i}) indent size is {indent_level}.\n"
                     f"Line: {line}"

@@ -183,7 +183,8 @@ def strip_trailing_path_wildcards(val):
     if "".join(groups) != val:
         print(
             colors.yellow(
-                f"strip_trailing_path_wildcards({repr(val)}): regex stripped away too much, returning as-is. groups: {', '.join(map(repr, groups))}"
+                f"strip_trailing_path_wildcards({repr(val)}): regex stripped away too much,"
+                f" returning as-is. groups: {', '.join(map(repr, groups))}"
             )
         )
         return val

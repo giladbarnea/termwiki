@@ -170,7 +170,10 @@ def fuzzy(keyword: str, collection: Collection[T], cutoff=2) -> Matches[T]:
         near_matches.append(item, score)
     if not near_matches and not far_matches:
         logging.warning(
-            f"GOT NOTHING! no near_matches, no far_matches. returning empty Matches object. collection: %r",
+            (
+                f"GOT NOTHING! no near_matches, no far_matches. returning empty Matches object."
+                f" collection: %r"
+            ),
             collection,
         )
         return near_matches
@@ -224,7 +227,10 @@ def iter_maybes(
                 new_maybes.append(item)
         if new_maybes and new_maybes != maybes:
             logging.debug(
-                f"regexp isn't None (%r) and searching resulted in different maybes. yielding %d new maybes",
+                (
+                    f"regexp isn't None (%r) and searching resulted in different maybes. yielding"
+                    f" %d new maybes"
+                ),
                 regexp,
                 len(new_maybes),
             )

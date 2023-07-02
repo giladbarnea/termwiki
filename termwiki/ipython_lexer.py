@@ -44,15 +44,8 @@ from pygments.lexers import (
     Python3Lexer,
     TexLexer,
 )
-from pygments.lexer import (
-    bygroups,
-    using,  # Lexer, DelegatingLexer, RegexLexer, do_insertions
-)
-from pygments.token import (
-    Keyword,
-    Operator,
-    Text,  # Generic, Literal, Name, Other, Error,
-)
+from pygments.lexer import bygroups, using  # Lexer, DelegatingLexer, RegexLexer, do_insertions
+from pygments.token import Keyword, Operator, Text  # Generic, Literal, Name, Other, Error,
 
 # from pygments.util import get_bool_opt
 

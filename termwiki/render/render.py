@@ -30,9 +30,14 @@ def render_page(
             groupdict = import_match.groupdict()
             import_path = groupdict["import_path"]
             import_path, _, imported_page_name = import_path.rpartition(".")
-            full_import_path = "termwiki.private_pages." + import_path.removeprefix("termwiki.private_pages.")
+            full_import_path = "termwiki.private_pages." + import_path.removeprefix(
+                "termwiki.private_pages."
+            )
             possible_import_paths = (
-                (full_import_path, None),  # absolute: import termwiki.private_pages.python.datamodel
+                (
+                    full_import_path,
+                    None,
+                ),  # absolute: import termwiki.private_pages.python.datamodel
                 (
                     f".{imported_page_name}",
                     full_import_path,
@@ -50,7 +55,7 @@ def render_page(
             should_do_properly = False
             if should_do_properly:
                 renderable_page = syntax()(imported_page)
-                breakpoint() # This is not working! Not gonna wrap here with DirectoryPage like in main.
+                breakpoint()  # This is not working! Not gonna wrap here with DirectoryPage like in main.
                 imported_text = renderable_page()
             else:
                 imported_text = imported_page

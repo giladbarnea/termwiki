@@ -51,8 +51,8 @@ class MergedPage(Traversable):
         return f"{self.__class__.__name__}(pages={pages_repr})"
 
     def name(self) -> str:
-        safe_page_name = (
-            lambda page: page.name() if hasattr(page, "name") else page.__class__.__name__
+        safe_page_name = lambda page: (
+            page.name() if hasattr(page, "name") else page.__class__.__name__
         )
         prefix = self.__class__.__name__ + "("
         joiner_str = "\n\t\t" if os.environ.get("PYCHARM_HOSTED") else ", "
@@ -63,13 +63,14 @@ class MergedPage(Traversable):
         sub_pages: dict[str, Page] = {}
         for name, page in self.pages.items():
             if isinstance(page, MergedPage):
-                print("self:\n", self)
-                print("page:\n", page)
                 raise RuntimeError(
                     f"MergedPage.merge_sub_pages, "
                     f"one of the sub-pages is a MergedPage! "
-                    f"this should not happen (I think). "
-                    f"printed self and page above"
+                    f"this should not happen (I think).\n"
+                    f"─"
+                    * 80
+                    + f"\npage: {page!r}.\n─" * 80
+                    + f"\nself: {self!r}.\n"
                 )
             if hasattr(page, "pages"):
                 sub_pages.update(page.pages)
@@ -85,6 +86,10 @@ class MergedPage(Traversable):
         for name, page in self.pages.items():
             if hasattr(page, "traverse"):
                 yield from page.traverse()
+        raise NotImplementedError(
+            "MergedPage.traverse currently recursively yields from (sub)page.traverse(), "
+            "but not sure if should also 'yield name, page' for the MergedPage itself."
+        )
 
     def read(self, *args, **kwargs) -> str:
         page_texts = []

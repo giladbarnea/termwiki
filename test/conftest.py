@@ -28,14 +28,23 @@ from termwiki.log import NON_INTERACTIVE_WIDTH
 #             item.add_marker(skip_slow)
 
 
-def pytest_report_teststatus(report: CollectReport | TestReport, config: Config) -> tuple[str, str, str | Mapping[str, bool]]:
-    if report.when == 'call':
+def pytest_report_teststatus(
+    report: CollectReport | TestReport, config: Config
+) -> tuple[str, str, str | Mapping[str, bool]]:
+    if report.when == "call":
         if report.failed:
-            return report.outcome, 'x', ''
+            return report.outcome, "x", ""
         if report.passed:
-            return report.outcome, '√', ''
+            return report.outcome, "√", ""
         breakpoint()
-        return report.outcome, '', f'{report.outcome.title()} {report.head_line} at {report.location[0]}:{report.location[1]}'
+        return (
+            report.outcome,
+            "",
+            (
+                f"{report.outcome.title()} {report.head_line} at"
+                f" {report.location[0]}:{report.location[1]}"
+            ),
+        )
     # breakpoint()
     # if report.skipped:
     #     return report.outcome, '🟡', 'Skipped'
@@ -43,7 +52,6 @@ def pytest_report_teststatus(report: CollectReport | TestReport, config: Config)
     # def pytest_runtest_logreport(report: TestReport) -> None:
     #     if report.failed and hasattr(report.longrepr, 'getrepr'):
     #         report.longreprtext = report.longrepr.getrepr(truncate_locals=False)
-
 
     # def pytest_assertrepr_compare(config: Config, op: str, left, right) -> Optional[list[str]]:
     #     return None
@@ -57,16 +65,18 @@ def pytest_exception_interact(node, call, report) -> None:
     from rich.traceback import Traceback
     from termwiki.log import console
 
-    traceback = Traceback.from_exception(call.excinfo.type,
-                                         call.excinfo.value,
-                                         call.excinfo.tb,
-                                         width=console.width,
-                                         show_locals=True,
-                                         locals_max_string=max(console.width, NON_INTERACTIVE_WIDTH) - 20,
-                                         suppress=(_pytest, importlib, pluggy), )
-
+    traceback = Traceback.from_exception(
+        call.excinfo.type,
+        call.excinfo.value,
+        call.excinfo.tb,
+        width=console.width,
+        show_locals=True,
+        locals_max_string=max(console.width, NON_INTERACTIVE_WIDTH) - 20,
+        suppress=(_pytest, importlib, pluggy),
+    )
 
     console.print(traceback)
+
 
 # def pytest_enter_pdb(config: Config, pdb: pdb.Pdb) -> None:
 #     print(f'\n{pdb = !r}, {type(pdb) = !r}')

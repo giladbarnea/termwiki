@@ -78,8 +78,7 @@ class Console(RichConsole):
 
     def __init__(self, **kwargs):
         theme = kwargs.pop(
-            "theme",
-            Theme({**self._theme, **{k.upper(): v for k, v in self._theme.items()}}),
+            "theme", Theme({**self._theme, **{k.upper(): v for k, v in self._theme.items()}})
         )
         super().__init__(
             color_system="truecolor",

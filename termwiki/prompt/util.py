@@ -26,7 +26,6 @@ def return_none_if_errors(*exc):
     def wrap(fn):
         @functools.wraps(fn)
         def decorator(*fnargs, **fnkwargs):
-
             try:
                 return fn(*fnargs, **fnkwargs)
             except exc:

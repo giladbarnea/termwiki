@@ -27,9 +27,13 @@ def check_output(*args, **kwargs) -> tuple[True, str] | tuple[False, subprocess.
 def fuzzy_search(iterable: Iterable[str], search_term: str) -> str | None:
     # --exit-0 --select-1 --inline-info
     # --no-select-1 --no-exit-0
-    fzf_args = (
-        f'--cycle --reverse --header-first --header="{search_term} not found; did you mean..."'
-    )
+    if sys.stdin.isatty():
+        fzf_args = (
+            "--cycle --reverse --keep-right --scroll-off=1 --header-first"
+            f' --header="{search_term} not found; did you mean..."'
+        )
+    else:
+        fzf_args = "--filter --select-1"
     line_separated_items = "\n".join(iterable)
     command = f'echo "{line_separated_items}" | fzf {fzf_args} -q {search_term}'
     succeeded, output = check_output(command, shell=True)
@@ -52,9 +56,6 @@ def get_page(page_path: Sequence[str]) -> tuple[list[str], Page]:
         raise PageNotFound(error)
 
     return found_path, page
-    rendered_text = render_page(page)
-    print(rendered_text)
-    return True
 
 
 def print_subpages(page):

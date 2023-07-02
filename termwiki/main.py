@@ -117,7 +117,6 @@ def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageFun
     Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
     all_sub_pages: dict[str, set[PageFunction]] = defaultdict(set)
     for name, page in PAGES.items():
-
         # sub_page_var_names = [n for n in draw_out_decorated_fn(main_page_fn).__code__.co_varnames if n.isupper()]
         # draw_out_decorated_fn is necessary because PAGES has to store the fns in the wrapped form (to call them later)
         setattr(page, "sub_pages", set())
@@ -269,7 +268,8 @@ def get_sub_page_content(main_page: str, sub_page: str) -> str:
 
         if sub_page in SUB_PAGES:
             print(
-                f"[info] {sub_page!r} isn't a sub page of {main_page!r}, but it belongs to these pages:"
+                f"[info] {sub_page!r} isn't a sub page of {main_page!r}, but it belongs to these"
+                " pages:"
             )
             return print_page(sub_page)
 
@@ -369,7 +369,8 @@ def get_page(
     print_unused_sub_pages: bool = False,
 ):
     logging.debug(
-        f"termwiki.get_page({main_page = !r}, {sub_page = !r}, {list_pages_or_sub_pages = }, {print_unused_sub_pages = })"
+        f"termwiki.get_page({main_page = !r}, {sub_page = !r}, {list_pages_or_sub_pages = },"
+        f" {print_unused_sub_pages = })"
     )
     if print_unused_sub_pages:  # tw --doctor
         populate_sub_pages(print_unused_sub_pages=True)
