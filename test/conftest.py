@@ -49,12 +49,12 @@ def pytest_report_teststatus(
     # if report.skipped:
     #     return report.outcome, '🟡', 'Skipped'
 
-    # def pytest_runtest_logreport(report: TestReport) -> None:
-    #     if report.failed and hasattr(report.longrepr, 'getrepr'):
-    #         report.longreprtext = report.longrepr.getrepr(truncate_locals=False)
+# def pytest_runtest_logreport(report: TestReport) -> None:
+#     if report.failed and hasattr(report.longrepr, 'getrepr'):
+#         report.longreprtext = report.longrepr.getrepr(truncate_locals=False)
 
-    # def pytest_assertrepr_compare(config: Config, op: str, left, right) -> Optional[list[str]]:
-    #     return None
+# def pytest_assertrepr_compare(config: Config, op: str, left, right) -> Optional[list[str]]:
+#     return None
 
 
 def pytest_exception_interact(node, call, report) -> None:
