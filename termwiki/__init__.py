@@ -1,18 +1,17 @@
 # ** termwiki/__init__.py
 
 import bdb
-
+import os
 import click
 from rich.traceback import install as rich_traceback_install
 
+from termwiki import consts
 from termwiki.log import console
 
 
 rich_traceback_install(
     console=console, width=console.width, show_locals=True, extra_lines=5, suppress=(click, bdb)
 )
-
-import os
 
 
 def improve_debug_convenience():
@@ -36,6 +35,7 @@ def improve_debug_convenience():
         pass
 
 
-if os.getenv("PYCHARM_HOSTED", "0") != "1":
+if not consts.PYCHARM_HOSTED:
     improve_debug_convenience()
+
 from termwiki.page import page_tree

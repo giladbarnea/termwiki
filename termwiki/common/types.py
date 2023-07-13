@@ -1,34 +1,10 @@
 from typing import Protocol, Literal
 
-Style = Literal[
-    "algol_nu",
-    "default",
-    "dracula",
-    "friendly",
-    "fruity",
-    "inkpot",
-    "monokai",
-    "native",
-    "solarized-dark",
-]
-Language = Literal[
-    "ahk",
-    "bash",
-    "css",
-    "docker",
-    "html",
-    "ini",
-    "ipython",
-    "js",
-    "json",
-    "md",
-    "mysql",
-    "python",
-    "rst",
-    "sass",
-    "toml",
-    "ts",
-]
+from termwiki import consts
+
+Style = Literal[*consts.STYLES]
+
+Language = Literal[*consts.LANGUAGES]
 
 
 class PageFunction(Protocol):

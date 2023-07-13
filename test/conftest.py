@@ -49,6 +49,7 @@ def pytest_report_teststatus(
     # if report.skipped:
     #     return report.outcome, '🟡', 'Skipped'
 
+
 # def pytest_runtest_logreport(report: TestReport) -> None:
 #     if report.failed and hasattr(report.longrepr, 'getrepr'):
 #         report.longreprtext = report.longrepr.getrepr(truncate_locals=False)

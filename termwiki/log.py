@@ -8,14 +8,7 @@ from rich.console import Console as RichConsole
 from rich.logging import RichHandler
 from rich.theme import Theme
 
-from termwiki.consts import PROJECT_ROOT_PATH
-
-DEBUG = os.getenv("TERMWIKI_DEBUG", "true").lower() in ("1", "true")
-PYCHARM_HOSTED = os.getenv("PYCHARM_HOSTED")
-NON_INTERACTIVE_WIDTH = 160
-
-
-# PROJECT_ROOT_PATH = str(Path(__file__).parent) + '/'
+from termwiki import consts
 
 
 def format_args(func):
@@ -83,8 +76,8 @@ class Console(RichConsole):
         super().__init__(
             color_system="truecolor",
             # force_terminal=True,
-            width=kwargs.pop("width", None if sys.stdin.isatty() else NON_INTERACTIVE_WIDTH),
-            file=kwargs.pop("file", sys.stdout if PYCHARM_HOSTED else sys.stderr),
+            width=kwargs.pop("width", None if sys.stdin.isatty() else consts.NON_INTERACTIVE_WIDTH),
+            file=kwargs.pop("file", sys.stdout if consts.PYCHARM_HOSTED else sys.stderr),
             tab_size=kwargs.pop("tab_size", 2),
             log_time=kwargs.pop("log_time", False),
             # log_time_format='[%d.%m.%Y][%T]',
@@ -96,7 +89,7 @@ class Console(RichConsole):
         )
         self.width -= 2
 
-    if DEBUG:
+    if consts.DEBUG:
 
         @format_args
         def debug(self, *args, **kwargs):
@@ -142,7 +135,7 @@ class MyRichHandler(RichHandler):
     def emit(self, record: logging.LogRecord) -> None:
         record_pathname = getattr(record, "pathname", None)
         if record_pathname:
-            record_pathname = record_pathname.removeprefix(PROJECT_ROOT_PATH)
+            record_pathname = record_pathname.removeprefix(consts.PROJECT_ROOT_PATH)
             if "site-packages/" in record_pathname:
                 *venv_path, record_pathname = record_pathname.partition("site-packages/")
             record.pathname = record_pathname
@@ -153,17 +146,17 @@ console = Console()
 
 rich_handler = MyRichHandler(
     console=console,
-    level=logging.DEBUG if DEBUG else logging.INFO,
+    level=logging.DEBUG if consts.DEBUG else logging.INFO,
     markup=True,
     omit_repeated_times=False,
     enable_link_path=False,
     rich_tracebacks=True,
     tracebacks_show_locals=True,
-    locals_max_string=max(console.width, NON_INTERACTIVE_WIDTH) - 20,
+    locals_max_string=max(console.width, consts.NON_INTERACTIVE_WIDTH) - 20,
 )
 
 logging.basicConfig(
-    level=logging.DEBUG if DEBUG else logging.INFO,
+    level=logging.DEBUG if consts.DEBUG else logging.INFO,
     format="%(pathname)s %(funcName)s() %(message)s",
     datefmt="[%T]",
     force=True,

@@ -1,19 +1,56 @@
+import os
 import re
 from pathlib import Path
 
 import termwiki
-from termwiki.common.types import Language, Style
 
 PROJECT_ROOT_PATH = str(Path(termwiki.__path__[0]).parent) + "/"
+DEBUG: bool = os.getenv("TERMWIKI_DEBUG", "true").lower() in ("1", "true")
+PYCHARM_HOSTED = os.getenv("PYCHARM_HOSTED", "0") == "1"
+NON_INTERACTIVE_WIDTH = 160
 
 literal_linebreak = r"\n"
 linebreak = "\n"
 literal_backslash = "\\"
 tab = "\t"
 # color = '\x1b['
-LANGS = Language.__args__
-pipe_sep_langs = "|".join(LANGS)
-pipe_sep_styles = "|".join(Style.__args__)
+
+LANGUAGES: list[str] = [
+    "ahk",
+    "bash",
+    "css",
+    "docker",
+    "html",
+    "ini",
+    "ipython",
+    "js",
+    "json",
+    "md",
+    "markdown",
+    "mysql",
+    "pql",
+    "python",
+    "rst",
+    "sass",
+    "sql",
+    "toml",
+    "ts",
+]
+
+STYLES: list[str] = [
+    "algol_nu",
+    "default",
+    "dracula",
+    "friendly",
+    "fruity",
+    "inkpot",
+    "monokai",
+    "native",
+    "solarized-dark",
+]
+
+pipe_sep_langs = "|".join(LANGUAGES)
+pipe_sep_styles = "|".join(STYLES)
 
 SYNTAX_HIGHLIGHT_START_RE = re.compile(  # works for 1-5
     f"%(?P<lang>{pipe_sep_langs}) ?"

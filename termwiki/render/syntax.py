@@ -16,20 +16,22 @@ from pygments.lexers import (
     JsonLexer,
     MarkdownLexer,
     MySqlLexer,
+    PostgresLexer,
     PythonLexer,
     RstLexer,
     SassLexer,
+    SqlLexer,
     TOMLLexer,
     TypeScriptLexer,
 )
 
 from termwiki.common.types import PageFunction, Style, Language
-from termwiki.consts import LANGS
+from termwiki import consts
 from termwiki.ipython_lexer import IPython3Lexer
 
 # https://help.farbox.com/pygments.html     <- previews of all styles
 
-formatters: dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(Style.__args__)
+formatters: dict[Style, TerminalTrueColorFormatter] = dict.fromkeys(consts.STYLES)
 lexer_classes: dict[Language, Type[Lexer]] = {
     "ahk": AutohotkeyLexer,
     "bash": BashLexer,
@@ -43,13 +45,19 @@ lexer_classes: dict[Language, Type[Lexer]] = {
     "md": MarkdownLexer,
     "markdown": MarkdownLexer,
     "mysql": MySqlLexer,
+    "pql": PostgresLexer,
     "python": PythonLexer,
     "rst": RstLexer,
     "sass": SassLexer,
+    "sql": SqlLexer,
     "toml": TOMLLexer,
     "ts": TypeScriptLexer,
 }
-lexers: dict[Language, Lexer] = dict.fromkeys(LANGS)
+lexers: dict[Language, Lexer] = dict.fromkeys(consts.LANGUAGES)
+assert set(lexers) == set(lexer_classes), (
+    "lexers and lexer_classes must have same keys. missing in either or both:"
+    f" {set(lexers) ^ set(lexer_classes)}"
+)
 console = None
 
 
@@ -92,14 +100,14 @@ def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
         with console.capture() as capture:
             console.print(Markdown(text, justify="left"))
         return capture.get()
-    lexer = _get_lexer(lang)
+    lexer: Lexer = _get_lexer(lang)
     if not style:
         if lang == "js":
             style = "default"
         else:
             style = "monokai"
-    color_formatter = _get_color_formatter(style)
-    highlighted = pygments_highlight(text, lexer, color_formatter)
+    color_formatter: TerminalTrueColorFormatter = _get_color_formatter(style)
+    highlighted: str = pygments_highlight(text, lexer, color_formatter)
     return highlighted
 
 
