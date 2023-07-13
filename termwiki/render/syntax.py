@@ -1,4 +1,3 @@
-import os
 from functools import wraps, partial
 from typing import Type
 
@@ -58,7 +57,6 @@ assert set(lexers) == set(lexer_classes), (
     "lexers and lexer_classes must have same keys. missing in either or both:"
     f" {set(lexers) ^ set(lexer_classes)}"
 )
-console = None
 
 
 # *** Helper Functions
@@ -89,14 +87,10 @@ def _get_color_formatter(style: Style) -> TerminalTrueColorFormatter:
 
 
 def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
-    global console
     if lang in ("md", "markdown"):
+        from termwiki.log import console
         from rich.markdown import Markdown
 
-        if console is None:
-            from rich.console import Console
-
-            console = Console(width=int(os.getenv("COLUNMS", 160)) // 2)
         with console.capture() as capture:
             console.print(Markdown(text, justify="left"))
         return capture.get()
