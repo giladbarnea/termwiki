@@ -7,22 +7,7 @@ from termwiki.page import Page
 from termwiki.render import syntax, syntax_highlight
 from termwiki.render.util import get_indent_level, enumerate_lines
 
-
-def render_page(
-    page: Page, default_styles: dict[Style, Language] = None, default_style: Style = None, *args
-) -> str:
-    default_styles = default_styles or {}
-    text = page.read()
-    text or breakpoint()
-    lines = text.splitlines()
-    highlighted_strs = []
-    idx = 0
-    while True:
-        if idx >= len(lines):
-            break
-        line = lines[idx]
-        line_stripped = line.strip()
-
+"""  # %import support
         if import_match := IMPORT_RE.fullmatch(line_stripped):
             # ** `%import ...`:
             from importlib import import_module
@@ -62,8 +47,24 @@ def render_page(
             indent_level = get_indent_level(line)
             indented_imported_text = indent(imported_text + "\n", " " * indent_level)
             highlighted_strs.append(indented_imported_text)
+"""
+def render_page(
+    page: Page, default_styles: dict[Style, Language] = None, default_style: Style = None, *args
+) -> str:
+    default_styles = default_styles or {}
+    text = page.read()
+    text or breakpoint()
+    lines = text.splitlines()
+    highlighted_strs = []
+    idx = 0
+    while True:
+        if idx >= len(lines):
+            break
+        line: str = lines[idx]
+        line_stripped: str = line.strip()
+        prefix: str = line_stripped[0] if line_stripped else ""
 
-        elif syntax_highlight_start_match := SYNTAX_HIGHLIGHT_START_RE.fullmatch(line_stripped):
+        if syntax_highlight_start_match := SYNTAX_HIGHLIGHT_START_RE.fullmatch(line_stripped):
             # ** `%mysql ...`:
             groupdict: dict = syntax_highlight_start_match.groupdict()
             lang: Language = groupdict["lang"]
@@ -129,21 +130,20 @@ def render_page(
                         break
                     highlighting_idx += 1
 
-        elif line_stripped.startswith("❯"):
+        elif prefix in ("❯", "$"):
             if "\x1b[" in line:  # hack to detect if line is already highlighted
                 highlighted_strs.append(line)
             else:
-                *prompt_symbol, line = line.partition("❯")
+                *prompt_symbol, line = line.partition(prefix)
                 highlighted = syntax_highlight(
                     line, "bash", style=default_styles.get("bash", default_style)
                 )
                 highlighted_strs.append("".join(prompt_symbol) + highlighted)
-        elif line_stripped.startswith(">>>") or line_stripped.startswith("..."):
+        elif prefix in (">>>", "..."):
             if "\x1b[" in line:  # hack to detect if line is already highlighted
                 highlighted_strs.append(line)
             else:
-                prompt = ">>>" if line_stripped.startswith(">>>") else "..."
-                *prompt_symbol, line = line.partition(prompt)
+                *prompt_symbol, line = line.partition(prefix)
                 highlighted = syntax_highlight(
                     line, "python", style=default_styles.get("python", default_style)
                 )
@@ -153,11 +153,11 @@ def render_page(
 
         idx += 1
 
-    stripped = "".join(highlighted_strs).strip()
-    if stripped in text and not "\x1b[" in text and re.match("#+ ", highlighted_strs[0]):
+    stripped_highlighted_full_string = "".join(highlighted_strs).strip()
+    if stripped_highlighted_full_string in text and not "\x1b[" in text and re.match("#+ ", highlighted_strs[0]):
         # Text never included colors nor directives, and it looks like markdown
-        dedented = "\n".join(map(str.strip, stripped.splitlines()))
+        dedented = "\n".join(map(str.strip, stripped_highlighted_full_string.splitlines()))
         return syntax_highlight(
             dedented, "markdown", style=default_styles.get("markdown", default_style)
         )
-    return stripped
+    return stripped_highlighted_full_string
