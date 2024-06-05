@@ -35,6 +35,7 @@ LANGUAGES: list[str] = [
     "sql",
     "toml",
     "ts",
+    "yaml"
 ]
 
 STYLES: list[str] = [

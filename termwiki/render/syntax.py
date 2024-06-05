@@ -22,6 +22,8 @@ from pygments.lexers import (
     SqlLexer,
     TOMLLexer,
     TypeScriptLexer,
+    YamlLexer
+
 )
 
 from termwiki.common.types import PageFunction, Style, Language
@@ -51,6 +53,7 @@ lexer_classes: dict[Language, Type[Lexer]] = {
     "sql": SqlLexer,
     "toml": TOMLLexer,
     "ts": TypeScriptLexer,
+    "yaml": YamlLexer
 }
 lexers: dict[Language, Lexer] = dict.fromkeys(consts.LANGUAGES)
 assert set(lexers) == set(lexer_classes), (
