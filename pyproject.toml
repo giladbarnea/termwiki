@@ -1,68 +1,59 @@
-[tool.poetry]
-name = "termwiki"
-version = "0.2.0"
+[project]
+authors = [
+  {name = "Gilad Barnea", email = "giladbrn@gmail.com"},
+]
+dependencies = [
+  "click>=8.0.3",
+  "Pygments>=2.10.0",
+  "more-termcolor>=1.1.3",
+  "asttokens>=2.0.8",
+  "rich>=13",
+]
 description = "Personal knowledge management tool for the terminal, with a focus on zero-thought, zero-wait when getting to the bit you're interested in."
-authors = ["Gilad Barnea <giladbrn@gmail.com>"]
+name = "termwiki"
 readme = "README.md"
+requires-python = ">=3.11"
+version = "0.2.0"
 
-[tool.poetry.dependencies]
-python = "^3.11"
-click = "^8.0.3"
-fuzzysearch = { version = "^0.7.3", optional = true }
-Pygments = "^2.10.0"
-rich = "^13"
-more-termcolor = "^1.1.3"
-# prompt-toolkit = "latest"
-# pytest = "^7.1.2"
-#lark = { path = "../lark", develop=true }
-# markdown-it-py = { path ="../markdown-it-py", develop=true }
-types-Pygments = "^2.13.0"
-pydantic = "^1.10.2"
-asttokens = "^2.0.8"
-
-[tool.poetry.scripts]
+[project.scripts]
 tw = 'termwiki.cli:main'
 
-[tool.poetry.build]
-generate-setup-file = true
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.1.2",
+  "ipython>=8.4.0",
+  "ipython-autoimport>=0.4",
+  "jupyterlab>=4.0.0",
+  "pytest-cov>=4.0.0",
+  "black>=23.0.0",
+  "types-Pygments>=2.13.0",
+]
 
-[tool.poetry.dev-dependencies]
-pytest = "^7.1.2"
-ipython = "^8.4.0"
-ipython-autoimport = "^0.4"
-jupyterlab = "^4.0.0"
-pdbpp = { path = "../pdbpp/", develop = true }
-pytest-cov = "^4.0.0"
-black = "^23.0.0"
-# appmap = "^1.5.1"
+# AST package comparisons:
+# astload: tree from ast.dump. what about ast.unparse?
+# asteria: 'parentize' for .left .parent .child etc
+# astroid:
+#   - pylint backend
+#   - repr_tree() lots of meta data
+#   - .left
+#   - extract_node("a=1; b=2; c=a+b; c") -> node
+#   - next(name_node.infer()).value == 3
+# asttokens:
+#   - get_text()
+#   - .last_token, .first_token
+# astor:
+#   - round-trip ast <-> code
+#   - more readable dump
+#   - modify nodes
 
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
 
-#astload = "^0" # tree from ast.dump. what about ast.unparse?
-
-#asteria = "^0" # 'parentize' for .left .parent .child etc
-
-#astroid = "latest"
-# - pylint backend
-# - repr_tree() lots of meta data
-# - .left
-# - extract_node("a=1; b=2; c=a+b; c") -> node
-# - next(name_node.infer()).value == 3
-
-#asttokens = "latest"
-# - get_text()
-# - .last_token, .first_token
-
-#astor = "latest"
-# - round-trip ast <-> code
-# - more readable dump
-# - modify nodes
-
+[tool.uv]
+package = true
 
 [tool.black]
-line-length = 100
-skip-magic-trailing-comma = true
-preview = true
-include = '\.pyi?$'
 extend-exclude = '''
 (
   /test/data/
@@ -71,8 +62,7 @@ extend-exclude = '''
   | /rapidfuzz/
 )
 '''
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+include = '\.pyi?$'
+line-length = 100
+preview = true
+skip-magic-trailing-comma = true

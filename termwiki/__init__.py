@@ -10,7 +10,11 @@ from termwiki.log import console
 
 
 rich_traceback_install(
-    console=console, width=console.width, show_locals=True, extra_lines=5, suppress=(click, bdb)
+    console=console,
+    width=console.width,
+    show_locals=True,
+    extra_lines=5,
+    suppress=(click, bdb),
 )
 
 

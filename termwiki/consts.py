@@ -35,7 +35,7 @@ LANGUAGES: list[str] = [
     "sql",
     "toml",
     "ts",
-    "yaml"
+    "yaml",
 ]
 
 STYLES: list[str] = [
@@ -54,8 +54,8 @@ pipe_sep_langs = "|".join(LANGUAGES)
 pipe_sep_styles = "|".join(STYLES)
 
 SYNTAX_HIGHLIGHT_START_RE = re.compile(  # works for 1-5
-    f"%(?P<lang>{pipe_sep_langs}) ?"
-    f"((?P<count>\d) *|(?P<line_numbers>--line-numbers) *|(?P<style>{pipe_sep_styles}) *)*"
+    rf"%(?P<lang>{pipe_sep_langs}) ?"
+    r"((?P<count>\d) *|(?P<line_numbers>--line-numbers) *|(?P<style>{pipe_sep_styles}) *)*"
 )
 # print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python 2 --line-numbers'))  # 1
 # print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python --line-numbers 2'))  # 2
@@ -65,7 +65,7 @@ SYNTAX_HIGHLIGHT_START_RE = re.compile(  # works for 1-5
 
 SYNTAX_HIGHLIGHT_END_RE = re.compile(f"/%({pipe_sep_langs})")
 
-IMPORT_RE = re.compile("%import (?P<import_path>[\w.]+)")
+IMPORT_RE = re.compile(r"%import (?P<import_path>[\w.]+)")
 
 SUB_PAGE_RE = re.compile(r'_[A-Z\d_]*\s*=\s*(rf|fr|f)["\']{3}')
 WHITESPACE_RE = re.compile(r"\s*")
