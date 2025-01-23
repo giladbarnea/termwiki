@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from collections import deque
+
 from termwiki.render.util import get_indent_level
 from termwiki.util import short_repr
 
@@ -91,7 +93,8 @@ class Block:
 
 
 class IndentationMarkdown:
-    """Parses text into an indentation-based tree of recursive Block objects.
+    """
+    Parses text into an indentation-based tree of recursive Block objects.
 
     A headline is a line that has a lower indentation than its following line,
 

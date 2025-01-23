@@ -1,15 +1,11 @@
 from abc import ABC
-from typing import Union, NoReturn, Callable, Any, Iterable
+from typing import Any, Callable, Iterable, NoReturn, Union
 
 from more_termcolor import colors
 
-from .item import MutableItem, Items, Flow
-from .item import NumItems, LexicItems, KeywordItems
-from .util import has_duplicates
-
 # from .util.misc import darkprint
-from .item import FlowItem
-from termwiki.exceptions import DevError
+from .item import Flow, FlowItem, Items, KeywordItems, LexicItems, MutableItem, NumItems
+from .util import has_duplicates
 
 
 # @prettyrepr
@@ -37,7 +33,8 @@ class Options(ABC):
     #     return f'{self.prepr()}(items = {repr(self.items)})'
 
     def set_flow_opts(self, flowopts: Union[str, Iterable, bool]) -> NoReturn:
-        """Sets `self.flowopts` with FlowItem objects.
+        """
+        Sets `self.flowopts` with FlowItem objects.
         Handles passing different types of flowopts (single string, tuple of strings, or boolean), and returns a FlowItem tuple.
         """
         # darkprint(f'{self.__class__.__qualname__}.set_flow_opts(flowopts={repr(flowopts)})')

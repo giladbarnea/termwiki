@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "private_pages"
+		}
+	],
+	"settings": {
+		"ruff.configuration": "/Users/giladbarnea/dev/termwiki/pyproject.toml"
+	}
+}

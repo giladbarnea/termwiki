@@ -118,7 +118,8 @@ def eval_node(node, parent, globals_):
 
 
 def traverse_immutable_when_unparsed(node, parent, target_id):
-    """JoinedStr, Constant, Name, FormattedValue, or sometimes even a simple Expr,
+    """
+    JoinedStr, Constant, Name, FormattedValue, or sometimes even a simple Expr,
     when ast.unparse(node) returns a string that can be evaluated and used as-is."""
     from . import VariablePage
 

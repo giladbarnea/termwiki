@@ -5,7 +5,7 @@ from types import ModuleType
 from . import ast_utils
 from .file_page import FilePage
 from .markdown_file_page import MarkdownFilePage
-from .page import Traversable, Page
+from .page import Page, Traversable
 from .python_file_page import PythonFilePage
 
 
@@ -45,7 +45,8 @@ class DirectoryPage(Traversable):
     name = stem
 
     def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
-        """Traverse the directory and yield (name, page) pairs.
+        """
+        Traverse the directory and yield (name, page) pairs.
         Pages with the same name are both yielded (e.g. a sub-directory
         and a file with the same name)."""
         self.__traverse_exhaused__ and breakpoint()

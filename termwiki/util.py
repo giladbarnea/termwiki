@@ -1,6 +1,6 @@
 import importlib
 import re
-from typing import Sized, Generic, Callable, Type, TypeVar
+from typing import Callable, Generic, Sized, Type, TypeVar
 
 from termwiki.consts import COLOR_RE
 
@@ -40,15 +40,14 @@ def decolor(text):
 
 
 def clean_str(s: str) -> str:
-    """Removes colors and all non-alphanumeric characters from a string,
+    """
+    Removes colors and all non-alphanumeric characters from a string,
     except leading and trailing underscores.
     Strips and returns."""
     decolored = decolor(s).strip()
     cleaned = []
     for i, char in enumerate(decolored):
-        if char.isalnum():
-            cleaned.append(char)
-        elif i > 0 and cleaned and char == "_":
+        if char.isalnum() or i > 0 and cleaned and char == "_":
             cleaned.append(char)
 
     # cleansed = ''.join(filter(str.isalpha, decolored)).strip()
@@ -57,7 +56,8 @@ def clean_str(s: str) -> str:
 
 
 def lazy_import(importer_name: str, to_import):
-    """Return the importing module and a callable for lazy importing.
+    """
+    Return the importing module and a callable for lazy importing.
 
     The module named by importer_name represents the module performing the
     import to help facilitate resolving relative imports.

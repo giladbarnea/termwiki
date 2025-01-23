@@ -99,7 +99,8 @@ def is_only_glob(val: str) -> bool:
 
 
 def has_regex(val: str):  # doesnt detect single dot
-    r"""True if any char is 'magic', from simple glob to advanced regex.
+    r"""
+    True if any char is 'magic', from simple glob to advanced regex.
     Has to be a compilable pattern. This means that some glob patterns aren't considered regex, like 'src/**/*'.
     >>> all([has_regex(val) for val in ['src/.*', '[a-z123]', '[!x-z789]', '[^\w]{1,3}$', '(?<=foo)bar']])
     True
@@ -174,7 +175,8 @@ def make_word_separators_optional(val):
 
 
 def strip_trailing_path_wildcards(val):
-    """Strips any [/.*\\] from the end. Doesn't strip from the beginning.
+    """
+    Strips any [/.*\\] from the end. Doesn't strip from the beginning.
     Use with dirs.
     Doesn't handle file extensions well (i.e. 'py_venv.xml' loses suffix)"""
 
@@ -192,7 +194,8 @@ def strip_trailing_path_wildcards(val):
 
 
 def strip_leading_path_wildcards(val):
-    """Strips any [/.*\\] from the beginning. Doesn't strip from the end.
+    """
+    Strips any [/.*\\] from the beginning. Doesn't strip from the end.
     Use with dirs or files.
     Handles file extensions well (i.e. 'py_venv.xml' keeps suffix)"""
     match = re.match(rf"({PATH_WILDCARD}*)(.*$)", val)
@@ -204,6 +207,7 @@ def strip_leading_path_wildcards(val):
 
 
 def strip_surrounding_path_wildcards(val):
-    """Strips any [/.*\\] from the beginning and end. Use with dirs.
+    """
+    Strips any [/.*\\] from the beginning and end. Use with dirs.
     Doesn't handle file extensions well (i.e. 'py_venv.xml' loses suffix)"""
     return strip_trailing_path_wildcards(strip_leading_path_wildcards(val))

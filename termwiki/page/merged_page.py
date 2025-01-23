@@ -1,7 +1,7 @@
 import os
 from collections.abc import Generator
 
-from .page import Traversable, Page
+from .page import Page, Traversable
 
 
 class MergedPage(Traversable):

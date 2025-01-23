@@ -50,11 +50,14 @@ STYLES: list[str] = [
     "solarized-dark",
 ]
 
-pipe_sep_langs = "|".join(LANGUAGES)
-pipe_sep_styles = "|".join(STYLES)
+PIPE_SEPARATED_LANGUAGES = "|".join(LANGUAGES)
+PIPE_SEPARATED_STYLES = "|".join(STYLES)
+
+SYNTAX_DIRECTIVE_OPEN_RE = "(%|```)"
+SYNTAX_DIRECTIVE_CLOSE_RE = "(/%|```)"
 
 SYNTAX_HIGHLIGHT_START_RE = re.compile(  # works for 1-5
-    rf"%(?P<lang>{pipe_sep_langs}) ?"
+    rf"{SYNTAX_DIRECTIVE_OPEN_RE}(?P<lang>{PIPE_SEPARATED_LANGUAGES}) ?"
     r"((?P<count>\d) *|(?P<line_numbers>--line-numbers) *|(?P<style>{pipe_sep_styles}) *)*"
 )
 # print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python 2 --line-numbers'))  # 1
@@ -63,7 +66,9 @@ SYNTAX_HIGHLIGHT_START_RE = re.compile(  # works for 1-5
 # print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python 2'))                 # 4
 # print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python'))                   # 5
 
-SYNTAX_HIGHLIGHT_END_RE = re.compile(f"/%({pipe_sep_langs})")
+SYNTAX_HIGHLIGHT_END_RE = re.compile(
+    f"{SYNTAX_DIRECTIVE_CLOSE_RE}(?P<lang>{PIPE_SEPARATED_LANGUAGES})"
+)
 
 IMPORT_RE = re.compile(r"%import (?P<import_path>[\w.]+)")
 

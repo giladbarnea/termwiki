@@ -1,8 +1,9 @@
 import inspect
+import logging
 import sys
 from abc import abstractmethod
 from enum import Enum
-from typing import TypeVar, Dict, Generator, Tuple, Any, Type, NoReturn
+from typing import Any, Dict, Generator, NoReturn, Tuple, Type, TypeVar
 
 # from igit_debug.loggr import Loggr
 from more_termcolor import colors
@@ -11,7 +12,6 @@ from more_termcolor import colors
 # from rich.console import Console
 # from igit.util.misc import darkprint
 from termwiki.regexp import YES_OR_NO
-import logging
 
 T = TypeVar("T")
 # from rich.console import Console

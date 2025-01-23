@@ -1,6 +1,5 @@
 from more_termcolor import colors
 
-
 # blocks:
 # full  █
 # 3/4   ▊

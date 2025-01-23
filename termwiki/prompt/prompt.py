@@ -1,14 +1,14 @@
-from typing import Union, Tuple, overload
-
 import logging
+from typing import Tuple, Union, overload
 
 # from igit_debug.investigate import logonreturn, logreturn
 from more_termcolor import colors
 
-# from igit.abcs import prettyrepr
-from .item import MutableItem, FlowItem, LexicItem
-from .options import Options, NumOptions, LexicOptions
 from . import util
+
+# from igit.abcs import prettyrepr
+from .item import FlowItem, LexicItem, MutableItem
+from .options import LexicOptions, NumOptions, Options
 
 # from igit.util.misc import darkprint, brightyellowprint
 
@@ -157,7 +157,8 @@ class Action(BasePrompt):
 
 # TODO: Choice can return index! change docs
 class Choice(BasePrompt):
-    """If `free_input=True`, `answer` may be (None, str) or (None, slice) (if input is e.g. "2:5").
+    """
+    If `free_input=True`, `answer` may be (None, str) or (None, slice) (if input is e.g. "2:5").
 
     Otherwise, if a numeric choice is made, `answer` is (slice, MutableItem).
 
@@ -193,7 +194,8 @@ class Choice(BasePrompt):
 
 
 def generic(prompt: str, *options: str, **kwargs: Union[str, tuple, bool]):
-    """Most permissive, a simple wrapper for LexicPrompt. `options` are optional, `kwargs` are optional.
+    """
+    Most permissive, a simple wrapper for LexicPrompt. `options` are optional, `kwargs` are optional.
     Examples::
 
         generic('This and that, continue?', 'yes', flowopts='quit', free_input=True) -> [y], [q] (free input allowed)
@@ -227,7 +229,8 @@ def choose(prompt, *options: str, **kwargs: Union[str, tuple, bool]) -> Tuple[st
 
 
 def choose(prompt, *options: str, **kwargs: Union[str, tuple, bool]):
-    """Presents `options` by *index*. Expects at least one option.
+    """
+    Presents `options` by *index*. Expects at least one option.
 
     If `free_input=True`, return type may be (None, str) or (None, slice) (if input is e.g. "2:5").
 
@@ -242,7 +245,8 @@ def choose(prompt, *options: str, **kwargs: Union[str, tuple, bool]):
 
 # TODO: implement prompt.confirm('yes', 'quit', no='open with current') that returns bool (see search.py _choose_from_many())
 def confirm(prompt, **kwargs: Union[str, tuple, bool]) -> bool:
-    """A 'y/n' prompt.
+    """
+    A 'y/n' prompt.
 
     If `options` contains any "special options", they are presented by key.
     Examples::
@@ -257,7 +261,8 @@ def confirm(prompt, **kwargs: Union[str, tuple, bool]) -> bool:
 
 
 def action(question, *actions, **kwargs: Union[str, tuple, bool]) -> Tuple[str, LexicItem]:
-    """Presents `options` by *key*.
+    """
+    Presents `options` by *key*.
     Compared to `confirm()`, `action()` can't be used to prompt for yes/no but instead prompts for strings.
     Example::
 

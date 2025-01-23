@@ -5,7 +5,7 @@ from pathlib import Path
 from types import ModuleType
 
 from . import ast_utils
-from .page import Traversable, Page
+from .page import Page, Traversable
 
 
 class PythonFilePage(Traversable):

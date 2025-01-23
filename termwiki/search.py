@@ -1,18 +1,19 @@
-from collections import defaultdict
-from typing import (
-    Literal,
-    Collection,
-    TypeVar,
-    Optional,
-    List,
-    Callable,
-    Tuple,
-    Generator,
-    Generic,
-    Dict,
-)
 import logging
 import re
+from collections import defaultdict
+from typing import (
+    Callable,
+    Collection,
+    Dict,
+    Generator,
+    Generic,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    TypeVar,
+)
+
 from fuzzysearch import find_near_matches
 
 T = TypeVar("T")
@@ -103,7 +104,8 @@ def _create_is_maybe_predicate(criterion: SearchCriteria) -> Callable[[str, str]
 
 
 def fuzzy(keyword: str, collection: Collection[T], cutoff=2) -> Matches[T]:
-    """Returns a `Matches` instance, or None if nothing matched.
+    """
+    Returns a `Matches` instance, or None if nothing matched.
     Doesn't prompt.
     """
     if not keyword or re.fullmatch(r'[\'"]+', keyword):  # only quotes
@@ -187,7 +189,8 @@ def fuzzy(keyword: str, collection: Collection[T], cutoff=2) -> Matches[T]:
 def iter_maybes(
     keyword: str, collection: Collection[T], *extra_options, criterion: SearchCriteria = "substring"
 ) -> Generator[Tuple[List[T], bool], None, None]:
-    """Doesn't prompt. Yields three `[matches...], is_last` tuples.
+    """
+    Doesn't prompt. Yields three `[matches...], is_last` tuples.
     1st: str method by `criterion`
     2nd: re.search ignoring word separators
     3rd: fuzzy search (what `nearest()` uses directly)"""

@@ -1,0 +1,8 @@
+{
+	"ruff.interpreter": [
+		"/Users/giladbarnea/dev/termwiki/.venv/bin/python"
+	],
+	"ruff.path": [
+		"/Users/giladbarnea/dev/termwiki/.venv/bin/ruff"
+	]
+}

@@ -25,8 +25,8 @@ dev = [
   "ipython-autoimport>=0.4",
   "jupyterlab>=4.0.0",
   "pytest-cov>=4.0.0",
-  "black>=23.0.0",
   "types-Pygments>=2.13.0",
+  "ruff>=0.9.2",
 ]
 
 # AST package comparisons:
@@ -53,16 +53,90 @@ requires = ["hatchling"]
 [tool.uv]
 package = true
 
-[tool.black]
-extend-exclude = '''
-(
-  /test/data/
-  | /private_pages/
-  | /fuzzyui/
-  | /rapidfuzz/
-)
-'''
-include = '\.pyi?$'
+# [tool.black]
+# extend-exclude = '''
+# (
+#   /test/data/
+#   | /private_pages/
+#   | /fuzzyui/
+#   | /rapidfuzz/
+# )
+# '''
+# include = '\.pyi?$'
+# line-length = 100
+# preview = true
+# skip-magic-trailing-comma = true
+
+[tool.ruff]
+indent-width = 4
 line-length = 100
-preview = true
+output-format = "grouped"
+target-version = "py312"
+show-fixes = true
+
+
+[tool.ruff.lint]
+
+select = [
+  "ASYNC100", # cancel-scope-no-checkpoint
+  "ASYNC109", # async-function-with-timeout
+  "ASYNC110", # async-busy-wait
+  "ASYNC210", # blocking-http-call-in-async-function
+  "ASYNC222", # wait-for-process-in-async-function
+  "ASYNC230", # blocking-open-call-in-async-function
+  "ASYNC251", # blocking-sleep-in-async-function
+  "ARG001", # Unused argument
+  "B006", # mutable argument default
+  "B008", # function call in default argument
+  # "D201", # No blank lines allowed before function docstring
+  # "D204", # 1 blank line required after class docstring
+  # "D205", # 1 blank line required between summary line and description
+  # "D210", # No whitespaces allowed surrounding docstring text
+  # "D211", # No blank lines allowed before class docstring
+  # "D213", # No """Return ...\n""" allowed in docstrings\
+  # "E501", # Line too long  * Commented because `ruff format` is best-effort, not 100%, so this just creates noise
+  "E711", # None comparison
+  "E712", # True False comparison
+  "E713", # not in
+  "E714", # not is
+  "E721", # type(...) == 
+  "E902", # IO Error. When Ruff can't read a file
+  "FAST001", # FastAPI redundant response model
+  "FAST002", # FastAPI bad dependency definition
+  "F401", # unused import
+  "FBT003", # Boolean positional argument
+  "I", # unsorted imports
+  "ISC001", # single-line-implicit-string-concatenation
+  "PLW2901", # `for` loop variable overwritten by assignment target
+  "PT",   # Pytest
+  "PTH", # Pathlib vs os.path usage
+  "RUF008", # mutable dataclass default argument
+  "RUF012", # mutable class default argument
+  "SIM",    # pyflake-simplify. All of them are good except SIM108, which is in `ignore` down below.
+  "S110",   # try-except-pass silent suppression
+  "S113",   # request-without-timeout
+  "S306",   # suspicious-mktemp-usage
+  "W291",   # Trailing whitespace
+  "W605",   # Invalid escape sequence. "\.md$" => r"\.md$"
+]
+
+ignore = [
+  "SIM108", # if-else-block-instead-of-if-exp
+]
+
+extend-fixable = [
+  "W291", # Trailing whitespace
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+  "F401", # unused import
+  "I001", # import block is un-sorted or un-formatted
+]
+
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
 skip-magic-trailing-comma = true

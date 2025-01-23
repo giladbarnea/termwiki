@@ -1,12 +1,12 @@
-from typing import Iterable, List, Union
-
-import re
 import functools
 import inspect
+import re
+from typing import Iterable, List, Union
 
 
 def return_none_if_errors(*exc):
-    """If no `exc` specified, returns None on any exception.
+    """
+    If no `exc` specified, returns None on any exception.
     >>> @return_none_if_errors(ValueError)
     ... def raises(exc):
     ...     raise exc()
@@ -48,7 +48,8 @@ def return_none_if_errors(*exc):
 
 @return_none_if_errors(ValueError, TypeError)
 def safeslice(val: Union[str, int, slice]) -> slice:
-    """Safe constructor for slice. Handles "2", "0:2", and ":2".
+    """
+    Safe constructor for slice. Handles "2", "0:2", and ":2".
     Always returns a slice (or None if conversion fails).
 
     >>> mylist = ['first', 'second', 'third']
@@ -83,7 +84,8 @@ def safeslice(val: Union[str, int, slice]) -> slice:
 
 @return_none_if_errors(ValueError, TypeError)
 def safeint(val: Union[str, int]) -> int:
-    """Handles int and str ("1").
+    """
+    Handles int and str ("1").
     Always returns an int (or None if cannot be used as a precise index).
 
     >>> mylist = ['first', 'second']
@@ -100,7 +102,8 @@ def safeint(val: Union[str, int]) -> int:
 
 
 def to_int_or_slice(val):
-    """Tries converting to int, then to slice if fails.
+    """
+    Tries converting to int, then to slice if fails.
     Finally returns None if converting to slice fails as well"""
     _int = safeint(val)
     if _int is not None:

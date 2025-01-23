@@ -12,7 +12,7 @@ from termwiki.colors import h2
 from termwiki.common.click_extension import unrequired_opt
 from termwiki.common.types import PageFunction
 from termwiki.consts import SUB_PAGE_RE
-from termwiki.page import FilePage, DirectoryPage
+from termwiki.page import DirectoryPage
 
 # import termwiki.page_tree
 
@@ -112,7 +112,8 @@ def get_sub_page_var_names(page: PageFunction) -> list[str]:
 
 
 def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageFunction]]:
-    """Sets bash.sub_pages = [ "cut" , "for" ] for each PAGES.
+    """
+    Sets bash.sub_pages = [ "cut" , "for" ] for each PAGES.
     Removes (d)underscore and lowers _CUT and __FOR.
     Returns e.g. `{ 'cut' : bash , 'args' : [ bash , pdb ] }`"""
     all_sub_pages: dict[str, set[PageFunction]] = defaultdict(set)
@@ -153,7 +154,7 @@ def fuzzy_find_page(
     """If user continue'd through the whole collection, raises KeyError if `raise_if_exhausted` is True. Otherwise, returns None"""
     # not even a sub_page, could be gibberish
     # try assuming it's a substring
-    from termwiki import search, prompt
+    from termwiki import prompt, search
 
     for maybes, is_last in search.iter_maybes(page, collection, criterion="substring"):
         if not maybes:
@@ -284,7 +285,8 @@ def get_sub_page_content(main_page: str, sub_page: str) -> str:
 
 
 def print_page(main_page: str, sub_page=None):
-    """If passed correct main_page(s), prints.
+    """
+    If passed correct main_page(s), prints.
     If not correct, finds the correct with fuzzy search and calls itself."""
     logging.debug(f"print_page({main_page!r}, {sub_page!r})")
     if sub_page:

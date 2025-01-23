@@ -1,4 +1,4 @@
-from functools import wraps, partial
+from functools import partial, wraps
 from typing import Type
 
 from pygments import highlight as pygments_highlight
@@ -22,12 +22,11 @@ from pygments.lexers import (
     SqlLexer,
     TOMLLexer,
     TypeScriptLexer,
-    YamlLexer
-
+    YamlLexer,
 )
 
-from termwiki.common.types import PageFunction, Style, Language
 from termwiki import consts
+from termwiki.common.types import Language, PageFunction, Style
 from termwiki.ipython_lexer import IPython3Lexer
 
 # https://help.farbox.com/pygments.html     <- previews of all styles
@@ -91,8 +90,9 @@ def _get_color_formatter(style: Style) -> TerminalTrueColorFormatter:
 
 def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     if lang in ("md", "markdown"):
-        from termwiki.log import console
         from rich.markdown import Markdown
+
+        from termwiki.log import console
 
         with console.capture() as capture:
             console.print(Markdown(text, justify="left"))
@@ -109,7 +109,8 @@ def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
 
 
 def syntax(_page_or_style: PageFunction | Style = None, /, **default_styles):
-    """Possible forms:
+    """
+    Possible forms:
     ::
         @syntax
         def foo(): ...

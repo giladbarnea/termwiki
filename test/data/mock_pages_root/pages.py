@@ -1,4 +1,5 @@
-from termwiki.page.decorators import style, alias
+from termwiki.page.decorators import alias, style
+
 
 def no_return():
     diet = f"""## Diet
@@ -10,8 +11,8 @@ def no_return():
     behavior = f"""## Behavior
     """
     cognitive = mental = f"""## Cognitive / Mental
-    Open monitoring (vs soda-straw focus): 
-      Higher time framerate. Can see 2 waldos. 
+    Open monitoring (vs soda-straw focus):
+      Higher time framerate. Can see 2 waldos.
 
     Meditation (15m) - focus on breathing and body-scan
       Signif. reduced attentional blinks

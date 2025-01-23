@@ -1,11 +1,11 @@
 import re
-from textwrap import indent, dedent
+from textwrap import dedent, indent
 
-from termwiki.common.types import Style, Language
-from termwiki.consts import IMPORT_RE, SYNTAX_HIGHLIGHT_START_RE, SYNTAX_HIGHLIGHT_END_RE
+from termwiki.common.types import Language, Style
+from termwiki.consts import SYNTAX_HIGHLIGHT_END_RE, SYNTAX_HIGHLIGHT_START_RE
 from termwiki.page import Page
-from termwiki.render import syntax, syntax_highlight
-from termwiki.render.util import get_indent_level, enumerate_lines
+from termwiki.render import syntax_highlight
+from termwiki.render.util import enumerate_lines, get_indent_level
 
 """  # %import support
         if import_match := IMPORT_RE.fullmatch(line_stripped):
@@ -70,18 +70,18 @@ def render_page(
             lang: Language = groupdict["lang"]
             highlighted_lines_count: int = groupdict["count"] and int(groupdict["count"])
             should_enumerate_lines: bool = bool(groupdict["line_numbers"])
-            # style precedence:
+            # Style precedence:
             # 1. %mysql friendly
             # 2. @syntax(python='friendly')
             # 3. @syntax('friendly')
             style = groupdict["style"]
             if not style:
-                # default_style is either @syntax('friendly') or None
+                # Default_style is either @syntax('friendly') or None
                 style = default_styles.get(lang, default_style)
 
             # * `%mysql 1`:
             if highlighted_lines_count:
-                # looks like this breaks %mysql 3 --line-numbers
+                # Looks like this breaks %mysql 3 --line-numbers
                 highlighting_idx = idx + 1
                 for _ in range(highlighted_lines_count):
                     next_line = lines[highlighting_idx]
@@ -154,7 +154,11 @@ def render_page(
         idx += 1
 
     stripped_highlighted_full_string = "".join(highlighted_strs).strip()
-    if stripped_highlighted_full_string in text and not "\x1b[" in text and re.match("#+ ", highlighted_strs[0]):
+    if (
+        stripped_highlighted_full_string in text
+        and "\x1b[" not in text
+        and re.match("#+ ", highlighted_strs[0])
+    ):
         # Text never included colors nor directives, and it looks like markdown
         dedented = "\n".join(map(str.strip, stripped_highlighted_full_string.splitlines()))
         return syntax_highlight(

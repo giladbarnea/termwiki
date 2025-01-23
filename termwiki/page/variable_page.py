@@ -1,4 +1,5 @@
-from termwiki.util import short_repr, clean_str
+from termwiki.util import clean_str, short_repr
+
 from .page import Page
 
 

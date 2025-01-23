@@ -1,3 +1,4 @@
+import functools
 import sys
 from typing import Callable
 
@@ -5,7 +6,8 @@ from termwiki.common.types import PageFunction
 
 
 def style(default_style: str = None, **language_styles):
-    """Allows a page_function to be styled with a string or a dict of styles.
+    """
+    Allows a page_function to be styled with a string or a dict of styles.
 
     Example::
 
@@ -31,6 +33,7 @@ def style(default_style: str = None, **language_styles):
 
 
 def alias(*aliases) -> Callable[[PageFunction], PageFunction]:
+    @functools.wraps(aliases)
     def decorator(page_function: PageFunction) -> PageFunction:
         if not hasattr(page_function, "aliases"):
             page_function.aliases = []
@@ -45,9 +48,29 @@ def alias(*aliases) -> Callable[[PageFunction], PageFunction]:
 
 
 def title(_title) -> Callable[[PageFunction], PageFunction]:
+    @functools.wraps(_title)
     def decorator(page_function: PageFunction) -> PageFunction:
         if not hasattr(page_function, "title"):
             page_function.title = _title
+        return page_function
+
+    return decorator
+
+def tag(*tags) -> Callable[[PageFunction], PageFunction]:
+    @functools.wraps(tags)
+    def decorator(page_function: PageFunction) -> PageFunction:
+        if not hasattr(page_function, "tags"):
+            page_function.tags = []
+        page_function.tags.extend(tags)
+        return page_function
+
+    return decorator
+
+
+def related(page_name) -> Callable[[PageFunction], PageFunction]:
+    @functools.wraps(page_name)
+    def decorator(page_function: PageFunction) -> PageFunction:
+        page_function.related = page_name
         return page_function
 
     return decorator

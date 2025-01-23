@@ -5,7 +5,8 @@ different_name_tree = DirectoryPage(different_name)
 
 
 def test_read_all_subpages_if_no_self_named_page():
-    """When a sub page exists with the same name as its parent,
+    """
+    When a sub page exists with the same name as its parent,
     parent.read() reads only this sub page. But if a self-named sub page doesn't exist,
     parent.read() reads all sub pages."""
     no_self_named_files_directory: DirectoryPage = different_name_tree.search("no-self-named-files")

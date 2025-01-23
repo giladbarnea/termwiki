@@ -33,18 +33,19 @@ This includes:
 # Standard library
 import re
 
+from pygments.lexer import bygroups, using  # Lexer, DelegatingLexer, RegexLexer, do_insertions
+
 # Third party
 from pygments.lexers import (
     BashLexer,
     HtmlLexer,
     JavascriptLexer,
-    RubyLexer,
     PerlLexer,
-    PythonLexer,
     Python3Lexer,
+    PythonLexer,
+    RubyLexer,
     TexLexer,
 )
-from pygments.lexer import bygroups, using  # Lexer, DelegatingLexer, RegexLexer, do_insertions
 from pygments.token import Keyword, Operator, Text  # Generic, Literal, Name, Other, Error,
 
 # from pygments.util import get_bool_opt
@@ -57,7 +58,8 @@ __all__ = ["build_ipy_lexer", "IPython3Lexer"]
 
 
 def build_ipy_lexer(python3):
-    """Builds IPython lexers depending on the value of `python3`.
+    """
+    Builds IPython lexers depending on the value of `python3`.
 
     The lexer inherits from an appropriate Python lexer and then adds
     information about IPython specific keywords (i.e. magic commands,

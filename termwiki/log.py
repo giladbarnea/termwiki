@@ -1,7 +1,6 @@
 import functools
 import inspect
 import logging
-import os
 import sys
 
 from rich.console import Console as RichConsole

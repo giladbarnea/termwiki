@@ -1,9 +1,10 @@
 from abc import abstractmethod
-from collections.abc import Generator, Sequence, Iterable
-from typing import ParamSpec, NoReturn, Any, Callable, TypeVar, Self, ForwardRef
+from collections.abc import Generator, Iterable, Sequence
+from typing import Any, Callable, ForwardRef, NoReturn, ParamSpec, Self, TypeVar
 
 from termwiki.log import log
 from termwiki.util import cached_property
+
 from . import ast_utils
 
 DecoratedCallable = TypeVar("DecoratedCallable", bound=Callable[[Self, ...], Any])
@@ -109,7 +110,8 @@ class Traversable(Page):
     def search(
         self, name: str, *, on_not_found: Callable[[Iterable[str], str], str | None] = None
     ) -> Page | None:
-        """Search a Page among immediate children of this Traversable.
+        """
+        Search a Page among immediate children of this Traversable.
         If not found, and 'on_not_found' is given, it will be called with
         the names of the immediate children. Otherwise None is returned."""
         normalized_page_name = ast_utils.normalize_page_name(name)
@@ -132,7 +134,8 @@ class Traversable(Page):
         on_not_found: Callable[[Iterable[str], str], str | None] = None,
         recursive: bool = False,
     ) -> tuple[list[str], Page]:
-        """Searches a possibly nested page by it's full path.
+        """
+        Searches a possibly nested page by it's full path.
         The main justifications for this method over 'search' are:
         - its return tuple, with the first item being the path taken from here to the page (including up to the page),
         - its ability to search recursively.
@@ -188,7 +191,8 @@ class Traversable(Page):
         return merged_sub_pages
 
     def read(self, *args, **kwargs) -> str:
-        """Searches for self.name() within immediate sub-pages.
+        """
+        Searches for self.name() within immediate sub-pages.
         If found, reads the self-named sub-page and returns.
         If not found, the sub-pages are merged and the merged page is read.
 

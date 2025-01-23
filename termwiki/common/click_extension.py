@@ -1,13 +1,14 @@
-import click
 import typing
 
+import click
 
 # import functools as ft
 _missing = object()
 
 
 def option(*param_decls, **attrs):
-    """`show_default = True`.
+    """
+    `show_default = True`.
 
     If `default` in `attrs` and `type` is not, or vice versa, sets one based on the other.
 
@@ -60,7 +61,8 @@ def option(*param_decls, **attrs):
 
 
 def unrequired_opt(*param_decls, **attrs):
-    """`required = False, show_default = True`.
+    """
+    `required = False, show_default = True`.
 
     If `default` in `attrs` and `type` is not, or vice versa, sets one based on the other.
 
@@ -80,7 +82,8 @@ def unrequired_opt(*param_decls, **attrs):
 
 
 def required_opt(*param_decls, **attrs):
-    """`required = True, show_default = True`.
+    """
+    `required = True, show_default = True`.
 
     If `default` in `attrs` and `type` is not, or vice versa, sets one based on the other.
 

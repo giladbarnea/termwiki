@@ -1,4 +1,5 @@
-"""Test scenarios of pages with the same name but their relation is not
+"""
+Test scenarios of pages with the same name but their relation is not
 straightforward, e.g not directly aside or directly below; either as
 a result of actual structure, or because of fuzzing etc.
 

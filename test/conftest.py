@@ -1,10 +1,9 @@
 from collections.abc import Mapping
 
 from _pytest.config import Config
-from _pytest.reports import TestReport, CollectReport
+from _pytest.reports import CollectReport, TestReport
 
 from termwiki.log import NON_INTERACTIVE_WIDTH
-
 
 # homedir = os.path.expanduser('~')
 # if homedir not in sys.path:
@@ -64,6 +63,7 @@ def pytest_exception_interact(node, call, report) -> None:
     import _pytest
     import pluggy
     from rich.traceback import Traceback
+
     from termwiki.log import console
 
     traceback = Traceback.from_exception(

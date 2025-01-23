@@ -1,4 +1,4 @@
-from typing import Protocol, Literal
+from typing import Literal, Protocol
 
 from termwiki import consts
 

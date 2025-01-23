@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from collections import OrderedDict
 from collections.abc import Sequence
 from typing import Iterable
 
 import click
+
 from termwiki import page_tree
+from termwiki.log import log, log_in_out
 from termwiki.page import Page, PageNotFound
 from termwiki.render import render_page
-from termwiki.log import log, log_in_out
-from collections import OrderedDict
 
 fuzzy_search_cache = OrderedDict()
 

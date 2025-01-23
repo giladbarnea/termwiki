@@ -12,12 +12,12 @@ searching with suffix resolves when 2 same normalized names exist,
 import pytest
 
 from termwiki.page import (
-    FunctionPage,
     DirectoryPage,
-    VariablePage,
-    PythonFilePage,
+    FunctionPage,
     MarkdownFilePage,
     MergedPage,
+    PythonFilePage,
+    VariablePage,
 )
 from termwiki.util import clean_str
 from test.data import mock_pages_root
