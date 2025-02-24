@@ -53,21 +53,8 @@ requires = ["hatchling"]
 [tool.uv]
 package = true
 
-# [tool.black]
-# extend-exclude = '''
-# (
-#   /test/data/
-#   | /private_pages/
-#   | /fuzzyui/
-#   | /rapidfuzz/
-# )
-# '''
-# include = '\.pyi?$'
-# line-length = 100
-# preview = true
-# skip-magic-trailing-comma = true
-
 [tool.ruff]
+preview = true
 indent-width = 4
 line-length = 100
 output-format = "grouped"
