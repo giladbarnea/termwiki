@@ -132,4 +132,4 @@ src/
 # private repo
 termwiki/private_pages/*
 */appmap
-Untitled*.ipynb
+Untitled*.ipynb.DS_Store
