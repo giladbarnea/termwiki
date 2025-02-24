@@ -5,8 +5,8 @@ from typing import Optional
 from termwiki.common.types import Language, Style
 from termwiki.consts import (
     SYNTAX_HIGHLIGHT_END_RE,
-    SYNTAX_HIGHLIGHT_START_RE,
     SYNTAX_HIGHLIGHT_LINE_PREFIX_DIRECTIVES,
+    SYNTAX_HIGHLIGHT_START_RE,
 )
 from termwiki.page import Page
 from termwiki.render import syntax_highlight

@@ -54,7 +54,7 @@ from pygments.token import Keyword, Operator, Text  # Generic, Literal, Name, Ot
 
 line_re = re.compile(".*?\n")
 
-__all__ = ["build_ipy_lexer", "IPython3Lexer"]
+__all__ = ["IPython3Lexer", "build_ipy_lexer"]
 
 
 def build_ipy_lexer(python3):

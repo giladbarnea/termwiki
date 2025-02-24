@@ -120,7 +120,7 @@ def populate_sub_pages(*, print_unused_sub_pages=False) -> dict[str, set[PageFun
     for name, page in PAGES.items():
         # sub_page_var_names = [n for n in draw_out_decorated_fn(main_page_fn).__code__.co_varnames if n.isupper()]
         # draw_out_decorated_fn is necessary because PAGES has to store the fns in the wrapped form (to call them later)
-        setattr(page, "sub_pages", set())
+        page.sub_pages = set()
         #         # unwrapped_page_fn = draw_out_decorated_fn(page)
         unwrapped_page_fn = inspect.unwrap(page)
         sub_page_var_names = get_sub_page_var_names(unwrapped_page_fn)
