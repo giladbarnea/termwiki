@@ -91,13 +91,8 @@ def _get_color_formatter(style: Style) -> TerminalTrueColorFormatter:
 
 def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     if lang in ("md", "markdown"):
-        from rich.markdown import Markdown
+        return highlight_markdown(text)
 
-        from termwiki.log import console
-
-        with console.capture() as capture:
-            console.print(Markdown(text, justify="left"))
-        return capture.get()
     lexer: Lexer = _get_lexer(lang)
     if not style:
         if lang == "js":
@@ -108,6 +103,23 @@ def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     highlighted: str = pygments_highlight(text, lexer, color_formatter)
     return highlighted
 
+def highlight_markdown(text: str) -> str:
+    import os
+
+    # Can't get it to syntax highlight with subprocess :(
+    os.system(
+        f"echo '{text}' | COLORTERM=truecolor TERM=xterm-256color /opt/homebrew/bin/glow -s dark -"
+    )
+    return ""
+    from rich.markdown import Markdown
+
+    from termwiki.log import console
+
+    with console.capture() as capture:
+        console.print(
+            Markdown(text, justify="left", code_theme="dracula", inline_code_theme="dracula")
+        )
+    return capture.get()
 
 def syntax(_page_or_style: PageFunction | Style = None, /, **default_styles):
     """

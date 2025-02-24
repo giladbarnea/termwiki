@@ -1,5 +1,6 @@
 import re
 from textwrap import dedent, indent
+from typing import Optional
 
 from termwiki.common.types import Language, Style
 from termwiki.consts import (
@@ -53,7 +54,10 @@ from termwiki.render.util import enumerate_lines, get_indent_level
             highlighted_strs.append(indented_imported_text)
 """
 def render_page(
-    page: Page, default_styles: dict[Style, Language] = None, default_style: Style = None, *args
+    page: Page,
+    default_styles: Optional[dict[Style, Language]] = None,
+    default_style: Optional[Style] = None,
+    *args,
 ) -> str:
     default_styles = default_styles or {}
     remaining_text = page.read()

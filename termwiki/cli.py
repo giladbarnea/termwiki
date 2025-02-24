@@ -4,7 +4,7 @@ import subprocess
 import sys
 from collections import OrderedDict
 from collections.abc import Sequence
-from typing import Iterable
+from typing import Iterable, Literal
 
 import click
 
@@ -16,9 +16,11 @@ from termwiki.render import render_page
 fuzzy_search_cache = OrderedDict()
 
 
-def check_output(*args, **kwargs) -> tuple[True, str] | tuple[False, subprocess.CalledProcessError]:
+def check_output(
+    *args, **kwargs
+) -> tuple[Literal[True], str] | tuple[Literal[False], subprocess.CalledProcessError]:
     try:
-        output = subprocess.check_output(*args, **kwargs).decode("utf-8").strip()
+        output: str = subprocess.check_output(*args, **kwargs).decode("utf-8").strip()
         return True, output
     except subprocess.CalledProcessError as e:
         return False, e

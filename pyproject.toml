@@ -77,56 +77,140 @@ show-fixes = true
 
 [tool.ruff.lint]
 
+# Stopped at: implicit-namespace-package (INP001) and unnecessary-iterable-allocation-for-first-element (RUF015)
 select = [
+  "A001",      # builtin-variable-shadowing (lint.flake8-builtins.builtins-ignorelist)
+  "A002",      # builtin-argument-shadowing (lint.flake8-builtins.builtins-ignorelist)
+  "A003",      # builtin-attribute-shadowing (lint.flake8-builtins.builtins-ignorelist)
+  "A004",      # builtin-import-shadowing (lint.flake8-builtins.builtins-ignorelist)
+  "A005",      # stdlib-module-shadowing (lint.flake8-builtins.builtins-ignorelist). Requires --preview.
+  "A006",      # builtin-lambda-argument-shadowing (lint.flake8-builtins.builtins-ignorelist). Requires --preview.
+  "ARG001",    # Unused argument
   "ASYNC100",  # Cancel-scope-no-checkpoint
   "ASYNC109",  # Async-function-with-timeout
   "ASYNC110",  # Async-busy-wait
+  "ASYNC115",  # Async-zero-sleep
   "ASYNC210",  # Blocking-http-call-in-async-function
+  "ASYNC220",  # Create-subprocess-in-async-function
+  "ASYNC221",  # Run-subprocess-in-async-function
   "ASYNC222",  # Wait-for-process-in-async-function
   "ASYNC230",  # Blocking-open-call-in-async-function
   "ASYNC251",  # Blocking-sleep-in-async-function
-  "ARG001",    # Unused argument
-  "B006",      # Mutable argument default
-  "B008",      # Function call in default argument
+  "B003",      # Assignment to os.environ
+  "B004",      # Unreliable-callable-check
+  "B005",      # str.strip() with multi-character strings
+  "B006",      # Mutable argument default (lint.flake8-bugbear.extend-immutable-calls)
+  "B007",      # Unused loop control variable
+  "B008",      # Function call in default argument (lint.flake8-bugbear.extend-immutable-calls)
+  "B009",      # getattr with constant (use getattr for default or not at all)
+  "B010",      # setattr with constant (just obj.attr = value idiomatically)
+  "B012",      # Flow control in finally
+  "B013",      # Redundant tuple in exception handler
+  "B014",      # Duplicate exception handler (subclasses)
+  "B018",      # Useless expression
+  "B019",      # Cached instance method
+  "B020",      # Loop variable overrides iterator
+  "B021",      # f-string docstring
+  "B022",      # Useless contextlib.suppress without arguments
+  "B023",      # function-uses-loop-variable
+  "B024",      # abstract-base-class-without-abstract-method
+  "B025",      # duplicate-try-block-exception
+  "B026",      # star-arg-unpacking-after-keyword-arg
+  "B027",      # empty-method-without-abstract-decorator
+  "B029",      # except-with-empty-tuple
+  "B030",      # except-with-non-exception-classes
+  "B031",      # reuse-of-groupby-generator
+  "B032",      # unintentional-type-annotation
+  "B033",      # duplicate-value-in-set
+  "B034",      # re-sub-positional-args
+  "B035",      # static-key-dict-comprehension
+  "B039",      # mutable-contextvar-default
+  "B901",      # return-in-generator. Requires --preview.
+  # "B903",      # Class as data structure  # Supported only in Ruff>0.9.2
+  "B905",      # zip-without-explicit-strict
+  "B909",      # loop-iterator-mutation. Requires --preview.
+  "BLE001",    # Broad exception catch
+  "C40",       # unnecessary comprehensions and collections initialization
   "D201",      # No blank lines allowed before function docstring
   "D204",      # 1 blank line required after class docstring
-  "D205",      # 1 blank line required between summary line and description
   "D210",      # No whitespaces allowed surrounding docstring text
   "D211",      # No blank lines allowed before class docstring
-  "D213",      # No """Return ...\n""" allowed in docstrings
-  # "E501",      # Line too long  * Commented because `ruff format` is best-effort, not 100%, so this just creates noise
+  # "D213",      # No """Return ...\n""" allowed in docstrings  # Disabled because page strings indentation
+  "DTZ",       # Date/Time Timezone pitfalls
   "E711",      # None comparison
   "E712",      # True False comparison
   "E713",      # Not in
   "E714",      # Not is
-  "E721",      # Type(...) == 
+  "E721",      # type(...) ==
   "E902",      # IO Error. When Ruff can't read a file
+  "EM102",     # f-string-in-exception
+  "EM103",     # dot-format-in-exception
+  "EXE001",    # shebang-not-executable
+  "EXE004",    # shebang-leading-whitespace
+  "EXE005",    # shebang-not-first-line
+  "F401",      # Unused import
   "FAST001",   # FastAPI redundant response model
   "FAST002",   # FastAPI bad dependency definition
-  "F401",      # Unused import
-  "FBT003",    # Boolean positional argument
+  "FBT001",    # Boolean positional type hint
+  "FBT002",    # Boolean positional default value
+  "FBT003",    # Boolean positional value in call
+  "G",         # Logging calls pitfalls
   "I",         # Unsorted imports
-  "ISC001",    # Single-line-implicit-string-concatenation
+  "ISC001",    # Single-line-implicit-string-concatenation. LMK(!) if formatter CAUSES (writes) code that violates this rule.
+  "ISC002",    # multi-line-implicit-string-concatenation. LMK(!) if formatter CAUSES (writes) code that violates this rule.
+  "LOG001",    # direct-logger-instantiation
+  "LOG002",    # invalid-get-logger-argument
+  "LOG007",    # log-exception-with-exc-info-false
+  "LOG009",    # undocumented-warn
+  "LOG015",    # root-logger-call. Requires --preview.
   "PLW2901",   # `for` loop variable overwritten by assignment target
   "PT",        # Pytest
   "PTH",       # Pathlib vs os.path usage
+  "RUF005",    # Collection concatenation with '+'
+  "RUF006",    # asyncio dangling task
   "RUF008",    # Mutable dataclass default argument
+  "RUF009",    # Function call in dataclass default argument
   "RUF012",    # Mutable class default argument
-  "SIM",       # Pyflake-simplify. All of them are good except SIM108, which is in `ignore` down below.
+  "RUF013",    # Implicit optional
+  "RUF015",    # Unnecessary iterable allocation for first element
+  "RUF016",    # Invalid index type. (Not sure if we want this)
+  "RUF017",    # Quadratic list summation
+  "RUF018",    # Assignment in assert
+  "RUF019",    # Unnecessary dict key check
+  "RUF020",    # Never or NoReturn in union
+  "RUF021",    # Parenthesize changed boolean operators
+  "RUF022",    # Unsorted __all__
+  "RUF023",    # Unsorted __slots__
+  "RUF024",    # Mutable dict.fromkeys() value
+  "RUF026",    # Disallow defaultdict(default_factory=...) kwarg
+  "RUF027",    # Missing f-string syntax
+  "RUF029",    # Unused async
+  "RUF030",    # Assert with print message
+  "RUF033",    # Dataclass __post_init__ default argument
+  "RUF034",    # Useless if-else
+  "RUF036",    # 'None' not at the end of union
+  # "RUF037",    # Unnecessary empty iterable within deque call  # Supported only in Ruff>0.9.2
+  "RUF038",    # Redundant bool Literal
   "S110",      # Try-except-pass silent suppression
   "S113",      # Request-without-timeout
   "S306",      # Suspicious-mktemp-usage
+  "S506",      # Unsafe-yaml-load
+  "S701",      # Jinja2-autoescape-false
+  "SIM",       # Pyflake-simplify. All of them are good except SIM108, which is in `ignore` down below.
   "W291",      # Trailing whitespace
-  "W605",      # Invalid escape sequence. "\.md$" => r"\.md$"
-  
-  # Get back to these when have time:
-  # "FAST003",  # Fast-api-unused-path-parameter
-  # Resume from suspicious-mktemp-usage (S306)
+  "W605",      # Invalid escape sequence. "\.md$" => r"\.md$",
+  # "E501",      # Line too long  * Commented because `ruff format` is best-effort, not 100%, so this just creates noise
 ]
 
 ignore = [
   "SIM108",    # Use ternary instead of if/else (bad advice)
+  "D205",      # 1 blank line required between summary line and description (too pedantic)
 ]
+unfixable = [
+  "SIM102"
+]
+[tool.ruff.lint.flake8-builtins]
+builtins-ignorelist = ["property"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
@@ -134,11 +218,8 @@ ignore = [
   "I001",  # Import block is un-sorted or un-formatted
 ]
 
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = [
-  "F401", # unused import
-  "I001", # import block is un-sorted or un-formatted
-]
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
 
 
 [tool.ruff.format]
