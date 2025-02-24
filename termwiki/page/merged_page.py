@@ -80,7 +80,7 @@ class MergedPage(Traversable):
         return merged_sub_pages
 
     def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
-        for name, page in self.pages.items():
+        for _name, page in self.pages.items():
             if hasattr(page, "traverse"):
                 yield from page.traverse()
         raise NotImplementedError(
@@ -90,7 +90,7 @@ class MergedPage(Traversable):
 
     def read(self, *args, **kwargs) -> str:
         page_texts = []
-        for name, page in self.pages.items():
+        for _name, page in self.pages.items():
             if page.readable:
                 page_text = page.read()
                 page_texts.append(page_text)

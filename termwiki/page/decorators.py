@@ -5,7 +5,7 @@ from typing import Callable
 from termwiki.common.types import PageFunction
 
 
-def style(default_style: str = None, **language_styles):
+def style(default_style: str | None = None, **language_styles):
     """
     Allows a page_function to be styled with a string or a dict of styles.
 

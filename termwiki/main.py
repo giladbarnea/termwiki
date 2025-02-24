@@ -57,7 +57,7 @@ def get_unused_sub_pages(undecorated_page_fn: Callable) -> list[str]:
 
 def populate_pages() -> dict[str, PageFunction]:
     """Populates a { 'pandas' : pandas , 'inspect' : inspect_, 'gh' : githubcli } dict from `termwiki` module"""
-    main_pages = dict()
+    main_pages = {}
     from termwiki import pages as pages_package
 
     pages_package = DirectoryPage(pages_package)
@@ -160,11 +160,11 @@ def fuzzy_find_page(
         if not maybes:
             continue
 
-        kwargs = dict(
-            Ep="Edit pages.py with pycharm",
-            Ec="Edit pages.py with vscode",
-            Em="Edit pages.py with micro",
-        )
+        kwargs = {
+            "Ep": "Edit pages.py with pycharm",
+            "Ec": "Edit pages.py with vscode",
+            "Em": "Edit pages.py with micro",
+        }
 
         if is_last and raise_if_exhausted:
             kwargs.update(flowopts="quit")
@@ -188,7 +188,8 @@ def fuzzy_find_page(
             sys.exit(status)
         return key, choice.value
     if raise_if_exhausted:
-        raise KeyError(f"{page = !r} isn't in collection")
+        msg = f"{page = !r} isn't in collection"
+        raise KeyError(msg)
     return None, None
 
 
@@ -237,7 +238,8 @@ def get_sub_page_content(main_page: str, sub_page: str) -> str:
         if actual_sub_page:
             return actual_sub_page.read()
         else:
-            raise KeyError(f"{sub_page = !r} isn't in {page.path = }")
+            msg = f"{sub_page = !r} isn't in {page.path = }"
+            raise KeyError(msg)
     for sub_page_variation in (sub_page, f"{sub_page}s", f"_{sub_page}", f"_{sub_page}s"):
         ## This accounts for 2 cases:
         # 1. 'tw python descriptor', but correct is 'descriptors', so add 's'
@@ -348,7 +350,7 @@ def print_page(main_page: str, sub_page=None):
     return print_page(main_page)
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
+@click.command(context_settings={"help_option_names": ["-h", "--help"]})
 @click.argument("main_page", required=False)
 @click.argument("sub_page", required=False)
 @unrequired_opt(

@@ -6,7 +6,7 @@ from .page import Page
 class VariablePage(Page):
     """Variables within functions, or variables at module level"""
 
-    def __init__(self, value: str, name: str = None) -> None:
+    def __init__(self, value: str, name: str | None = None) -> None:
         super().__init__()
         self.value = value
         self.name = name

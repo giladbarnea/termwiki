@@ -90,10 +90,13 @@ def get_local_variables(
             local_variables[var_name] = var_value
     else:
         breakpoint()
-        raise NotImplementedError(
+        msg = (
             f"get_local_variables(...)\n\t{source_node=}"
             f"\n\tnot FunctionDef, not Assign nor ImportFrom\n\t{source_parent_node=}"
             f"\n\t{parent=}"
+        )
+        raise NotImplementedError(
+            msg
         )
     return local_variables
 
@@ -136,10 +139,13 @@ def traverse_immutable_when_unparsed(node, parent, target_id):
         assert not callable(parent), f"{parent} is a callable"
         globals_ = parent.__builtins__
     else:
-        raise AttributeError(
+        msg = (
             f"traverse_immutable_when_unparsed(\n\t{node=},\n\t{parent=},\n\t{target_id=}): parent"
             " has neither __globals__ nor is it a ModuleType, not does it have"
             f" __builtins__.\n\t{type(parent) = }"
+        )
+        raise AttributeError(
+            msg
         )
     rendered = eval_node(node.value, parent, globals_)
     yield target_id, VariablePage(rendered, target_id)

@@ -40,7 +40,7 @@ class FunctionPage(Traversable):
         # noinspection PyUnreachableCode
         variable_texts = []
         seen_variable_pages = set()
-        for var_name, var_page in self.traverse():
+        for _var_name, var_page in self.traverse():
             if var_page.value in seen_variable_pages:
                 continue
             seen_variable_pages.add(var_page.value)

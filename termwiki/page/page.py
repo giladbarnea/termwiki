@@ -105,7 +105,7 @@ class Traversable(Page):
     # traverse._cacher = lambda self, page: self._cache_page(page)
 
     def search(
-        self, name: str, *, on_not_found: Callable[[Iterable[str], str], str | None] = None
+        self, name: str, *, on_not_found: Callable[[Iterable[str], str], str | None] | None = None
     ) -> Page | None:
         """
         Search a Page among immediate children of this Traversable.
@@ -128,7 +128,7 @@ class Traversable(Page):
         self,
         page_path: Sequence[str] | str,
         *,
-        on_not_found: Callable[[Iterable[str], str], str | None] = None,
+        on_not_found: Callable[[Iterable[str], str], str | None] | None = None,
         recursive: bool = False,
     ) -> tuple[list[str], Page]:
         """
@@ -173,7 +173,7 @@ class Traversable(Page):
         found_paths, found_page = first_page.deep_search(
             second_and_on_page_paths, on_not_found=on_not_found, recursive=recursive
         )
-        return [first_page_path] + found_paths, found_page
+        return [first_page_path, *found_paths], found_page
         # if not found_paths and recursive:
         #     merged_sub_pages = found_page.merge_pages()
         #     return merged_sub_pages.deep_search(second_and_on_page_paths,

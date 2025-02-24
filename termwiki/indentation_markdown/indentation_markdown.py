@@ -47,8 +47,8 @@ class Block:
         self,
         indent_level: int,
         parent: Block = None,
-        lines: list[Line] = None,
-        start_index: int = None,
+        lines: list[Line] | None = None,
+        start_index: int | None = None,
     ):
         self.indent_level = indent_level
         self.children: deque[Block] = deque()
@@ -127,11 +127,14 @@ class IndentationMarkdown:
                 # this doesn't account for when first line is indented a lot
                 global_indent_size = indent_level
             elif indent_level % global_indent_size != 0:
-                raise SyntaxError(
+                msg = (
                     "Inconsistent indentation: "
                     f"global indent size is {global_indent_size}, "
                     f"but line (#{i}) indent size is {indent_level}.\n"
                     f"Line: {line}"
+                )
+                raise SyntaxError(
+                    msg
                 )
             line = Line(line)
             if indent_level > current_block.indent_level:

@@ -17,7 +17,8 @@ class Options(ABC):
 
     def __init__(self, *opts: str):
         if has_duplicates(opts):
-            raise ValueError(f"{repr(self)} | __init__(opts) duplicate opts: ", opts)
+            msg = f"{repr(self)} | __init__(opts) duplicate opts: "
+            raise ValueError(msg, opts)
         self.items = self._itemscls(opts)
         # self.flowopts = tuple()
         # self._values = None
@@ -47,9 +48,12 @@ class Options(ABC):
             # flowopts = tuple(map(FlowItem.from_full_name, flowopts))
             flowitems = tuple(map(FlowItem, flowopts))
             if has_duplicates(flowitems):
-                raise ValueError(
+                msg = (
                     f"{repr(self)}\nset_flow_opts(flowopts) | duplicate flowitems:"
                     f" {repr(flowitems)}"
+                )
+                raise ValueError(
+                    msg
                 )
 
         for flowitem in flowitems:
@@ -65,19 +69,26 @@ class Options(ABC):
         if not kw_opts:
             return
         if has_duplicates(kw_opts.values()):
-            raise ValueError(f"{repr(self)}\nset_kw_options() duplicate kw_opts: {repr(kw_opts)}")
+            msg = f"{repr(self)}\nset_kw_options() duplicate kw_opts: {repr(kw_opts)}"
+            raise ValueError(msg)
         if "free_input" in kw_opts:
-            raise RuntimeError(
+            msg = (
                 f"{repr(self)}\nset_kw_options() | 'free_input' found in kw_opts, should have"
                 f" popped it out earlier.\nkw_opts: {repr(kw_opts)}"
             )
-        non_flow_kw_opts = dict()
+            raise RuntimeError(
+                msg
+            )
+        non_flow_kw_opts = {}
         for kw in kw_opts:
             opt = kw_opts[kw]
             if kw in self.items:
-                raise ValueError(
+                msg = (
                     f"{repr(self)}\nset_kw_options() | '{kw}' in kw_opts but was already in"
                     f" self.items.\nkw_opts: {repr(kw_opts)}"
+                )
+                raise ValueError(
+                    msg
                 )
 
             try:
@@ -98,10 +109,7 @@ class Options(ABC):
         # self.kw_opts = kw_opts
 
     def any_item(self, predicate: Callable[[MutableItem], Any]) -> bool:
-        for item in self.items.values():
-            if predicate(item):
-                return True
-        return False
+        return any(predicate(item) for item in self.items.values())
 
     def all_yes_or_no(self) -> bool:
         for item in self.items.values():

@@ -11,7 +11,7 @@ from .page import Page, Traversable
 class PythonFilePage(Traversable):
     """A Python module representing a file (not a package)"""
 
-    def __init__(self, python_module: ModuleType | Path, parent: ModuleType = None) -> None:
+    def __init__(self, python_module: ModuleType | Path, parent: ModuleType | None = None) -> None:
         super().__init__()
         self._python_module = python_module
         self._python_module_ast = None

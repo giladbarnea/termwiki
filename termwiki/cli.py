@@ -74,7 +74,7 @@ def show_help():
     print(main.get_help(ctx))
 
 
-@click.command(no_args_is_help=True, context_settings=dict(help_option_names=["-", "--help"]))
+@click.command(no_args_is_help=True, context_settings={"help_option_names": ["-", "--help"]})
 @click.argument("page_path", required=False, nargs=-1)
 @click.option("-l", "--list", "list_subpages", is_flag=True, help="List subpages")
 def main(page_path: tuple[str], list_subpages: bool):

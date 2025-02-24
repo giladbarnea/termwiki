@@ -28,9 +28,12 @@ def mutate_identifier(identifier: str):
     yield upper
     words = self.val.split(" ")
     if len(words) == 1:
-        raise NotImplementedError(
+        msg = (
             "no word separators, and both lowercase and uppercase identifier is taken"
             f" ('{upper.lower()}')"
+        )
+        raise NotImplementedError(
+            msg
         )
     words_identifiers = "".join(map(lambda s: s[0], words))
     identifier = words_identifiers
@@ -45,7 +48,8 @@ def mutate_identifier(identifier: str):
             f"mutate_identifier() yielding new_identifiers (#{i}): {repr(new_identifiers)}"
         )
         yield new_identifiers
-    raise StopIteration(f"mutate_identifier() exhausted all options: {repr(self)}")
+    msg = f"mutate_identifier() exhausted all options: {repr(self)}"
+    raise StopIteration(msg)
 
 
 class Flow(Enum):
@@ -160,9 +164,12 @@ class LexicItem(MutableItem):
         yield upper
         words = self.value.split(" ")
         if len(words) == 1:
-            raise NotImplementedError(
+            msg = (
                 "no word separators, and both lowercase and uppercase identifier is taken"
                 f" ('{upper.lower()}')"
+            )
+            raise NotImplementedError(
+                msg
             )
         words_identifiers = "".join(map(lambda s: s[0], words))
         self.identifier = words_identifiers
@@ -175,7 +182,8 @@ class LexicItem(MutableItem):
             self.identifier = new_identifiers
             # darkprint(f'mutate_identifier() yielding new_identifiers (#{i}): {repr(new_identifiers)}')
             yield new_identifiers
-        raise StopIteration(f"mutate_identifier() exhausted all options: {repr(self)}")
+        msg = f"mutate_identifier() exhausted all options: {repr(self)}"
+        raise StopIteration(msg)
 
 
 class FlowItem(Item):
@@ -222,9 +230,12 @@ class FlowItem(Item):
 
     @identifier.setter
     def identifier(self, identifier):
-        raise AttributeError(
+        msg = (
             f"{repr(self)}.identifier({repr(identifier)}): Enum can't set self.identifier because"
             " self.value is readonly"
+        )
+        raise AttributeError(
+            msg
         )
 
     @property
@@ -233,9 +244,12 @@ class FlowItem(Item):
 
     @value.setter
     def value(self, value):
-        raise AttributeError(
+        msg = (
             f"{repr(self)}.value({repr(value)}): Enum can't set self.value because self.value is"
             " readonly"
+        )
+        raise AttributeError(
+            msg
         )
 
     @property
@@ -267,7 +281,8 @@ class FlowItem(Item):
             breakpoint()
 
             return None
-        raise NotImplementedError(f"don't support this enum type yet: {self}")
+        msg = f"don't support this enum type yet: {self}"
+        raise NotImplementedError(msg)
 
 
 class Items(Dict[str, MutableItem]):
@@ -330,8 +345,9 @@ class KeywordItems(Items):
             yield value, kw
 
     def mutate_until_unique(self, item: MutableItem):
+        msg = f"{repr(self)}.mutate_until_unique(item={repr(item)}) not implemented"
         raise NotImplementedError(
-            f"{repr(self)}.mutate_until_unique(item={repr(item)}) not implemented"
+            msg
         )
 
 

@@ -98,7 +98,8 @@ def _create_is_maybe_predicate(criterion: SearchCriteria) -> Callable[[str, str]
     elif criterion == "endswith":
         is_maybe = str.endswith
     else:
-        raise ValueError(f"Expected criterion: {SearchCriteria.__args__}, got {criterion!r}")
+        msg = f"Expected criterion: {SearchCriteria.__args__}, got {criterion!r}"
+        raise ValueError(msg)
 
     return is_maybe
 
@@ -109,9 +110,11 @@ def fuzzy(keyword: str, collection: Collection[T], cutoff=2) -> Matches[T]:
     Doesn't prompt.
     """
     if not keyword or re.fullmatch(r'[\'"]+', keyword):  # only quotes
-        raise ValueError(f"fuzzy({keyword = !r}): bad keyword")
+        msg = f"fuzzy({keyword = !r}): bad keyword"
+        raise ValueError(msg)
     if not collection or not any(item for item in collection):
-        raise ValueError(f"fuzzy({keyword!r}, {collection = !r}): no collection")
+        msg = f"fuzzy({keyword!r}, {collection = !r}): no collection"
+        raise ValueError(msg)
     near_matches = Matches(maxsize=5)
     far_matches = Matches(maxsize=5)
     max_l_dist = min(len(keyword) - 1, 17)

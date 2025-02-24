@@ -137,7 +137,8 @@ class Confirmation(LexicPrompt):
 
     def __init__(self, prompt: str, *options: str, **kwargs):
         if "free_input" in kwargs:
-            raise ValueError(f"Confirmation cannot have free input. kwargs: {kwargs}")
+            msg = f"Confirmation cannot have free input. kwargs: {kwargs}"
+            raise ValueError(msg)
         super().__init__(prompt, *options, **kwargs)
 
 
@@ -147,10 +148,12 @@ class Action(BasePrompt):
 
     def __init__(self, question: str, *actions: str, **kwargs):
         if not actions:
-            raise ValueError(f"At least one action is required")
+            msg = f"At least one action is required"
+            raise ValueError(msg)
         self.options = LexicOptions(*actions)
         if self.options.any_item(lambda item: item.is_yes_or_no):
-            raise ValueError(f"Actions cannot include a 'yes' or 'no'. Received: {repr(actions)}")
+            msg = f"Actions cannot include a 'yes' or 'no'. Received: {repr(actions)}"
+            raise ValueError(msg)
         super().__init__(question, **kwargs)
 
 
@@ -185,8 +188,9 @@ class Choice(BasePrompt):
 
     def __init__(self, question: str, *options: str, **kwargs):
         if not options:
+            msg = f"At least one option is required when using Choice (contrary to Prompt)"
             raise ValueError(
-                f"At least one option is required when using Choice (contrary to Prompt)"
+                msg
             )
         self.options = NumOptions(*options)
         super().__init__(question, **kwargs)

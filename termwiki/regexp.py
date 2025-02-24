@@ -38,9 +38,7 @@ def is_only_regex(val: str):
     """
     if not val:
         return False
-    if re.fullmatch(ONLY_REGEX, val):
-        return True
-    return False
+    return bool(re.fullmatch(ONLY_REGEX, val))
     # TODO: this is not really tested, for ex. it fails detecting [abc]. also, account for lookbehinds etc
     without_sqr_brackets = SQUARE_BRACKETS_REGEX.sub("", val)
     if without_sqr_brackets == val:
@@ -82,20 +80,14 @@ def has_glob(val: str) -> bool:
     """
     if not val:
         return False
-    for i, c in enumerate(val):
-        if is_glob_char(val, i):
-            return True
-    return False
+    return any(is_glob_char(val, i) for i, c in enumerate(val))
 
 
 def is_only_glob(val: str) -> bool:
     # TODO: this doesn't detect [a-z]
     if not val:
         return False
-    for i in range(len(val)):
-        if not is_glob_char(val, i):
-            return False
-    return True
+    return all(is_glob_char(val, i) for i in range(len(val)))
 
 
 def has_regex(val: str):  # doesnt detect single dot
