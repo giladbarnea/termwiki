@@ -36,6 +36,7 @@ LANGUAGES: list[str] = [
     "toml",
     "ts",
     "yaml",
+    "zsh",
 ]
 
 STYLES: list[str] = [
@@ -56,7 +57,8 @@ PIPE_SEPARATED_STYLES = "|".join(STYLES)
 SYNTAX_DIRECTIVE_OPEN_RE = "(%|```)"
 SYNTAX_DIRECTIVE_CLOSE_RE = "(/%|```)"
 
-SYNTAX_HIGHLIGHT_START_RE = re.compile(  # works for 1-5
+# Works for cases 1-5 below
+SYNTAX_HIGHLIGHT_START_RE = re.compile(
     rf"{SYNTAX_DIRECTIVE_OPEN_RE}(?P<lang>{PIPE_SEPARATED_LANGUAGES}) ?"
     r"((?P<count>\d) *|(?P<line_numbers>--line-numbers) *|(?P<style>{pipe_sep_styles}) *)*"
 )
@@ -67,7 +69,7 @@ SYNTAX_HIGHLIGHT_START_RE = re.compile(  # works for 1-5
 # print(SYNTAX_HIGHLIGHT_START_RE.fullmatch('%python'))                   # 5
 
 SYNTAX_HIGHLIGHT_END_RE = re.compile(
-    f"{SYNTAX_DIRECTIVE_CLOSE_RE}(?P<lang>{PIPE_SEPARATED_LANGUAGES})"
+    f"{SYNTAX_DIRECTIVE_CLOSE_RE}(?P<lang>{PIPE_SEPARATED_LANGUAGES})?"
 )
 
 IMPORT_RE = re.compile(r"%import (?P<import_path>[\w.]+)")
@@ -76,6 +78,12 @@ SUB_PAGE_RE = re.compile(r'_[A-Z\d_]*\s*=\s*(rf|fr|f)["\']{3}')
 WHITESPACE_RE = re.compile(r"\s*")
 COLOR_RE = re.compile(r"(\x1b\[(?:\d;?)*m)")
 NON_LETTER_RE = re.compile(r"[^a-zA-Z\d]")
+SYNTAX_HIGHLIGHT_LINE_PREFIX_DIRECTIVES = {
+    "$": "bash",
+    "❯": "zsh",
+    ">>>": "python",
+    "...": "python",
+}
 # what = re.compile(r'\b'
 #                   r'(?:'
 #                     # either 'one', 'two' or 'three', ending with ',' or end of word

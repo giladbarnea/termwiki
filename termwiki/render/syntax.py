@@ -52,7 +52,8 @@ lexer_classes: dict[Language, Type[Lexer]] = {
     "sql": SqlLexer,
     "toml": TOMLLexer,
     "ts": TypeScriptLexer,
-    "yaml": YamlLexer
+    "yaml": YamlLexer,
+    "zsh": BashLexer,
 }
 lexers: dict[Language, Lexer] = dict.fromkeys(consts.LANGUAGES)
 assert set(lexers) == set(lexer_classes), (

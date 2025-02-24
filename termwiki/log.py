@@ -10,7 +10,7 @@ from rich.theme import Theme
 from termwiki import consts
 
 
-def format_args(func):
+def _format_args(func):
     @functools.wraps(func)
     def log_method(*args, **kwargs):
         self, *args = args
@@ -90,7 +90,7 @@ class Console(RichConsole):
 
     if consts.DEBUG:
 
-        @format_args
+        @_format_args
         def debug(self, *args, **kwargs):
             return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 
@@ -101,31 +101,31 @@ class Console(RichConsole):
 
         print(f" ! Console.debug() disabled\n")
 
-    @format_args
+    @_format_args
     def info(self, *args, **kwargs):
         return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 
-    @format_args
+    @_format_args
     def warning(self, *args, **kwargs):
         return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 
-    @format_args
+    @_format_args
     def error(self, *args, **kwargs):
         return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 
-    @format_args
+    @_format_args
     def fatal(self, *args, **kwargs):
         return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 
-    @format_args
+    @_format_args
     def success(self, *args, **kwargs):
         return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 
-    @format_args
+    @_format_args
     def prompt(self, *args, **kwargs):
         return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 
-    @format_args
+    @_format_args
     def title(self, *args, **kwargs):
         return self.log(*args, _stack_offset=kwargs.pop("_stack_offset", 3), **kwargs)
 

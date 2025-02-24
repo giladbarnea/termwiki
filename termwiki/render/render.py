@@ -2,7 +2,11 @@ import re
 from textwrap import dedent, indent
 
 from termwiki.common.types import Language, Style
-from termwiki.consts import SYNTAX_HIGHLIGHT_END_RE, SYNTAX_HIGHLIGHT_START_RE
+from termwiki.consts import (
+    SYNTAX_HIGHLIGHT_END_RE,
+    SYNTAX_HIGHLIGHT_START_RE,
+    SYNTAX_HIGHLIGHT_LINE_PREFIX_DIRECTIVES,
+)
 from termwiki.page import Page
 from termwiki.render import syntax_highlight
 from termwiki.render.util import enumerate_lines, get_indent_level
@@ -52,9 +56,9 @@ def render_page(
     page: Page, default_styles: dict[Style, Language] = None, default_style: Style = None, *args
 ) -> str:
     default_styles = default_styles or {}
-    text = page.read()
-    text or breakpoint()
-    lines = text.splitlines()
+    remaining_text = page.read()
+    remaining_text or breakpoint()
+    lines = remaining_text.splitlines()
     highlighted_strs = []
     idx = 0
     while True:
@@ -64,36 +68,34 @@ def render_page(
         line_stripped: str = line.strip()
         prefix: str = line_stripped[0] if line_stripped else ""
 
+        # 1. Handle case where current line is a BLOCK syntax highlight directive
         if syntax_highlight_start_match := SYNTAX_HIGHLIGHT_START_RE.fullmatch(line_stripped):
-            # ** `%mysql ...`:
             groupdict: dict = syntax_highlight_start_match.groupdict()
             lang: Language = groupdict["lang"]
-            highlighted_lines_count: int = groupdict["count"] and int(groupdict["count"])
+            specified_line_count_to_highlight: int = int(groupdict.get("count") or 0)
             should_enumerate_lines: bool = bool(groupdict["line_numbers"])
             # Style precedence:
             # 1. %mysql friendly
             # 2. @syntax(python='friendly')
             # 3. @syntax('friendly')
-            style = groupdict["style"]
-            if not style:
-                # Default_style is either @syntax('friendly') or None
-                style = default_styles.get(lang, default_style)
+            # Default_style is either @syntax('friendly') or None
+            style = groupdict["style"] or default_styles.get(lang, default_style)
 
-            # * `%mysql 1`:
-            if highlighted_lines_count:
+            # 1.a. %lang COUNT (e.g. %mysql 1)
+            if specified_line_count_to_highlight:
                 # Looks like this breaks %mysql 3 --line-numbers
                 highlighting_idx = idx + 1
-                for _ in range(highlighted_lines_count):
+                for _ in range(specified_line_count_to_highlight):
                     next_line = lines[highlighting_idx]
                     highlighted = syntax_highlight(next_line, lang, style)
                     highlighted_strs.append(highlighted)
                     highlighting_idx += 1
                 idx = highlighting_idx + 1
-                continue  # outer while
+                continue  # Outer while
 
-            # * `%mysql [friendly] [--line-numbers]`:
-            # idx is where %python directive.
-            # Keep incrementing highlighting_idx until we hit closing /%python.
+            # 1.b. %lang [friendly] [--line-numbers]
+            # idx is where %lang directive.
+            # Keep incrementing highlighting_idx until we hit closing /%lang.
             # Then highlight idx+1:highlighting_idx.
             highlighting_idx = idx + 1
             while True:
@@ -104,59 +106,64 @@ def render_page(
                     # So we just highlight the first line and break.
                     # TODO: in setuppy, under setup(), first line not closing %bash doesnt work
                     #  Consider highlighting until end of string (better behavior and maybe solves this bug?)
-                    text = lines[idx + 1]
-                    highlighted = syntax_highlight(text, lang, style)
+                    from termwiki.log import log
+
+                    log.warning(
+                        f"No closing %lang directive found for {lang} at {idx} of page {page!r}"
+                    )
+                    idx = _handle_no_closing_directive(
+                        lines,
+                        highlighted_strs,
+                        idx,
+                        lang,
+                        should_enumerate_lines,
+                        style,
+                        highlighting_idx,
+                    )
+                    break  # Inner while
+                if SYNTAX_HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
+                    remaining_text = "\n".join(lines[idx + 1 : highlighting_idx])
                     if should_enumerate_lines:
-                        breakpoint()
+                        # Pygments adds color codes to start of line, even if
+                        # it's indented. Tighten this up before adding line numbers.
+                        indent_level = get_indent_level(remaining_text)
+                        dedented_text = dedent(remaining_text)
+                        ljust = len(str(highlighting_idx - (idx + 1)))
+                        highlighted = syntax_highlight(dedented_text, lang, style)
+                        highlighted = enumerate_lines(highlighted, ljust=ljust)
+                        highlighted = indent(highlighted, " " * indent_level)
+                    else:
+                        highlighted = syntax_highlight(remaining_text, lang, style)
                     highlighted_strs.append(highlighted)
                     idx = highlighting_idx
-                    break  # inner while
-                else:
-                    if SYNTAX_HIGHLIGHT_END_RE.fullmatch(next_line.strip()):
-                        text = "\n".join(lines[idx + 1 : highlighting_idx])
-                        if should_enumerate_lines:
-                            # pygments adds color codes to start of line, even if
-                            # it's indented. Tighten this up before adding line numbers.
-                            indent_level = get_indent_level(text)
-                            dedented_text = dedent(text)
-                            ljust = len(str(highlighting_idx - (idx + 1)))
-                            highlighted = syntax_highlight(dedented_text, lang, style)
-                            highlighted = enumerate_lines(highlighted, ljust=ljust)
-                            highlighted = indent(highlighted, " " * indent_level)
-                        else:
-                            highlighted = syntax_highlight(text, lang, style)
-                        highlighted_strs.append(highlighted)
-                        idx = highlighting_idx
-                        break
-                    highlighting_idx += 1
+                    break  # Inner while
+                highlighting_idx += 1
 
-        elif prefix in ("❯", "$"):
-            if "\x1b[" in line:  # hack to detect if line is already highlighted
+        # 2. Handle case where current line is a LINE syntax highlight directive
+        elif prefix in SYNTAX_HIGHLIGHT_LINE_PREFIX_DIRECTIVES:
+            if "\x1b[" in line:  # Hack to detect if line is already highlighted
                 highlighted_strs.append(line)
             else:
                 *prompt_symbol, line = line.partition(prefix)
                 highlighted = syntax_highlight(
-                    line, "bash", style=default_styles.get("bash", default_style)
+                    line,
+                    SYNTAX_HIGHLIGHT_LINE_PREFIX_DIRECTIVES[prefix],
+                    style=default_styles.get(
+                        SYNTAX_HIGHLIGHT_LINE_PREFIX_DIRECTIVES[prefix], default_style
+                    ),
                 )
                 highlighted_strs.append("".join(prompt_symbol) + highlighted)
-        elif prefix in (">>>", "..."):
-            if "\x1b[" in line:  # hack to detect if line is already highlighted
-                highlighted_strs.append(line)
-            else:
-                *prompt_symbol, line = line.partition(prefix)
-                highlighted = syntax_highlight(
-                    line, "python", style=default_styles.get("python", default_style)
-                )
-                highlighted_strs.append("".join(prompt_symbol) + highlighted)
-        else:  # regular line, no directives (SYNTAX_HIGHLIGHT_START_RE or IMPORT_RE)
+
+        # 3. Handle case where current line is a regular line (no directives)
+        else:
             highlighted_strs.append(line + "\n")
 
         idx += 1
 
     stripped_highlighted_full_string = "".join(highlighted_strs).strip()
     if (
-        stripped_highlighted_full_string in text
-        and "\x1b[" not in text
+        stripped_highlighted_full_string in remaining_text
+        and "\x1b[" not in remaining_text
         and re.match("#+ ", highlighted_strs[0])
     ):
         # Text never included colors nor directives, and it looks like markdown
@@ -165,3 +172,15 @@ def render_page(
             dedented, "markdown", style=default_styles.get("markdown", default_style)
         )
     return stripped_highlighted_full_string
+
+
+def _handle_no_closing_directive(
+    lines, highlighted_strs, idx, lang, should_enumerate_lines, style, highlighting_idx
+):
+    text = lines[idx + 1]
+    highlighted = syntax_highlight(text, lang, style)
+    if should_enumerate_lines:
+        breakpoint()
+    highlighted_strs.append(highlighted)
+    idx = highlighting_idx
+    return idx
