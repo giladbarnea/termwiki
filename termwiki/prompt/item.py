@@ -32,9 +32,7 @@ def mutate_identifier(identifier: str):
             "no word separators, and both lowercase and uppercase identifier is taken"
             f" ('{upper.lower()}')"
         )
-        raise NotImplementedError(
-            msg
-        )
+        raise NotImplementedError(msg)
     words_identifiers = "".join(map(lambda s: s[0], words))
     identifier = words_identifiers
     logging.debug(f"mutate_identifier() yielding words_identifiers: {repr(words_identifiers)}")
@@ -168,9 +166,7 @@ class LexicItem(MutableItem):
                 "no word separators, and both lowercase and uppercase identifier is taken"
                 f" ('{upper.lower()}')"
             )
-            raise NotImplementedError(
-                msg
-            )
+            raise NotImplementedError(msg)
         words_identifiers = "".join(map(lambda s: s[0], words))
         self.identifier = words_identifiers
         # darkprint(f'mutate_identifier() yielding words_identifiers: {repr(words_identifiers)}')
@@ -234,9 +230,7 @@ class FlowItem(Item):
             f"{repr(self)}.identifier({repr(identifier)}): Enum can't set self.identifier because"
             " self.value is readonly"
         )
-        raise AttributeError(
-            msg
-        )
+        raise AttributeError(msg)
 
     @property
     def value(self):
@@ -248,9 +242,7 @@ class FlowItem(Item):
             f"{repr(self)}.value({repr(value)}): Enum can't set self.value because self.value is"
             " readonly"
         )
-        raise AttributeError(
-            msg
-        )
+        raise AttributeError(msg)
 
     @property
     def DEBUG(self):
@@ -346,9 +338,7 @@ class KeywordItems(Items):
 
     def mutate_until_unique(self, item: MutableItem):
         msg = f"{repr(self)}.mutate_until_unique(item={repr(item)}) not implemented"
-        raise NotImplementedError(
-            msg
-        )
+        raise NotImplementedError(msg)
 
 
 class NumItems(Items):

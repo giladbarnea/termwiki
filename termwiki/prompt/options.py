@@ -52,9 +52,7 @@ class Options(ABC):
                     f"{repr(self)}\nset_flow_opts(flowopts) | duplicate flowitems:"
                     f" {repr(flowitems)}"
                 )
-                raise ValueError(
-                    msg
-                )
+                raise ValueError(msg)
 
         for flowitem in flowitems:
             self.items.store(flowitem)
@@ -76,9 +74,7 @@ class Options(ABC):
                 f"{repr(self)}\nset_kw_options() | 'free_input' found in kw_opts, should have"
                 f" popped it out earlier.\nkw_opts: {repr(kw_opts)}"
             )
-            raise RuntimeError(
-                msg
-            )
+            raise RuntimeError(msg)
         non_flow_kw_opts = {}
         for kw in kw_opts:
             opt = kw_opts[kw]
@@ -87,9 +83,7 @@ class Options(ABC):
                     f"{repr(self)}\nset_kw_options() | '{kw}' in kw_opts but was already in"
                     f" self.items.\nkw_opts: {repr(kw_opts)}"
                 )
-                raise ValueError(
-                    msg
-                )
+                raise ValueError(msg)
 
             try:
                 # flowitem = FlowItem.from_full_name(opt)

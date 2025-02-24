@@ -133,9 +133,7 @@ class IndentationMarkdown:
                     f"but line (#{i}) indent size is {indent_level}.\n"
                     f"Line: {line}"
                 )
-                raise SyntaxError(
-                    msg
-                )
+                raise SyntaxError(msg)
             line = Line(line)
             if indent_level > current_block.indent_level:
                 empty_trailing_lines = deque()

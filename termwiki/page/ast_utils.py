@@ -95,9 +95,7 @@ def get_local_variables(
             f"\n\tnot FunctionDef, not Assign nor ImportFrom\n\t{source_parent_node=}"
             f"\n\t{parent=}"
         )
-        raise NotImplementedError(
-            msg
-        )
+        raise NotImplementedError(msg)
     return local_variables
 
 
@@ -144,9 +142,7 @@ def traverse_immutable_when_unparsed(node, parent, target_id):
             " has neither __globals__ nor is it a ModuleType, not does it have"
             f" __builtins__.\n\t{type(parent) = }"
         )
-        raise AttributeError(
-            msg
-        )
+        raise AttributeError(msg)
     rendered = eval_node(node.value, parent, globals_)
     yield target_id, VariablePage(rendered, target_id)
 

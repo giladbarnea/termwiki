@@ -14,10 +14,8 @@ def get_indent_level(text: str) -> int:
 
 
 def enumerate_lines(text: str, *, ljust: int = 0) -> str:
-    enumerated_text: str = "\n".join(
-        [
-            f"\x1b[90m{i: >{ljust}}｜\x1b[0m {line}"
-            for i, line in enumerate(text.splitlines(), start=1)
-        ]
-    )
+    enumerated_text: str = "\n".join([
+        f"\x1b[90m{i: >{ljust}}｜\x1b[0m {line}"
+        for i, line in enumerate(text.splitlines(), start=1)
+    ])
     return enumerated_text

@@ -189,9 +189,7 @@ class Choice(BasePrompt):
     def __init__(self, question: str, *options: str, **kwargs):
         if not options:
             msg = f"At least one option is required when using Choice (contrary to Prompt)"
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
         self.options = NumOptions(*options)
         super().__init__(question, **kwargs)
 
