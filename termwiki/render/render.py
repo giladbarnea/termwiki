@@ -53,6 +53,8 @@ from termwiki.render.util import enumerate_lines, get_indent_level
             indented_imported_text = indent(imported_text + "\n", " " * indent_level)
             highlighted_strs.append(indented_imported_text)
 """
+
+
 def render_page(
     page: Page,
     default_styles: Optional[dict[Style, Language]] = None,

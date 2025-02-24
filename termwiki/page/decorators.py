@@ -56,6 +56,7 @@ def title(_title) -> Callable[[PageFunction], PageFunction]:
 
     return decorator
 
+
 def tag(*tags) -> Callable[[PageFunction], PageFunction]:
     @functools.wraps(tags)
     def decorator(page_function: PageFunction) -> PageFunction:

@@ -22,6 +22,7 @@ This includes:
         to Pygments.
 
 """
+
 # -----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #

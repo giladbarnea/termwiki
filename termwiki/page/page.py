@@ -34,8 +34,7 @@ class Page:
     #     self.__aliases__ = {}
 
     @abstractmethod
-    def read(self, *args, **kwargs) -> str:
-        ...
+    def read(self, *args, **kwargs) -> str: ...
 
     @cached_property
     def readable(self) -> bool:
@@ -66,8 +65,7 @@ class Traversable(Page):
         cls.traverse = create_caching_traverse(cls.traverse)
 
     @abstractmethod
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
     # def _cache_page(self, page_tuple: tuple[str, Page]) -> Page:
     #     normalized_page_name, page = page_tuple
@@ -83,8 +81,7 @@ class Traversable(Page):
 
     @abstractmethod
     # @CachingGenerator
-    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]:
-        ...
+    def traverse(self, *args, cache_ok=True, **kwargs) -> Generator[tuple[str, Page]]: ...
 
     __iter__ = traverse
 

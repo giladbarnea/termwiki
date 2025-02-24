@@ -35,7 +35,7 @@ class Matches(Generic[T]):
     def __repr__(self):
         matches_repr = ""
         for score, candidates in self.matches.items():
-            matches_repr += f'[{score}]: {", ".join(candidates)}\n    '
+            matches_repr += f"[{score}]: {', '.join(candidates)}\n    "
         return f"""Matches() ({self.count}) | best: {self.best_score} | worst: {self.worst_score}
     {matches_repr}"""
 

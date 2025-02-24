@@ -124,9 +124,9 @@ def traverse_immutable_when_unparsed(node, parent, target_id):
     from . import VariablePage
 
     if hasattr(parent, "__globals__"):
-        assert callable(parent) and not isinstance(
-            parent, ModuleType
-        ), f"{parent} is not a function"
+        assert callable(parent) and not isinstance(parent, ModuleType), (
+            f"{parent} is not a function"
+        )
         globals_ = parent.__globals__
     elif isinstance(parent, ModuleType):
         globals_ = {

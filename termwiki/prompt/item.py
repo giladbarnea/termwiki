@@ -293,8 +293,7 @@ class Items(Dict[str, MutableItem]):
         return string + "}"
 
     @abstractmethod
-    def items_gen(self, items) -> Generator[Tuple[str, str], None, None]:
-        ...
+    def items_gen(self, items) -> Generator[Tuple[str, str], None, None]: ...
 
     def store(self, item: MutableItem):
         if item.identifier in self:
@@ -314,8 +313,7 @@ class Items(Dict[str, MutableItem]):
             self[item.identifier] = item
 
     @abstractmethod
-    def mutate_until_unique(self, item: MutableItem):
-        ...
+    def mutate_until_unique(self, item: MutableItem): ...
 
     def __setitem__(self, k: str, v) -> None:
         if k in self:

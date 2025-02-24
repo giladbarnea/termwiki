@@ -11,8 +11,7 @@ class PageFunction(Protocol):
     # sub_pages: set[str]
     # alias: str
 
-    def __call__(self) -> str:
-        ...
+    def __call__(self) -> str: ...
 
 
 # Representing subject=None with Optional[str] doesn't work.

@@ -103,6 +103,7 @@ def syntax_highlight(text: str, lang: Language, style: Style = None) -> str:
     highlighted: str = pygments_highlight(text, lexer, color_formatter)
     return highlighted
 
+
 def highlight_markdown(text: str) -> str:
     import os
 
@@ -120,6 +121,7 @@ def highlight_markdown(text: str) -> str:
             Markdown(text, justify="left", code_theme="dracula", inline_code_theme="dracula")
         )
     return capture.get()
+
 
 def syntax(_page_or_style: PageFunction | Style = None, /, **default_styles):
     """

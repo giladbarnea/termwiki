@@ -67,10 +67,7 @@ class MergedPage(Traversable):
                     f"MergedPage.merge_sub_pages, "
                     f"one of the sub-pages is a MergedPage! "
                     f"this should not happen (I think).\n"
-                    f"─"
-                    * 80
-                    + f"\npage: {page!r}.\n─" * 80
-                    + f"\nself: {self!r}.\n"
+                    f"─" * 80 + f"\npage: {page!r}.\n─" * 80 + f"\nself: {self!r}.\n"
                 )
             if hasattr(page, "pages"):
                 sub_pages.update(page.pages)

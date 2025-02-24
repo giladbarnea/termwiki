@@ -91,8 +91,7 @@ class BasePrompt:
     @overload
     def get_answer(
         self, dialog_string: str, *, free_input=False
-    ) -> Tuple[str, Union[MutableItem, LexicItem, FlowItem]]:
-        ...
+    ) -> Tuple[str, Union[MutableItem, LexicItem, FlowItem]]: ...
 
     @overload
     def get_answer(self, dialog_string: str, *, free_input=True) -> Tuple[None, str]:
