@@ -9,7 +9,12 @@ Language = Literal[*consts.LANGUAGES]
 
 class PageFunction(Protocol):
     # sub_pages: set[str]
-    # alias: str
+    title: str
+    aliases: list[str]
+    related: list[str]
+    tags: list[str]
+    styles: dict[Language, Style]
+    default_style: Style
 
     def __call__(self) -> str: ...
 

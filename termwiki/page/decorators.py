@@ -1,8 +1,9 @@
-import functools
 import sys
-from typing import Callable
+from typing import Callable, TypeVar
 
 from termwiki.common.types import PageFunction
+
+TPageFunction = TypeVar("TPageFunction", bound=PageFunction)
 
 
 def style(default_style: str | None = None, **language_styles):
@@ -21,11 +22,10 @@ def style(default_style: str | None = None, **language_styles):
 
     """
 
-    # should unwrap first?
-    def decorator(page_function):
+    # Should unwrap first?
+    def decorator[TPageFunction](page_function: TPageFunction) -> TPageFunction:
         page_function.default_style = default_style
-        if not hasattr(page_function, "styles"):
-            page_function.styles = {}
+        _setdefault(page_function, "styles", {})
         page_function.styles.update(language_styles)
         return page_function
 
@@ -33,45 +33,45 @@ def style(default_style: str | None = None, **language_styles):
 
 
 def alias(*aliases) -> Callable[[PageFunction], PageFunction]:
-    @functools.wraps(aliases)
     def decorator(page_function: PageFunction) -> PageFunction:
-        if not hasattr(page_function, "aliases"):
-            page_function.aliases = []
+        _setdefault(page_function, "aliases", [])
         page_function.aliases.extend(aliases)
-        # should unwrap first?
-        for al in aliases:
-            page_function.__globals__[al] = page_function
-            sys.modules[page_function.__module__].__dict__[al] = page_function
+        # Should unwrap first?
+        for alias in aliases:
+            page_function.__globals__[alias] = page_function
+            sys.modules[page_function.__module__].__dict__[alias] = page_function
         return page_function
 
     return decorator
 
 
 def title(_title) -> Callable[[PageFunction], PageFunction]:
-    @functools.wraps(_title)
     def decorator(page_function: PageFunction) -> PageFunction:
-        if not hasattr(page_function, "title"):
-            page_function.title = _title
+        _setdefault(page_function, "title", _title)
         return page_function
 
     return decorator
 
 
 def tag(*tags) -> Callable[[PageFunction], PageFunction]:
-    @functools.wraps(tags)
     def decorator(page_function: PageFunction) -> PageFunction:
-        if not hasattr(page_function, "tags"):
-            page_function.tags = []
+        _setdefault(page_function, "tags", [])
         page_function.tags.extend(tags)
         return page_function
 
     return decorator
 
 
-def related(page_name) -> Callable[[PageFunction], PageFunction]:
-    @functools.wraps(page_name)
+def related(*page_names) -> Callable[[PageFunction], PageFunction]:
     def decorator(page_function: PageFunction) -> PageFunction:
-        page_function.related = page_name
+        _setdefault(page_function, "related", [])
+        page_function.related.extend(page_names)
         return page_function
 
     return decorator
+
+
+def _setdefault(obj, attr, value) -> None:
+    if not hasattr(obj, attr):
+        setattr(obj, attr, value)
+    return None
