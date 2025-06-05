@@ -109,7 +109,7 @@ def highlight_markdown(text: str) -> str:
 
     # Can't get it to syntax highlight with subprocess :(
     os.system(
-        f"echo '{text}' | COLORTERM=truecolor TERM=xterm-256color /opt/homebrew/bin/glow -s dark -"
+        f"echo '{text}' | COLORTERM=truecolor TERM=xterm-256color /opt/homebrew/bin/glow --preserve-new-lines --style dark -w 120 -"
     )
     return ""
     from rich.markdown import Markdown
