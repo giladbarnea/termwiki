@@ -66,12 +66,8 @@ show-fixes = true
 
 # Stopped at: implicit-namespace-package (INP001) and unnecessary-iterable-allocation-for-first-element (RUF015)
 select = [
-  "A001",      # builtin-variable-shadowing (lint.flake8-builtins.builtins-ignorelist)
-  "A002",      # builtin-argument-shadowing (lint.flake8-builtins.builtins-ignorelist)
-  "A003",      # builtin-attribute-shadowing (lint.flake8-builtins.builtins-ignorelist)
-  "A004",      # builtin-import-shadowing (lint.flake8-builtins.builtins-ignorelist)
-  "A005",      # stdlib-module-shadowing (lint.flake8-builtins.builtins-ignorelist). Requires --preview.
-  "A006",      # builtin-lambda-argument-shadowing (lint.flake8-builtins.builtins-ignorelist). Requires --preview.
+  "A",         # Name shadowing
+
   "ARG001",    # Unused argument
   "ASYNC100",  # Cancel-scope-no-checkpoint
   "ASYNC109",  # Async-function-with-timeout
@@ -124,18 +120,19 @@ select = [
   "D211",      # No blank lines allowed before class docstring
   # "D213",      # No """Return ...\n""" allowed in docstrings  # Disabled because page strings indentation
   "DTZ",       # Date/Time Timezone pitfalls
+  # "E501",      # Line too long  * Commented because `ruff format` is best-effort, not 100%, so this just creates noise
   "E711",      # None comparison
   "E712",      # True False comparison
   "E713",      # Not in
   "E714",      # Not is
-  "E721",      # type(...) ==
+  "E721",      # Type(...) ==
   "E902",      # IO Error. When Ruff can't read a file
   "EM102",     # f-string-in-exception
   "EM103",     # dot-format-in-exception
   "EXE001",    # shebang-not-executable
   "EXE004",    # shebang-leading-whitespace
   "EXE005",    # shebang-not-first-line
-  "F401",      # Unused import
+  "F",         # PyFlakes
   "FAST001",   # FastAPI redundant response model
   "FAST002",   # FastAPI bad dependency definition
   "FBT001",    # Boolean positional type hint
@@ -171,22 +168,26 @@ select = [
   "RUF024",    # Mutable dict.fromkeys() value
   "RUF026",    # Disallow defaultdict(default_factory=...) kwarg
   "RUF027",    # Missing f-string syntax
+  "RUF028",    # Invalid formatter suppression comment
   "RUF029",    # Unused async
   "RUF030",    # Assert with print message
   "RUF033",    # Dataclass __post_init__ default argument
   "RUF034",    # Useless if-else
   "RUF036",    # 'None' not at the end of union
-  # "RUF037",    # Unnecessary empty iterable within deque call  # Supported only in Ruff>0.9.2
+  "RUF037",    # Unnecessary empty iterable within deque call
   "RUF038",    # Redundant bool Literal
+  "RUF053",    # Class with type parameter list inherits from Generic
+  "RUF059",    # Unused unpacked variable
+  "RUF100",    # Unused noqa directive
+  "RUF102",    # Invalid rule code in noqa
+  "SIM",       # Pyflake-simplify. All of them are good except SIM108, which is in `ignore` down below.
   "S110",      # Try-except-pass silent suppression
   "S113",      # Request-without-timeout
   "S306",      # Suspicious-mktemp-usage
   "S506",      # Unsafe-yaml-load
   "S701",      # Jinja2-autoescape-false
-  "SIM",       # Pyflake-simplify. All of them are good except SIM108, which is in `ignore` down below.
   "W291",      # Trailing whitespace
-  "W605",      # Invalid escape sequence. "\.md$" => r"\.md$",
-  # "E501",      # Line too long  * Commented because `ruff format` is best-effort, not 100%, so this just creates noise
+  "W605",      # Invalid escape sequence. "\.md$" => r"\.md$"
 ]
 
 ignore = [
@@ -194,7 +195,7 @@ ignore = [
   "D205",      # 1 blank line required between summary line and description (too pedantic)
 ]
 unfixable = [
-  "SIM102"
+  "SIM102"  # Use a single `if` statement instead of nested `if` statements
 ]
 [tool.ruff.lint.flake8-builtins]
 builtins-ignorelist = ["property"]
